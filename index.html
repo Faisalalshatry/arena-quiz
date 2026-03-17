@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Faisal — منصة المسابقات</title>
+<title>Faisal App — منصة المسابقات</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -355,6 +355,10 @@ textarea{resize:vertical;min-height:64px;}
 .host-side-sb{margin-top:10px;}
 .host-side-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
 
+/* TV TEXT INPUT WRAPPER */
+.tv-text-input-wrap{padding:10px 0;}
+.tv-text-input-wrap .taw{flex-direction:column;}
+
 /* BUZZ TV BUTTONS */
 .bz-tv-btn{width:110px;height:110px;}
 
@@ -402,7 +406,7 @@ textarea{resize:vertical;min-height:64px;}
   <div style="position:absolute;top:13px;left:13px;z-index:10">
     <button class="thm" onclick="toggleTheme()">🌙</button>
   </div>
-  <div class="logo">ARENA</div>
+  <div class="logo">Faisal App</div>
   <div class="logosub">منصة المسابقات التفاعلية</div>
   <div id="conn-status" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
     <span class="cdot bad" id="cdot"></span><span id="ctxt">جاري الاتصال...</span>
@@ -412,9 +416,9 @@ textarea{resize:vertical;min-height:64px;}
     <button class="bh bhc" onclick="goTo('team-view')">🏆 واجهة الفريق</button>
   </div>
   <p style="color:var(--muted);font-size:12px;text-align:center;max-width:340px;line-height:1.8">
-    أرسل الرابط للفرق عشان يفتحونه على أجهزتهم ويختارون فريقهم
+    أرسل الرابط للفرق ليفتحوه على أجهزتهم ويختاروا فريقهم
   </p>
-  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv: <b>Faisal Almutairi</b></footer>
+  <footer class="footer" style="position:absolute;bottom:0;width:100%">برمجة وتطوير <b>Faisal Almutairi</b></footer>
 </div>
 
 <!-- ══ PIN ══ -->
@@ -423,7 +427,7 @@ textarea{resize:vertical;min-height:64px;}
     <button class="thm" onclick="toggleTheme()">🌙</button>
   </div>
   <div class="pinbx" style="margin:auto">
-    <div class="pinlogo">ARENA</div>
+    <div class="pinlogo">Faisal App</div>
     <div class="pinsub">لوحة التحكم — المشرف فقط</div>
     <div class="pinlbl">🔐 أدخل رمز الدخول</div>
     <div class="pindots" id="pindots">
@@ -445,7 +449,7 @@ textarea{resize:vertical;min-height:64px;}
 <!-- ══ HOST SETUP ══ -->
 <div id="host-setup" class="screen">
   <div class="topbar">
-    <div class="tlogo">ARENA</div>
+    <div class="tlogo">Faisal App</div>
     <div class="tr">
       <span class="badge bg-gold">🎙️ المشرف</span>
       <span class="cdot ok" id="hcdot" style="width:9px;height:9px"></span>
@@ -531,7 +535,7 @@ textarea{resize:vertical;min-height:64px;}
     <div id="tab-settings" class="tc">
       <div class="card">
         <div class="ct">⚙️ إعدادات المسابقة</div>
-        <div class="fr s"><div><label>عنوان المسابقة</label><input id="cfg-title" value="مسابقة ARENA"></div></div>
+        <div class="fr s"><div><label>عنوان المسابقة</label><input id="cfg-title" value="مسابقة Faisal App"></div></div>
         <div class="fr">
           <div><label>نقاط مكافأة الإجابة السريعة (أقل من نصف الوقت)</label><input id="cfg-bonus" type="number" value="5" min="0" max="20"></div>
           <div><label>نقاط الخصم عند الإجابة الخاطئة</label><input id="cfg-pen" type="number" value="3" min="0" max="20"></div>
@@ -557,7 +561,7 @@ textarea{resize:vertical;min-height:64px;}
 <!-- ══ GAME HOST ══ -->
 <div id="game-host" class="screen">
   <div class="topbar">
-    <div class="tlogo">ARENA</div>
+    <div class="tlogo">Faisal App</div>
     <div class="tr">
       <span id="hq-bdg" class="badge bg-cyan">س ١/١</span>
       <span class="cdot ok" id="gcdot" style="width:9px;height:9px"></span>
@@ -596,7 +600,7 @@ textarea{resize:vertical;min-height:64px;}
 <!-- ══ TEAM VIEW ══ -->
 <div id="team-view" class="screen">
   <div class="topbar">
-    <div class="tlogo">ARENA</div>
+    <div class="tlogo">Faisal App</div>
     <div class="tr">
       <span class="badge bg-cyan">🏆 الفريق</span>
       <span class="cdot ok" id="tvcdot" style="width:9px;height:9px"></span>
@@ -658,7 +662,7 @@ textarea{resize:vertical;min-height:64px;}
     </div>
   </div>
 
-  <footer class="footer">برمجة وتطوير <b>Faisal Almutairi</b></footer>
+  <footer class="footer">Dv <b>Faisal Almutairi</b></footer>
 </div>
 
 <!-- ANSWER REVEAL OVERLAY -->
@@ -683,7 +687,7 @@ textarea{resize:vertical;min-height:64px;}
     <button class="bh bhg" onclick="restartGame()">🔄 جديدة</button>
     <button class="bh bhc" onclick="goTo('landing')">🏠 الرئيسية</button>
   </div>
-  <footer class="footer" style="margin-top:22px;width:100%">برمجة وتطوير <b>Faisal Almutairi</b></footer>
+  <footer class="footer" style="margin-top:22px;width:100%">Dv <b>Faisal Almutairi</b></footer>
 </div>
 
 <!-- VERDICT -->
@@ -750,12 +754,33 @@ function setupListeners(){
     if(g.qShown!==undefined) S.qShown=g.qShown;
     if(g.buzzWinner!==undefined) S.buzzWinner=g.buzzWinner;
     if(g.teamAnswers!==undefined) S.teamAnswers=g.teamAnswers||{};
+    if(g.scoreResults!==undefined) S.scoreResults=g.scoreResults||{};
     if(g.settings) Object.assign(S.settings,g.settings);
     // Sync timeLeft for TV timer display
     if(g.timeLeft!==undefined) S.tvTimeLeft=g.timeLeft;
     const active=document.querySelector('.screen.active')?.id;
 
-    if(active==='game-host'){updateSB();renderHostAnswers();}
+    if(active==='game-host'){
+      updateSB();renderHostAnswers();
+      // If buzz was pressed by team, update host UI
+      if(S.phase==='buzz-answering' && S.buzzWinner && prevPhase!=='buzz-answering'){
+        const t=S.teams.find(x=>x.id===S.buzzWinner);
+        if(t){
+          const c=getC(t.ci);
+          stopTimer();
+          const disp=document.getElementById('bz-disp');
+          if(disp){
+            disp.style.display='block';
+            disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">⚡ ${t.name} ضغط أولاً!</div>`;
+          }
+          const q=S.questions[S.currentQ];
+          if(q) renderBuzz(q,true);
+          renderAwBtns(true);sB('btn-wrong',true);
+          document.getElementById('btn-skip').style.display='none';
+          document.getElementById('btn-next').style.display='inline-block';
+        }
+      }
+    }
 
     if(active==='team-view'){
       updateTV();
@@ -772,9 +797,14 @@ function setupListeners(){
         closeAnswerReveal();
       }
       // Phase changed to answered → show answer reveal
-      if(S.phase==='answered' && prevPhase==='showing' && S.qShown){
+      if(S.phase==='answered' && (prevPhase==='showing'||prevPhase==='buzz-answering') && S.qShown){
         const q=S.questions[S.currentQ];
         if(q) showAnswerReveal(q);
+      }
+      // Buzz winner → re-render to show locked state on TV
+      if(S.buzzWinner && prevPhase!=='buzz-answering' && S.phase==='buzz-answering'){
+        const q=S.questions[S.currentQ];
+        if(q){ updateTV(); }
       }
     }
     if(g.phase==='done'&&active==='team-view'){
@@ -801,23 +831,42 @@ const TCD=[
 ];
 function getC(ci){return(document.documentElement.getAttribute('data-theme')==='dark'?TCD:TC)[ci%12];}
 
-const TEAM_EMOJIS=[
-  '🦅','🦁','🐯','🐉','🦊','🐺','🦈','🦂',
-  '🦅','🦋','🐻','🦏','🐘','🦒','🐬','🦌',
-  '⚔️','🔥','⚡','🌊','🏹','🛡️','💎','👑',
-  '🌟','🎯','🚀','🏆','💪','🎖️','🌋','🦾'
+// رموز الفرق — نصية واضحة بدون إيموجي الجوال
+const TEAM_ICONS=[
+  {id:'star',   label:'نجمة',   svg:'<polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>'},
+  {id:'shield', label:'درع',    svg:'<path d="M12 2L4 6v6c0 5.5 3.5 10.7 8 12 4.5-1.3 8-6.5 8-12V6l-8-4z"/>'},
+  {id:'bolt',   label:'صاعقة', svg:'<polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/>'},
+  {id:'crown',  label:'تاج',    svg:'<path d="M2 19l2-10 4 5 4-12 4 12 4-5 2 10H2z"/>'},
+  {id:'target', label:'هدف',    svg:'<circle cx="12" cy="12" r="10" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="6" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="2"/>'},
+  {id:'diamond',label:'ماسة',   svg:'<polygon points="12,2 22,12 12,22 2,12"/>'},
+  {id:'trophy', label:'كأس',    svg:'<path d="M8 21h8m-4-4v4M5 3h14v7a7 7 0 01-14 0V3z" stroke-width="2" fill="none"/><path d="M5 7H3a2 2 0 000 4h2M19 7h2a2 2 0 010 4h-2" stroke-width="2" fill="none"/>'},
+  {id:'rocket', label:'صاروخ',  svg:'<path d="M12 2c5 3 7 8 7 12l-3 3-4-4-4 4-3-3c0-4 2-9 7-12z"/><circle cx="12" cy="13" r="2" fill="white"/>'},
+  {id:'fire',   label:'نار',    svg:'<path d="M12 2c-2 4-6 6-6 10a6 6 0 0012 0c0-4-4-6-6-10z"/>'},
+  {id:'sword',  label:'سيف',    svg:'<line x1="4" y1="20" x2="20" y2="4" stroke-width="2.5"/><path d="M14 6l4 4M17 3l4 4M4 19l3 3" stroke-width="2" fill="none"/>'},
+  {id:'flag',   label:'راية',   svg:'<line x1="4" y1="21" x2="4" y2="4" stroke-width="2"/><path d="M4 4h14l-3 5 3 5H4" fill="currentColor"/>'},
+  {id:'eye',    label:'عين',    svg:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="3"/>'},
+  {id:'wave',   label:'موجة',   svg:'<path d="M2 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" stroke-width="2.5" fill="none" stroke-linecap="round"/>'},
+  {id:'infinity',label:'لانهاية',svg:'<path d="M12 12c-2-4-6-4-6 0s4 4 6 0 4 4 6 0-2-4-6 0z" stroke-width="2.5" fill="none"/>'},
+  {id:'hex',    label:'سداسي',  svg:'<polygon points="12,2 21.5,7 21.5,17 12,22 2.5,17 2.5,7" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="3"/>'},
+  {id:'arrow',  label:'سهم',    svg:'<line x1="5" y1="12" x2="19" y2="12" stroke-width="2.5"/><polyline points="12,5 19,12 12,19" stroke-width="2.5" fill="none"/>'},
 ];
-let selectedEmoji='🔵';
+
+function teamIconSVG(iconId, color='currentColor', size=22){
+  const icon=TEAM_ICONS.find(x=>x.id===iconId)||TEAM_ICONS[0];
+  return`<svg width="${size}" height="${size}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="${color}" stroke="${color}" stroke-width="0" style="display:block;flex-shrink:0">${icon.svg}</svg>`;
+}
+
+let selectedEmoji='star'; // stores icon id
 
 const S={
   teams:[],questions:[],scores:{},
-  teamAnswers:{},
+  teamAnswers:{},scoreResults:{},
   currentQ:0,phase:'idle',
   qShown:false,buzzWinner:null,
-  selTeamId:null,
+  selTeamId:null, tvAnswered:false,
   timerInt:null,timeLeft:30,totalTime:30,
   tvTimerInt:null,tvTimeLeft:30,tvTotalTime:30,
-  settings:{title:'مسابقة ARENA',bonus:5,pen:3}
+  settings:{title:'مسابقة Faisal App',bonus:5,pen:3}
 };
 let tid=1,qtype='mcq',pinBuf='';
 
@@ -827,22 +876,29 @@ let tid=1,qtype='mcq',pinBuf='';
 function buildEmojiPicker(){
   const el=document.getElementById('emoji-picker');
   if(!el)return;
-  el.innerHTML=TEAM_EMOJIS.map(e=>`
-    <button class="ep${e===selectedEmoji?' sel':''}" onclick="selectEmoji('${e}')" title="${e}">${e}</button>
-  `).join('');
+  el.innerHTML=TEAM_ICONS.map(icon=>{
+    const isSel=icon.id===selectedEmoji;
+    return`<button class="ep${isSel?' sel':''}" onclick="selectEmoji('${icon.id}')" title="${icon.label}"
+      style="display:flex;align-items:center;justify-content:center;gap:0">
+      ${teamIconSVG(icon.id,'currentColor',20)}
+    </button>`;
+  }).join('');
 }
-function selectEmoji(e){
-  selectedEmoji=e;
-  document.getElementById('emoji-preview').textContent=e;
-  document.getElementById('nt-custom-emoji').value='';
+function selectEmoji(iconId){
+  selectedEmoji=iconId;
+  const prev=document.getElementById('emoji-preview');
+  if(prev){ prev.innerHTML=teamIconSVG(iconId,'currentColor',24); }
+  const ci=document.getElementById('nt-custom-emoji');
+  if(ci) ci.value='';
   buildEmojiPicker();
 }
 function customEmojiInput(v){
-  if(v.trim()){
-    selectedEmoji=v.trim();
-    document.getElementById('emoji-preview').textContent=v.trim();
-    document.querySelectorAll('.ep').forEach(b=>b.classList.remove('sel'));
-  }
+  // custom text fallback (ignored now — keep for compatibility)
+}
+
+// Helper: render team icon in any context
+function renderTeamIcon(iconId, color, size=20){
+  return teamIconSVG(iconId, color, size);
 }
 
 // ══════════════════════════════════════
@@ -915,7 +971,7 @@ function addTeam(){
   const name=document.getElementById('nt-name').value.trim();
   const desc=document.getElementById('nt-desc').value.trim();
   if(!name){showN('⚠️ أدخل اسم الفريق','e');return;}
-  const emoji=selectedEmoji||'🔵';
+  const emoji=selectedEmoji||'star'; // stores icon id
   const id='t'+(tid++);
   const ci=S.teams.length%12;
   const team={id,name,emoji,desc,members:[],ci,order:S.teams.length};
@@ -925,8 +981,9 @@ function addTeam(){
   document.getElementById('nt-name').value='';
   document.getElementById('nt-desc').value='';
   document.getElementById('nt-custom-emoji').value='';
-  selectedEmoji='🔵';
-  document.getElementById('emoji-preview').textContent='🔵';
+  selectedEmoji='star';
+  const prev=document.getElementById('emoji-preview');
+  if(prev) prev.innerHTML=teamIconSVG('star','currentColor',24);
   buildEmojiPicker();
   showN(`✅ تم إضافة "${name}"`,'s');
 }
@@ -968,9 +1025,10 @@ function renderTeams(){
   if(!S.teams.length){el.innerHTML='<p style="color:var(--muted);text-align:center;padding:12px">لا توجد فرق بعد.</p>';return;}
   el.innerHTML=S.teams.map(t=>{
     const c=getC(t.ci);
+    const iconId=t.emoji||'star';
     return`<div class="tec" id="tec-${t.id}">
       <div class="tech" onclick="toggleBody('${t.id}')">
-        <div class="tesw" style="background:${c.h}22;color:${c.h}">${t.emoji}</div>
+        <div class="tesw" style="background:${c.h}22;color:${c.h}">${teamIconSVG(iconId,c.h,18)}</div>
         <div><div class="tenm" style="color:${c.h}" id="tn-${t.id}">${t.name}</div>
         <div class="temt">${(t.members||[]).length} عضو${t.desc?' · '+t.desc:''}</div></div>
         <div style="flex:1"></div>
@@ -978,10 +1036,18 @@ function renderTeams(){
         <span class="tear" id="ta-${t.id}">▼</span>
       </div>
       <div class="tebd" id="tb-${t.id}">
-        <div class="fr t" style="margin-top:11px">
+        <div class="fr" style="margin-top:11px">
           <div><label>الاسم</label><input type="text" value="${t.name}" oninput="updTF('${t.id}','name',this.value);document.getElementById('tn-${t.id}').textContent=this.value||'?'"></div>
-          <div><label>الشعار</label><input type="text" value="${t.emoji}" maxlength="4" oninput="updTF('${t.id}','emoji',this.value);this.closest('.tec').querySelector('.tesw').textContent=this.value||'?'" style="font-size:15px;text-align:center"></div>
           <div><label>الوصف</label><input type="text" value="${t.desc||''}" oninput="updTF('${t.id}','desc',this.value)" placeholder="اختياري"></div>
+        </div>
+        <label style="margin-bottom:8px">تغيير الشعار</label>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+          ${TEAM_ICONS.map(icon=>`
+            <button onclick="updTF('${t.id}','emoji','${icon.id}');this.closest('.tebd').querySelectorAll('.icon-sel-btn').forEach(b=>b.classList.remove('icon-sel-btn'));this.classList.add('icon-sel-btn');document.querySelector('#tec-${t.id} .tesw').innerHTML='${teamIconSVG(icon.id,c.h,18).replace(/'/g,"\\'")}';"
+              title="${icon.label}"
+              style="width:34px;height:34px;border-radius:7px;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:${c.h}">
+              ${teamIconSVG(icon.id,c.h,16)}
+            </button>`).join('')}
         </div>
         <div class="divider"></div>
         <label>الأعضاء</label>
@@ -1072,7 +1138,7 @@ function checkStartBtn(){
 //  SETTINGS
 // ══════════════════════════════════════
 function saveSettings(){
-  S.settings.title=document.getElementById('cfg-title').value||'مسابقة ARENA';
+  S.settings.title=document.getElementById('cfg-title').value||'مسابقة Faisal App';
   S.settings.bonus=parseInt(document.getElementById('cfg-bonus').value)||0;
   S.settings.pen=parseInt(document.getElementById('cfg-pen').value)||0;
   gameRef.child('settings').set(S.settings);
@@ -1101,7 +1167,7 @@ function startGame(){
 function loadQ(){
   if(S.currentQ>=S.questions.length){endGame();return;}
   const q=S.questions[S.currentQ];
-  S.qShown=false;S.buzzWinner=null;S.teamAnswers={};
+  S.qShown=false;S.buzzWinner=null;S.teamAnswers={};S.tvAnswered=false;
   stopTimer();
   const tot=S.questions.length;
   document.getElementById('hq-bdg').textContent=`س ${S.currentQ+1}/${tot}`;
@@ -1146,28 +1212,38 @@ function renderHostAnswers(){
   const el=document.getElementById('host-team-answers');
   if(!el||!q)return;
   const L=['أ','ب','ج','د'];
-  el.innerHTML=`<div class="ta-title">📊 إجابات الفرق</div>
+  el.innerHTML=`<div class="ta-title">📊 إجابات الفرق — ${q.type==='mcq'?'النقاط حسب السرعة':q.type==='buzz'?'زر سريع':'كتابي'}</div>
     <div class="ta-grid">
       ${S.teams.map(t=>{
         const c=getC(t.ci);
         const ans=S.teamAnswers?.[t.id];
-        let statusCls='',statusTxt='⏳ لم يجب بعد',ansTxt='—';
+        const sr=S.scoreResults?.[t.id];
+        let statusCls='',statusTxt='⏳ لم يجب',ansTxt='—',ptsTxt='';
+
         if(ans){
           if(q.type==='mcq'){
             const idx=ans.optionIndex;
-            ansTxt=L[idx]+': '+(q.options?.[idx]||'');
-            if(idx===q.correct){statusCls='correct-ans';statusTxt='✅ صحيح';}
-            else{statusCls='wrong-ans';statusTxt='❌ خطأ';}
-          }else{
+            ansTxt=`${L[idx]}: ${q.options?.[idx]||''}`;
+            if(idx===q.correct){
+              statusCls='correct-ans';
+              statusTxt=`✅ صحيح`;
+              if(sr) ptsTxt=`<div style="font-size:11px;color:var(--green);font-weight:800">+${sr.earned} نقطة</div>`;
+            } else {
+              statusCls='wrong-ans';
+              statusTxt='❌ خطأ';
+              if(sr&&sr.earned<0) ptsTxt=`<div style="font-size:11px;color:var(--red);font-weight:800">${sr.earned} نقطة</div>`;
+            }
+          } else {
             ansTxt=ans.answer||'—';
             statusCls='answered';statusTxt='✍️ أجاب';
           }
         }
+        const speed=ans?.timeLeft!==undefined?`<div style="font-size:9px;color:var(--muted)">⏱ ${ans.timeLeft}ث</div>`:'';
         return`<div class="ta-card ${statusCls}">
-          <div class="ta-tnm" style="color:${c.h}">${t.emoji} ${t.name}</div>
+          <div class="ta-tnm" style="color:${c.h}">${t.name}</div>
           <div class="ta-ans">${ansTxt}</div>
           <div class="ta-status">${statusTxt}</div>
-          ${ans?.timeLeft!==undefined?`<div style="font-size:9px;color:var(--muted)">⏱️ ${ans.timeLeft}ث متبقية</div>`:''}
+          ${ptsTxt}${speed}
         </div>`;
       }).join('')}
     </div>`;
@@ -1203,39 +1279,77 @@ function pickMCQ(i){
 }
 
 function autoScoreMCQ(q){
-  // Score all teams that answered correctly automatically
-  let anyCorrect=false;
+  // Speed-proportional scoring:
+  // Points = basePts * (timeLeft / totalTime)   — faster = more points
+  // Minimum: 1 point for correct answer
+  // Wrong: deduct penalty
+  const totalTime=q.time||30;
+  const scoreResults={};
+
   S.teams.forEach(t=>{
     const ans=S.teamAnswers[t.id];
-    if(ans&&ans.optionIndex===q.correct){
-      const bonus=(S.settings.bonus&&(ans.timeLeft||0)>(q.time*.5))?S.settings.bonus:0;
-      const pts=q.pts+bonus;
-      S.scores[t.id]=(S.scores[t.id]||0)+pts;
+    if(!ans) return; // didn't answer
+    if(ans.optionIndex===q.correct){
+      // Correct — proportional to time left
+      const tl=Math.max(0,ans.timeLeft||0);
+      const proportion=tl/totalTime;
+      const earned=Math.max(1, Math.round(q.pts * proportion));
+      S.scores[t.id]=(S.scores[t.id]||0)+earned;
       gameRef.child('game/scores/'+t.id).set(S.scores[t.id]);
-      anyCorrect=true;
-    }
-    if(ans&&ans.optionIndex!==undefined&&ans.optionIndex!==q.correct){
+      scoreResults[t.id]={correct:true, earned, timeLeft:tl};
+    } else {
+      // Wrong — deduct penalty
       const pen=S.settings.pen||0;
-      S.scores[t.id]=Math.max(0,(S.scores[t.id]||0)-pen);
-      gameRef.child('game/scores/'+t.id).set(S.scores[t.id]);
+      if(pen>0){
+        S.scores[t.id]=Math.max(0,(S.scores[t.id]||0)-pen);
+        gameRef.child('game/scores/'+t.id).set(S.scores[t.id]);
+      }
+      scoreResults[t.id]={correct:false, earned:-(pen), timeLeft:ans.timeLeft||0};
     }
   });
-  updateSB();renderHostAnswers();
+
+  // Push score results to Firebase so team devices can show their result
+  gameRef.child('game/scoreResults').set(scoreResults);
+
+  updateSB(); renderHostAnswers();
   renderAwBtns(false);
   document.getElementById('btn-next').style.display='inline-block';
-  if(anyCorrect) showN('✅ تم احتساب النقاط تلقائياً','s');
+
+  const anyCorrect=Object.values(scoreResults).some(r=>r.correct);
+  if(anyCorrect) showN('✅ تم احتساب النقاط حسب السرعة','s');
   else showN('لم يجب أحد بشكل صحيح','i');
 }
 
 function renderTextQ(q,host){
-  const html=`<div class="taw">
-    <input type="text" id="${host?'h':'tv'}-tin" placeholder="الإجابة..." style="max-width:380px;text-align:center;font-size:15px;font-weight:600">
-    ${host
-      ?`<button class="btn bp" onclick="checkText()">✔ تحقق وتسجيل</button><div id="h-tres" style="margin-top:5px"></div>`
-      :`<button class="btn bp" onclick="submitTVTxt()">📤 إرسال الإجابة</button><div id="tv-sent" style="margin-top:5px;font-size:12px;color:var(--green)"></div>`}
-  </div>`;
-  if(host)document.getElementById('hq-con').innerHTML=html;
-  else document.getElementById('tv-cnt').innerHTML=html;
+  if(host){
+    const html=`<div class="taw">
+      <input type="text" id="h-tin" placeholder="الإجابة..." style="max-width:380px;text-align:center;font-size:15px;font-weight:600">
+      <button class="btn bp" onclick="checkText()">✔ تحقق وتسجيل</button>
+      <div id="h-tres" style="margin-top:5px"></div>
+    </div>`;
+    document.getElementById('hq-con').innerHTML=html;
+  } else {
+    // Team side — fixed bottom input to prevent keyboard dismiss on timer update
+    const cnt=document.getElementById('tv-cnt');
+    cnt.innerHTML=`<div class="tv-text-input-wrap">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center">✍️ اكتب إجابتك وأرسلها</div>
+      <div style="display:flex;gap:8px;max-width:400px;margin:0 auto">
+        <input type="text" id="tv-tin"
+          placeholder="الإجابة..."
+          style="flex:1;font-size:15px;font-weight:600;text-align:center"
+          autocomplete="off" autocorrect="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();submitTVTxt();}"
+        >
+        <button class="btn bp" onclick="submitTVTxt()" style="white-space:nowrap;flex-shrink:0">إرسال ✓</button>
+      </div>
+      <div id="tv-sent" style="margin-top:8px;text-align:center;font-size:13px;color:var(--green);font-weight:700;min-height:20px"></div>
+    </div>`;
+    // Auto-focus without triggering scroll/resize
+    setTimeout(()=>{
+      const inp=document.getElementById('tv-tin');
+      if(inp && !S.tvAnswered) inp.focus({preventScroll:true});
+    },100);
+  }
 }
 
 function checkText(){
@@ -1258,50 +1372,74 @@ function checkText(){
 function renderBuzz(q,host){
   const btns=S.teams.map(t=>{
     const c=getC(t.ci);
+    const isWinner=S.buzzWinner===t.id;
+    const locked=!!S.buzzWinner && !isWinner;
+    const isMe=!host && t.id===S.selTeamId;
     return`<button class="bzbtn${!host?' bz-tv-btn':''}" id="bz-${t.id}"
-      style="background:linear-gradient(135deg,${c.h},${c.h}99);color:#fff;box-shadow:0 5px 18px ${c.h}44"
-      onclick="${host?`buzzPress('${t.id}')`:``}">
-        <span class="bic-txt">⚡</span><span>${t.emoji} ${t.name}</span>
+      style="background:linear-gradient(135deg,${c.h},${c.h}99);color:#fff;box-shadow:0 5px 18px ${c.h}${locked?'22':'44'};${locked?'opacity:.3;':''}${isWinner?'transform:scale(1.08);box-shadow:0 0 30px '+c.h+'88;':''}"
+      onclick="${host?`buzzPress('${t.id}')`:(isMe&&!S.buzzWinner?`tvBuzzPress('${t.id}')`:`void 0`)}"
+      ${locked||(!host&&!isMe)?'disabled':''}>
+        <span class="bic-txt">${isWinner?'🎯':'⚡'}</span>
+        <span>${t.name}</span>
+        ${isWinner?`<span style="font-size:10px;margin-top:2px">ضغط أولاً!</span>`:''}
       </button>`;
   }).join('');
   const html=`<div class="bzs">
-    <p style="color:var(--muted);font-size:12px;margin-bottom:6px">⚡ أسرع فريق يضغط يحصل على حق الإجابة!</p>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:6px">
+      ${S.buzzWinner?'':'⚡ اضغط الزر أسرع من بقية الفرق!'}
+    </p>
     <div class="bzbts">${btns}</div>
     <div id="bz-res"></div>
-    ${host?`<div id="bz-ans-area" class="buzz-answer-area" style="display:none">
-      <p style="font-size:12px;color:var(--muted);margin-bottom:8px" id="bz-ans-prompt">انتظر إجابة الفريق...</p>
+    ${host&&!S.buzzWinner?`<p style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">انتظر حتى يضغط أحد الفرق...</p>`:''}
+    ${host&&S.buzzWinner?`<div id="bz-ans-area" class="buzz-answer-area active">
+      <p id="bz-ans-prompt" style="font-size:12px;color:var(--muted);margin-bottom:6px"></p>
     </div>`:''}
   </div>`;
-  if(host)document.getElementById('hq-con').innerHTML=html;
+  if(host) document.getElementById('hq-con').innerHTML=html;
   else document.getElementById('tv-cnt').innerHTML=html;
+  // Update host buzz answer area if winner exists
+  if(host && S.buzzWinner){
+    const t=S.teams.find(x=>x.id===S.buzzWinner);
+    const prompt=document.getElementById('bz-ans-prompt');
+    if(prompt&&t) prompt.innerHTML=`<b>الإجابة المرجعية:</b> ${q.answer||'—'}<br>
+      <small style="color:var(--muted)">اضغط ✅ صح أو ❌ خطأ بعد سماع إجابة ${t.emoji} ${t.name}</small>`;
+  }
+}
+
+// Team presses buzz button → sends to Firebase
+function tvBuzzPress(teamId){
+  if(S.buzzWinner) return; // already locked
+  if(S.selTeamId!==teamId) return;
+  // Optimistically lock locally
+  S.buzzWinner=teamId;
+  // Push to Firebase — host listener handles awarding
+  gameRef.child('game').update({
+    phase:'buzz-answering',
+    buzzWinner:teamId,
+    buzzTimestamp:Date.now()
+  });
+  showN('⚡ ضغطت الزر! انتظر المشرف...','s');
 }
 
 function buzzPress(teamId){
+  // Host manually presses on behalf of team (fallback)
   if(S.buzzWinner)return;
   S.buzzWinner=teamId;
   stopTimer();S.phase='buzz-answering';
   const t=S.teams.find(x=>x.id===teamId);
   const c=getC(t.ci);
-  // Disable all buzz buttons
-  S.teams.forEach(x=>{const b=document.getElementById('bz-'+x.id);if(b)b.disabled=true;});
-  const res=document.getElementById('bz-res');
-  if(res) res.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">⚡ ${t.emoji} ${t.name} ضغط أولاً!</div>`;
   const disp=document.getElementById('bz-disp');
-  disp.style.display='block';
-  disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">⚡ ${t.emoji} ${t.name} — الإجابة الآن!</div>`;
-  // Show buzz answer area for host
-  const area=document.getElementById('bz-ans-area');
-  if(area){
-    area.style.display='block';area.classList.add('active');
-    const q=S.questions[S.currentQ];
-    document.getElementById('bz-ans-prompt').innerHTML=`
-      <b>الإجابة المرجعية:</b> ${q.answer||'—'}<br>
-      <small style="color:var(--muted)">اضغط ✅ صح أو ❌ خطأ بعد سماع الإجابة</small>`;
+  if(disp){
+    disp.style.display='block';
+    disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">⚡ ${t.name} — الإجابة الآن!</div>`;
   }
   renderAwBtns(true);sB('btn-wrong',true);
   document.getElementById('btn-skip').style.display='none';
   document.getElementById('btn-next').style.display='inline-block';
-  gameRef.child('game').update({phase:'buzz-answering',buzzWinner:teamId});
+  // Re-render buzz with locked state
+  const q=S.questions[S.currentQ];
+  renderBuzz(q,true);
+  gameRef.child('game').update({phase:'buzz-answering',buzzWinner:teamId,buzzTimestamp:Date.now()});
 }
 
 // ══════════════════════════════════════
@@ -1382,7 +1520,10 @@ function updateSB(){
     const c=getC(t.ci);
     const pts=S.scores[t.id]||0;
     return`<div class="sc ${pts===max&&max>0?'lead':''}" style="border-color:${c.h}44;background:linear-gradient(135deg,${c.h}12,${c.h}04)">
-      <div class="scnm" style="color:${c.h}">${t.emoji} ${t.name}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:2px">
+        ${teamIconSVG(t.emoji||'star',c.h,16)}
+        <span class="scnm" style="color:${c.h}">${t.name}</span>
+      </div>
       <div class="scpts" style="color:${c.h}">${pts}</div>
       <div class="sclbl">نقطة</div>
     </div>`;
@@ -1436,7 +1577,7 @@ function renderTeamChoose(){
     const c=getC(t.ci);
     return`<button class="tcbtn" onclick="selectTeam('${t.id}')"
       style="border-color:${c.h}44;background:linear-gradient(135deg,${c.h}10,${c.h}04)">
-        <span class="tcem">${t.emoji}</span>
+        <span class="tcem">${teamIconSVG(t.emoji||'star',c.h,34)}</span>
         <span style="color:${c.h};font-size:13px;font-weight:800">${t.name}</span>
         ${t.desc?`<span style="font-size:10px;color:var(--muted)">${t.desc}</span>`:''}
       </button>`;
@@ -1450,7 +1591,7 @@ function selectTeam(teamId){
   dash.style.display='flex';
   const t=S.teams.find(x=>x.id===teamId);
   const c=getC(t.ci);
-  document.getElementById('tv-nm').textContent=`${t.emoji} ${t.name}`;
+  document.getElementById('tv-nm').innerHTML=`<span style="display:inline-flex;align-items:center;gap:8px">${teamIconSVG(t.emoji||'star',c.h,32)} ${t.name}</span>`;
   document.getElementById('tv-nm').style.color=c.h;
   document.getElementById('tv-sc').style.color=c.h;
   document.getElementById('tv-desc').textContent=t.desc||'';
@@ -1511,14 +1652,19 @@ function tvPickMCQ(i){
 // Team submits text answer → sends to Firebase
 function submitTVTxt(){
   if(!S.selTeamId)return;
+  if(S.tvAnswered){showN('✅ إجابتك أُرسلت مسبقاً','i');return;}
   const inp=document.getElementById('tv-tin');
   const txt=inp?inp.value.trim():'';
   if(!txt){showN('⚠️ أدخل الإجابة أولاً','e');return;}
-  const ansData={answer:txt,timeLeft:S.timeLeft,timestamp:Date.now()};
+  const ansData={answer:txt,timeLeft:S.tvTimeLeft,timestamp:Date.now()};
   S.teamAnswers[S.selTeamId]=ansData;
+  S.tvAnswered=true;
   gameRef.child('game/teamAnswers/'+S.selTeamId).set(ansData);
   const sent=document.getElementById('tv-sent');
-  if(sent)sent.textContent='✅ تم إرسال إجابتك!';
+  if(sent) sent.textContent='✅ تم إرسال إجابتك!';
+  if(inp){ inp.disabled=true; inp.style.opacity='.65'; }
+  const btn=inp?.parentElement?.querySelector('button');
+  if(btn){ btn.disabled=true; btn.textContent='✓ أُرسلت'; }
   showN('✅ تم إرسال إجابتك!','s');
 }
 
@@ -1572,6 +1718,7 @@ function updateTVTimerBar(t, tot){
 function showAnswerReveal(q){
   const el=document.getElementById('answer-reveal');
   if(!el) return;
+
   // Build answer text
   let ansText='—';
   if(q.type==='mcq' && q.options && q.correct!==undefined){
@@ -1582,22 +1729,36 @@ function showAnswerReveal(q){
   }
   document.getElementById('ar-answer').textContent=ansText;
 
-  // Check this team's answer
-  const myAns=S.teamAnswers?.[S.selTeamId];
   const resultEl=document.getElementById('ar-team-result');
-  if(!S.selTeamId || !myAns){
+  if(!S.selTeamId){
     resultEl.className='ar-team-result ar-neutral';
-    resultEl.textContent='لم تُجب على هذا السؤال';
-  } else if(q.type==='mcq'){
-    const ok=myAns.optionIndex===q.correct;
-    resultEl.className='ar-team-result '+(ok?'ar-correct':'ar-wrong');
-    const L=['أ','ب','ج','د'];
-    resultEl.textContent=ok
-      ?`✅ إجابتك صحيحة! +${q.pts+(myAns.timeLeft>q.time*.5?S.settings.bonus:0)} نقطة`
-      :`❌ اخترت: ${L[myAns.optionIndex]} — الصحيح: ${L[q.correct]}`;
+    resultEl.textContent='اختر فريقك لرؤية نتيجتك';
+    el.style.display='flex'; return;
+  }
+
+  // Use scoreResults if available (MCQ auto-scoring), else fall back to manual check
+  const sr=S.scoreResults?.[S.selTeamId];
+  const myAns=S.teamAnswers?.[S.selTeamId];
+
+  if(sr!==undefined){
+    // MCQ auto-scored
+    if(sr.correct){
+      resultEl.className='ar-team-result ar-correct';
+      resultEl.innerHTML=`✅ إجابة صحيحة!<br><span style="font-size:22px;font-family:'Exo 2',sans-serif">+${sr.earned}</span> نقطة`;
+    } else {
+      const pen=Math.abs(sr.earned);
+      resultEl.className='ar-team-result ar-wrong';
+      resultEl.innerHTML=pen>0
+        ? `❌ إجابة خاطئة<br><span style="font-size:22px;font-family:'Exo 2',sans-serif">-${pen}</span> نقطة`
+        : `❌ إجابة خاطئة — لا خصم`;
+    }
+  } else if(!myAns){
+    resultEl.className='ar-team-result ar-neutral';
+    resultEl.innerHTML=`⏳ لم تُجب على هذا السؤال<br><span style="font-size:18px">0 نقطة</span>`;
   } else {
+    // Text or buzz — just show what they answered
     resultEl.className='ar-team-result ar-neutral';
-    resultEl.textContent=`إجابتك: "${myAns.answer||'—'}"`;
+    resultEl.innerHTML=`إجابتك:<br><b>"${myAns.answer||'—'}"</b>`;
   }
   el.style.display='flex';
 }
