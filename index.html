@@ -286,16 +286,74 @@ textarea{resize:vertical;min-height:64px;}
 .tcbtn{padding:15px 22px;border:2px solid var(--border);border-radius:14px;background:var(--surface);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;color:var(--text);transition:all .2s;min-width:130px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--shadow);}
 .tcbtn:hover{transform:translateY(-4px);}
 .tcem{font-size:28px;}
-.tvhdr{text-align:center;padding:24px 16px 10px;}
+
+/* TEAM DASHBOARD LAYOUT */
+.tv-layout{display:flex;gap:0;flex:1;overflow:hidden;}
+.tv-main{flex:1;overflow-y:auto;min-width:0;}
+.tv-sidebar{width:190px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:12px 10px;overflow-y:auto;transition:background .25s;}
+@media(max-width:640px){
+  .tv-layout{flex-direction:column-reverse;}
+  .tv-sidebar{width:100%;border-right:none;border-top:1px solid var(--border);padding:10px;}
+}
+
+/* TV TIMER BAR */
+.tv-timer-bar-wrap{padding:0 15px;margin-bottom:2px;}
+.tv-timer-bar-bg{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.tv-timer-bar-fill{height:100%;border-radius:3px;transition:width 1s linear,background .5s;}
+.tv-timer-info{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:11px;color:var(--muted);}
+.tv-timer-secs{font-family:'Exo 2',sans-serif;font-size:20px;font-weight:900;}
+
+/* TV QUESTION BOX */
+.tvhdr{text-align:center;padding:20px 15px 8px;}
 .tvnm{font-size:clamp(20px,5vw,42px);font-weight:900;margin-bottom:3px;}
 .tvsc{font-family:'Exo 2',sans-serif;font-size:clamp(38px,8vw,64px);font-weight:900;line-height:1;margin:4px 0;}
 .tvsclbl{font-size:9px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
-.tvqb{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px;margin:9px 15px;text-align:center;font-size:15px;font-weight:700;min-height:75px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);}
+.tvqb{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px;margin:6px 15px;text-align:center;font-size:15px;font-weight:700;min-height:70px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);}
 .tvwt{color:var(--muted);font-size:13px;animation:pt 2s ease infinite;}
 @keyframes pt{0%,100%{opacity:.5}50%{opacity:1}}
 .tvcnt{padding:0 15px 15px;}
-.tvstrip{margin:0 15px 8px;display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.tvstrip{margin:0 15px 7px;display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
 .tvchip{display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 8px;font-size:10px;}
+
+/* ANSWER REVEAL OVERLAY (team side) */
+.answer-reveal{
+  position:fixed;inset:0;z-index:150;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.78);
+  animation:fade-in .3s ease;
+}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+.answer-reveal-card{
+  background:var(--surface);border-radius:20px;
+  padding:32px 40px;text-align:center;
+  max-width:420px;width:90%;
+  box-shadow:0 0 60px rgba(0,0,0,.3);
+  animation:popin .4s cubic-bezier(.175,.885,.32,1.275);
+}
+.ar-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;}
+.ar-answer{font-size:26px;font-weight:900;color:var(--text);margin-bottom:4px;}
+.ar-team-result{font-size:18px;font-weight:800;margin-top:12px;padding:10px 18px;border-radius:10px;}
+.ar-correct{background:rgba(10,138,74,.1);color:var(--green);border:2px solid var(--green);}
+[data-theme="dark"] .ar-correct{background:rgba(0,255,136,.1);}
+.ar-wrong{background:rgba(212,32,64,.08);color:var(--red);border:2px solid var(--red);}
+[data-theme="dark"] .ar-wrong{background:rgba(255,56,100,.08);}
+.ar-neutral{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+
+/* SIDE LEADERBOARD */
+.sb-side-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center;}
+.sb-side-row{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;margin-bottom:5px;border:1px solid var(--border);background:var(--bg);transition:all .3s;}
+.sb-side-row.top1{border-color:var(--gold);background:linear-gradient(135deg,rgba(196,127,0,.08),rgba(196,127,0,.03));}
+[data-theme="dark"] .sb-side-row.top1{border-color:#f5c842;background:linear-gradient(135deg,rgba(245,200,66,.1),rgba(245,200,66,.03));}
+.sb-rank{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:var(--muted);width:14px;text-align:center;flex-shrink:0;}
+.sb-em{font-size:16px;flex-shrink:0;}
+.sb-info{flex:1;min-width:0;}
+.sb-nm{font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sb-pts{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;}
+.sb-speed{font-size:9px;color:var(--muted);margin-top:1px;}
+
+/* HOST SIDE LEADERBOARD */
+.host-side-sb{margin-top:10px;}
+.host-side-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
 
 /* BUZZ TV BUTTONS */
 .bz-tv-btn{width:110px;height:110px;}
@@ -546,26 +604,71 @@ textarea{resize:vertical;min-height:64px;}
       <button class="btn bgh sm" onclick="goTo('landing')">← رجوع</button>
     </div>
   </div>
-  <div class="content">
-    <div id="team-choose">
-      <h2 style="font-size:19px;font-weight:800;margin-bottom:4px">اختر فريقك</h2>
-      <p style="color:var(--muted);font-size:12px">ستظهر نقاطك وأسئلتك هنا</p>
-      <div class="tcgrid" id="tc-grid"></div>
+
+  <!-- CHOOSE TEAM -->
+  <div id="team-choose" class="content">
+    <h2 style="font-size:19px;font-weight:800;margin-bottom:4px">اختر فريقك</h2>
+    <p style="color:var(--muted);font-size:12px">ستظهر نقاطك وأسئلتك هنا</p>
+    <div class="tcgrid" id="tc-grid"></div>
+  </div>
+
+  <!-- TEAM DASHBOARD -->
+  <div id="team-dash" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+
+    <!-- HEADER -->
+    <div class="tvhdr">
+      <div class="tvnm" id="tv-nm">الفريق</div>
+      <div id="tv-desc" style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:3px"></div>
+      <div class="tvsc" id="tv-sc">0</div>
+      <div class="tvsclbl">نقطة</div>
+      <div style="margin-top:5px"><span class="badge bg-cyan" id="tv-stat">في انتظار السؤال...</span></div>
     </div>
-    <div id="team-dash" style="display:none">
-      <div class="tvhdr">
-        <div class="tvnm" id="tv-nm">الفريق</div>
-        <div id="tv-desc" style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:3px"></div>
-        <div class="tvsc" id="tv-sc">0</div>
-        <div class="tvsclbl">نقطة</div>
-        <div style="margin-top:6px"><span class="badge bg-cyan" id="tv-stat">في انتظار السؤال...</span></div>
+    <div class="tvstrip" id="tv-strip"></div>
+
+    <!-- LAYOUT: main + sidebar -->
+    <div class="tv-layout">
+
+      <!-- SIDEBAR LEADERBOARD -->
+      <div class="tv-sidebar">
+        <div class="sb-side-title">🏅 الترتيب</div>
+        <div id="tv-sidebar-sb"></div>
       </div>
-      <div class="tvstrip" id="tv-strip"></div>
-      <div class="tvqb" id="tv-qb"><span class="tvwt">⏳ في انتظار المشرف...</span></div>
-      <div class="tvcnt" id="tv-cnt"></div>
+
+      <!-- MAIN CONTENT -->
+      <div class="tv-main">
+        <!-- TIMER BAR (above question) -->
+        <div id="tv-timer-wrap" style="display:none">
+          <div class="tv-timer-bar-wrap">
+            <div class="tv-timer-info">
+              <span style="font-size:10px">⏱️ الوقت</span>
+              <span class="tv-timer-secs" id="tv-timer-secs">30</span>
+            </div>
+            <div class="tv-timer-bar-bg">
+              <div class="tv-timer-bar-fill" id="tv-timer-bar" style="width:100%;background:var(--green)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUESTION BOX -->
+        <div class="tvqb" id="tv-qb"><span class="tvwt">⏳ في انتظار المشرف...</span></div>
+
+        <!-- ANSWER AREA -->
+        <div class="tvcnt" id="tv-cnt"></div>
+      </div>
     </div>
   </div>
+
   <footer class="footer">برمجة وتطوير <b>Faisal Almutairi</b></footer>
+</div>
+
+<!-- ANSWER REVEAL OVERLAY -->
+<div id="answer-reveal" style="display:none" class="answer-reveal" onclick="closeAnswerReveal()">
+  <div class="answer-reveal-card" onclick="event.stopPropagation()">
+    <div class="ar-label">⏰ انتهى الوقت — الإجابة الصحيحة</div>
+    <div class="ar-answer" id="ar-answer">—</div>
+    <div class="ar-team-result" id="ar-team-result"></div>
+    <button class="btn bgh" style="margin-top:14px;width:100%" onclick="closeAnswerReveal()">حسناً ✓</button>
+  </div>
 </div>
 
 <!-- ══ WINNER ══ -->
@@ -641,16 +744,43 @@ function setupListeners(){
   gameRef.child('game').on('value',snap=>{
     const g=snap.val(); if(!g)return;
     if(g.scores) Object.assign(S.scores,g.scores);
+    const prevQ=S.currentQ, prevShown=S.qShown, prevPhase=S.phase;
     if(g.currentQ!==undefined) S.currentQ=g.currentQ;
     if(g.phase!==undefined) S.phase=g.phase;
     if(g.qShown!==undefined) S.qShown=g.qShown;
     if(g.buzzWinner!==undefined) S.buzzWinner=g.buzzWinner;
     if(g.teamAnswers!==undefined) S.teamAnswers=g.teamAnswers||{};
     if(g.settings) Object.assign(S.settings,g.settings);
+    // Sync timeLeft for TV timer display
+    if(g.timeLeft!==undefined) S.tvTimeLeft=g.timeLeft;
     const active=document.querySelector('.screen.active')?.id;
+
     if(active==='game-host'){updateSB();renderHostAnswers();}
-    if(active==='team-view') updateTV();
-    if(g.phase==='done'&&active==='team-view'){renderWinner();goTo('winner');}
+
+    if(active==='team-view'){
+      updateTV();
+      updateSideLeaderboard();
+      // New question shown → start TV timer
+      if(S.qShown && (!prevShown || S.currentQ!==prevQ)){
+        const q=S.questions[S.currentQ];
+        if(q) startTVTimer(q.time, q);
+      }
+      // Question hidden (new round or idle) → stop TV timer
+      if(!S.qShown && prevShown){
+        stopTVTimer();
+        hideTVTimerBar();
+        closeAnswerReveal();
+      }
+      // Phase changed to answered → show answer reveal
+      if(S.phase==='answered' && prevPhase==='showing' && S.qShown){
+        const q=S.questions[S.currentQ];
+        if(q) showAnswerReveal(q);
+      }
+    }
+    if(g.phase==='done'&&active==='team-view'){
+      stopTVTimer();
+      renderWinner();goTo('winner');
+    }
   });
   gameRef.child('pin').on('value',snap=>{if(snap.val())CPIN=snap.val();});
 }
@@ -681,11 +811,12 @@ let selectedEmoji='🔵';
 
 const S={
   teams:[],questions:[],scores:{},
-  teamAnswers:{}, // {teamId: {answer, optionIndex, time}}
+  teamAnswers:{},
   currentQ:0,phase:'idle',
   qShown:false,buzzWinner:null,
   selTeamId:null,
   timerInt:null,timeLeft:30,totalTime:30,
+  tvTimerInt:null,tvTimeLeft:30,tvTotalTime:30,
   settings:{title:'مسابقة ARENA',bonus:5,pen:3}
 };
 let tid=1,qtype='mcq',pinBuf='';
@@ -1263,8 +1394,11 @@ function updateSB(){
 // ══════════════════════════════════════
 function startTimer(sec,q){
   S.timeLeft=sec;S.totalTime=sec;dTimer(sec,sec);
+  gameRef.child('game/timeLeft').set(sec);
   S.timerInt=setInterval(()=>{
     S.timeLeft--;dTimer(S.timeLeft,sec);
+    // Push timeLeft every second so team devices stay in sync
+    gameRef.child('game/timeLeft').set(S.timeLeft);
     if(S.timeLeft<=0){
       stopTimer();
       if(S.phase==='showing'||S.phase==='buzz-answering'){
@@ -1277,7 +1411,7 @@ function startTimer(sec,q){
           renderAwBtns(false);sB('btn-wrong',false);
           document.getElementById('btn-next').style.display='inline-block';
         }
-        gameRef.child('game').update({phase:'answered'});
+        gameRef.child('game').update({phase:'answered',timeLeft:0});
         showN('⏰ انتهى الوقت!','e');
       }
     }
@@ -1312,7 +1446,8 @@ function renderTeamChoose(){
 function selectTeam(teamId){
   S.selTeamId=teamId;
   document.getElementById('team-choose').style.display='none';
-  document.getElementById('team-dash').style.display='block';
+  const dash=document.getElementById('team-dash');
+  dash.style.display='flex';
   const t=S.teams.find(x=>x.id===teamId);
   const c=getC(t.ci);
   document.getElementById('tv-nm').textContent=`${t.emoji} ${t.name}`;
@@ -1326,22 +1461,33 @@ function selectTeam(teamId){
       <span>${m.name}</span>${m.role?`<span style="color:var(--muted);font-size:9px">(${m.role})</span>`:''}
     </div>`).join('');
   updateTV();
+  updateSideLeaderboard();
+  // If question already showing, start TV timer from current timeLeft
+  if(S.qShown && S.questions[S.currentQ]){
+    const q=S.questions[S.currentQ];
+    startTVTimer(S.tvTimeLeft||q.time, q, true);
+  }
 }
 
 function updateTV(){
   if(!S.selTeamId)return;
   const tid=S.selTeamId;
   document.getElementById('tv-sc').textContent=S.scores[tid]??0;
+  updateSideLeaderboard();
   const qb=document.getElementById('tv-qb'),cnt=document.getElementById('tv-cnt'),stat=document.getElementById('tv-stat');
   if(!qb)return;
   if(!S.qShown||S.currentQ>=S.questions.length){
     qb.innerHTML='<span class="tvwt">⏳ في انتظار المشرف...</span>';
-    if(cnt)cnt.innerHTML='';if(stat)stat.textContent='في انتظار السؤال...';
+    if(cnt)cnt.innerHTML='';
+    if(stat)stat.textContent='في انتظار السؤال...';
+    hideTVTimerBar();
     return;
   }
   const q=S.questions[S.currentQ];
   qb.innerHTML=`<div style="font-size:14px;font-weight:700">${q.text}</div>`;
   if(stat)stat.textContent=`السؤال ${S.currentQ+1} | ⭐${q.pts}`;
+  // Update timer bar with synced timeLeft
+  updateTVTimerBar(S.tvTimeLeft, q.time||30);
   if(q.type==='mcq')renderMCQ(q,false);
   else if(q.type==='text')renderTextQ(q,false);
   else renderBuzz(q,false);
@@ -1377,7 +1523,131 @@ function submitTVTxt(){
 }
 
 // ══════════════════════════════════════
-//  END GAME
+//  TV TIMER BAR
+// ══════════════════════════════════════
+function startTVTimer(sec, q, resume=false){
+  stopTVTimer();
+  S.tvTotalTime=q.time;
+  const currentSec=resume?S.tvTimeLeft:sec;
+  const wrap=document.getElementById('tv-timer-wrap');
+  if(wrap) wrap.style.display='block';
+  updateTVTimerBar(currentSec, S.tvTotalTime);
+  // Run locally for smooth animation, synced by Firebase pushes each second
+  S.tvTimerInt=setInterval(()=>{
+    if(S.tvTimeLeft>0){
+      S.tvTimeLeft--;
+      updateTVTimerBar(S.tvTimeLeft, S.tvTotalTime);
+    } else {
+      stopTVTimer();
+    }
+  },1000);
+}
+
+function stopTVTimer(){
+  if(S.tvTimerInt){ clearInterval(S.tvTimerInt); S.tvTimerInt=null; }
+}
+
+function hideTVTimerBar(){
+  const wrap=document.getElementById('tv-timer-wrap');
+  if(wrap) wrap.style.display='none';
+}
+
+function updateTVTimerBar(t, tot){
+  const bar=document.getElementById('tv-timer-bar');
+  const secs=document.getElementById('tv-timer-secs');
+  if(!bar||!secs) return;
+  const pct=Math.max(0,(t/tot)*100);
+  bar.style.width=pct+'%';
+  secs.textContent=Math.max(0,t);
+  // Color: green → yellow → red
+  if(pct>50) bar.style.background='var(--green)';
+  else if(pct>20) bar.style.background='var(--gold)';
+  else bar.style.background='var(--red)';
+  if(secs) secs.style.color=pct>50?'var(--green)':pct>20?'var(--gold)':'var(--red)';
+}
+
+// ══════════════════════════════════════
+//  ANSWER REVEAL (shown when time ends)
+// ══════════════════════════════════════
+function showAnswerReveal(q){
+  const el=document.getElementById('answer-reveal');
+  if(!el) return;
+  // Build answer text
+  let ansText='—';
+  if(q.type==='mcq' && q.options && q.correct!==undefined){
+    const L=['أ','ب','ج','د'];
+    ansText=`${L[q.correct]}: ${q.options[q.correct]}`;
+  } else if(q.answer){
+    ansText=q.answer;
+  }
+  document.getElementById('ar-answer').textContent=ansText;
+
+  // Check this team's answer
+  const myAns=S.teamAnswers?.[S.selTeamId];
+  const resultEl=document.getElementById('ar-team-result');
+  if(!S.selTeamId || !myAns){
+    resultEl.className='ar-team-result ar-neutral';
+    resultEl.textContent='لم تُجب على هذا السؤال';
+  } else if(q.type==='mcq'){
+    const ok=myAns.optionIndex===q.correct;
+    resultEl.className='ar-team-result '+(ok?'ar-correct':'ar-wrong');
+    const L=['أ','ب','ج','د'];
+    resultEl.textContent=ok
+      ?`✅ إجابتك صحيحة! +${q.pts+(myAns.timeLeft>q.time*.5?S.settings.bonus:0)} نقطة`
+      :`❌ اخترت: ${L[myAns.optionIndex]} — الصحيح: ${L[q.correct]}`;
+  } else {
+    resultEl.className='ar-team-result ar-neutral';
+    resultEl.textContent=`إجابتك: "${myAns.answer||'—'}"`;
+  }
+  el.style.display='flex';
+}
+
+function closeAnswerReveal(){
+  const el=document.getElementById('answer-reveal');
+  if(el) el.style.display='none';
+}
+
+// ══════════════════════════════════════
+//  SIDE LEADERBOARD (team view)
+// ══════════════════════════════════════
+function updateSideLeaderboard(){
+  const el=document.getElementById('tv-sidebar-sb');
+  if(!el||!S.teams.length) return;
+
+  // Sort: by score DESC, then by answer speed (timeLeft DESC = faster)
+  const q=S.questions[S.currentQ];
+  const sorted=[...S.teams].sort((a,b)=>{
+    const sa=S.scores[a.id]||0, sb=S.scores[b.id]||0;
+    if(sb!==sa) return sb-sa; // higher score first
+    // Same score: faster answer wins (more timeLeft = answered earlier)
+    const ta=S.teamAnswers?.[a.id]?.timeLeft||0;
+    const tb=S.teamAnswers?.[b.id]?.timeLeft||0;
+    return tb-ta;
+  });
+
+  const max=Math.max(...sorted.map(t=>S.scores[t.id]||0),0);
+  el.innerHTML=sorted.map((t,i)=>{
+    const c=getC(t.ci);
+    const pts=S.scores[t.id]||0;
+    const ans=S.teamAnswers?.[t.id];
+    let speedBadge='';
+    if(ans?.timeLeft!==undefined && q){
+      const pct=Math.round((ans.timeLeft/q.time)*100);
+      speedBadge=`<div class="sb-speed">⚡ ${ans.timeLeft}ث متبقية</div>`;
+    }
+    const isMe=t.id===S.selTeamId;
+    return`<div class="sb-side-row ${i===0&&pts>0?'top1':''}" style="${isMe?`outline:2px solid ${c.h};outline-offset:1px`:''};border-color:${i===0&&pts>0?c.h+'66':''}">
+      <div class="sb-rank" style="color:${i===0&&pts>0?'var(--gold)':'var(--muted)'}">${i===0?'👑':i+1}</div>
+      <div class="sb-em">${t.emoji}</div>
+      <div class="sb-info">
+        <div class="sb-nm" style="color:${c.h}">${t.name}${isMe?' (أنت)':''}</div>
+        <div class="sb-pts" style="color:${c.h}">${pts}</div>
+        ${speedBadge}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // ══════════════════════════════════════
 function endGame(){
   stopTimer();
@@ -1418,7 +1688,8 @@ function restartGame(){
   S.questions=[];S.currentQ=0;
   S.teams.forEach(t=>S.scores[t.id]=0);
   S.phase='idle';S.selTeamId=null;S.teamAnswers={};
-  gameRef.child('game').set({currentQ:0,phase:'idle',qShown:false,buzzWinner:null,scores:S.scores,teamAnswers:{}});
+  stopTVTimer();hideTVTimerBar();closeAnswerReveal();
+  gameRef.child('game').set({currentQ:0,phase:'idle',qShown:false,buzzWinner:null,scores:S.scores,teamAnswers:{},timeLeft:0});
   document.getElementById('team-choose').style.display='block';
   document.getElementById('team-dash').style.display='none';
   renderQs();goTo('pin-screen');
