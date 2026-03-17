@@ -416,9 +416,9 @@ textarea{resize:vertical;min-height:64px;}
     <button class="bh bhc" onclick="goTo('team-view')">🏆 واجهة الفريق</button>
   </div>
   <p style="color:var(--muted);font-size:12px;text-align:center;max-width:340px;line-height:1.8">
-    أرسل الرابط للفرق ليفتحوه على أجهزتهم ويختاروا فريقهم
+    أرسل الرابط للفرق عشان يفتحونه على أجهزتهم ويختارون فريقهم
   </p>
-  <footer class="footer" style="position:absolute;bottom:0;width:100%">برمجة وتطوير <b>Faisal Almutairi</b></footer>
+  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv <b>Faisal Almutairi</b></footer>
 </div>
 
 <!-- ══ PIN ══ -->
@@ -443,7 +443,7 @@ textarea{resize:vertical;min-height:64px;}
     <div class="pinerr" id="pinerr"></div>
     <div style="margin-top:13px"><button class="btn bgh sm" onclick="goTo('landing')">← رجوع</button></div>
   </div>
-  <footer class="footer" style="position:absolute;bottom:0;width:100%">برمجة وتطوير <b>Faisal Almutairi</b></footer>
+  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv <b>Faisal Almutairi</b></footer>
 </div>
 
 <!-- ══ HOST SETUP ══ -->
@@ -555,7 +555,7 @@ textarea{resize:vertical;min-height:64px;}
       </div>
     </div>
   </div>
-  <footer class="footer">برمجة وتطوير <b>Faisal Almutairi</b></footer>
+  <footer class="footer">Dv <b>Faisal Almutairi</b></footer>
 </div>
 
 <!-- ══ GAME HOST ══ -->
@@ -594,7 +594,7 @@ textarea{resize:vertical;min-height:64px;}
     <button class="btn bgh" id="btn-skip" onclick="skipQ()" style="display:none">⏭️ تخطي</button>
     <button class="btn bgo" id="btn-next" onclick="nextQ()" style="display:none">التالي ←</button>
   </div>
-  <footer class="footer">برمجة وتطوير <b>Faisal Almutairi</b></footer>
+  <footer class="footer">Dv <b>Faisal Almutairi</b></footer>
 </div>
 
 <!-- ══ TEAM VIEW ══ -->
@@ -1418,7 +1418,7 @@ function tvBuzzPress(teamId){
     buzzWinner:teamId,
     buzzTimestamp:Date.now()
   });
-  showN('⚡ ضغطت الزر! انتظر المشرف...','s');
+  showN('⚡ ضغطت الزر! انتظر طويل العمر فيصل...','s');
 }
 
 function buzzPress(teamId){
@@ -1618,7 +1618,7 @@ function updateTV(){
   const qb=document.getElementById('tv-qb'),cnt=document.getElementById('tv-cnt'),stat=document.getElementById('tv-stat');
   if(!qb)return;
   if(!S.qShown||S.currentQ>=S.questions.length){
-    qb.innerHTML='<span class="tvwt">⏳ في انتظار المشرف...</span>';
+    qb.innerHTML='<span class="tvwt">⏳ في انتظار طويل العمر فيصل...</span>';
     if(cnt)cnt.innerHTML='';
     if(stat)stat.textContent='في انتظار السؤال...';
     hideTVTimerBar();
