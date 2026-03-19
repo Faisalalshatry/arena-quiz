@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Faisal App — منصة المسابقات</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#f0f4fa;--surface:#fff;--surface2:#e8edf5;
@@ -25,7 +26,7 @@
   --grid:rgba(0,212,255,.03);--glow:rgba(0,212,255,.08);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
 .bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
 .bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 50% 0%,var(--glow),transparent 70%);}
 .screen{display:none;position:relative;z-index:1;min-height:100vh;flex-direction:column;}
@@ -56,7 +57,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow);transition:background .25s;}
 .ct{font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
 label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;}
-input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;transition:border-color .2s,background .25s;}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:13px;transition:border-color .2s,background .25s;}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,119,204,.1);}
 [data-theme="dark"] input:focus{box-shadow:0 0 0 3px rgba(0,212,255,.1);}
 textarea{resize:vertical;min-height:64px;}
@@ -66,7 +67,7 @@ textarea{resize:vertical;min-height:64px;}
 .divider{height:1px;background:var(--border);margin:13px 0;}
 
 /* BUTTONS */
-.btn{padding:8px 16px;border:none;border-radius:8px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
 .btn:hover{transform:translateY(-2px);}
 .btn:active{transform:translateY(0);}
 .btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important;}
@@ -88,7 +89,7 @@ textarea{resize:vertical;min-height:64px;}
 
 /* TABS */
 .tabs{display:flex;gap:3px;padding:3px;background:var(--bg);border-radius:10px;margin-bottom:14px;border:1px solid var(--border);}
-.tab{flex:1;padding:7px;border:none;border-radius:7px;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;}
+.tab{flex:1;padding:7px;border:none;border-radius:7px;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;}
 .tab:hover{color:var(--text);}
 .tab.active{background:var(--surface);color:var(--cyan);}
 .tc{display:none;}
@@ -137,7 +138,7 @@ textarea{resize:vertical;min-height:64px;}
 [data-theme="dark"] .qtt{background:rgba(0,255,136,.15);color:#00ff88;}
 [data-theme="dark"] .qtbz{background:rgba(245,200,66,.15);color:#f5c842;}
 .ttabs{display:flex;gap:5px;margin-bottom:11px;}
-.tt{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Tajawal',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;}
+.tt{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;}
 .tt:hover{border-color:var(--cyan);color:var(--text);}
 .tt.on{background:rgba(0,119,204,.12);border-color:var(--cyan);color:var(--cyan);}
 [data-theme="dark"] .tt.on{background:rgba(0,212,255,.15);}
@@ -212,7 +213,7 @@ textarea{resize:vertical;min-height:64px;}
 /* BUZZ */
 .bzs{display:flex;flex-direction:column;align-items:center;gap:12px;}
 .bzbts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
-.bzbtn{width:128px;height:128px;border-radius:50%;border:none;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:all .15s;position:relative;overflow:hidden;}
+.bzbtn{width:128px;height:128px;border-radius:50%;border:none;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:13px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:all .15s;position:relative;overflow:hidden;}
 .bzbtn::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.25),transparent);opacity:0;transition:opacity .2s;}
 .bzbtn:hover::before{opacity:1;}
 .bzbtn:hover{transform:scale(1.07);}
@@ -269,7 +270,7 @@ textarea{resize:vertical;min-height:64px;}
 [data-theme="dark"] .logo{filter:drop-shadow(0 0 34px rgba(0,212,255,.36));}
 .logosub{font-size:12px;letter-spacing:7px;text-transform:uppercase;color:var(--muted);text-align:center;margin-top:-6px;}
 .lbtns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
-.bh{padding:16px 40px;border:none;border-radius:var(--radius);font-family:'Tajawal',sans-serif;font-size:18px;font-weight:700;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.bh{padding:16px 40px;border:none;border-radius:var(--radius);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:18px;font-weight:700;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
 .bh::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.15),transparent);opacity:0;transition:opacity .2s;}
 .bh:hover::before{opacity:1;}
 .bh:hover{transform:translateY(-3px);}
@@ -283,7 +284,7 @@ textarea{resize:vertical;min-height:64px;}
 /* TEAM VIEW */
 #team-choose{text-align:center;padding:28px 15px;}
 .tcgrid{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:20px;}
-.tcbtn{padding:15px 22px;border:2px solid var(--border);border-radius:14px;background:var(--surface);cursor:pointer;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;color:var(--text);transition:all .2s;min-width:130px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--shadow);}
+.tcbtn{padding:15px 22px;border:2px solid var(--border);border-radius:14px;background:var(--surface);cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:15px;font-weight:700;color:var(--text);transition:all .2s;min-width:130px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--shadow);}
 .tcbtn:hover{transform:translateY(-4px);}
 .tcem{font-size:28px;}
 
@@ -359,6 +360,41 @@ textarea{resize:vertical;min-height:64px;}
 .tv-text-input-wrap{padding:10px 0;}
 .tv-text-input-wrap .taw{flex-direction:column;}
 
+/* IMPORT DROP ZONE */
+.import-drop{
+  border:2px dashed var(--border);border-radius:12px;
+  padding:24px 16px;text-align:center;cursor:pointer;
+  transition:all .2s;background:var(--bg);
+}
+.import-drop:hover,.import-drop.drag-over{
+  border-color:var(--cyan);background:rgba(0,119,204,.05);
+}
+[data-theme="dark"] .import-drop:hover,[data-theme="dark"] .import-drop.drag-over{
+  background:rgba(0,212,255,.05);
+}
+
+/* EDIT MODE HIGHLIGHT */
+#add-q-card.edit-mode{
+  border:2px solid var(--gold);
+}
+[data-theme="dark"] #add-q-card.edit-mode{
+  border-color:#f5c842;
+}
+.edit-q-badge{
+  padding:2px 8px;border-radius:20px;
+  background:rgba(196,127,0,.12);border:1px solid var(--gold);
+  color:var(--gold);font-size:10px;font-weight:700;
+}
+[data-theme="dark"] .edit-q-badge{
+  background:rgba(245,200,66,.15);border-color:#f5c842;color:#f5c842;
+}
+
+/* EDIT/DELETE BUTTONS IN QUESTION LIST */
+.q-actions{display:flex;gap:4px;}
+.bic-edit{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 7px;cursor:pointer;color:var(--cyan);font-size:11px;transition:all .2s;}
+.bic-edit:hover{background:rgba(0,119,204,.1);border-color:var(--cyan);}
+[data-theme="dark"] .bic-edit:hover{background:rgba(0,212,255,.1);}
+
 /* BUZZ TV BUTTONS */
 .bz-tv-btn{width:110px;height:110px;}
 
@@ -416,9 +452,9 @@ textarea{resize:vertical;min-height:64px;}
     <button class="bh bhc" onclick="goTo('team-view')">🏆 واجهة الفريق</button>
   </div>
   <p style="color:var(--muted);font-size:12px;text-align:center;max-width:340px;line-height:1.8">
-    أرسل الرابط للفرق عشان يفتحونه على أجهزتهم ويختارون فريقهم
+    أرسل الرابط للربع عشان يفتحونه على أجهزتهم ويختارون فريقهم
   </p>
-  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv <b>Faisal Almutairi</b></footer>
+  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv</footer>
 </div>
 
 <!-- ══ PIN ══ -->
@@ -428,7 +464,7 @@ textarea{resize:vertical;min-height:64px;}
   </div>
   <div class="pinbx" style="margin:auto">
     <div class="pinlogo">Faisal App</div>
-    <div class="pinsub">لوحة التحكم — المشرف فقط</div>
+    <div class="pinsub">لوحة التحكم — طويل العمر فيصل فقط</div>
     <div class="pinlbl">🔐 أدخل رمز الدخول</div>
     <div class="pindots" id="pindots">
       <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
@@ -443,7 +479,7 @@ textarea{resize:vertical;min-height:64px;}
     <div class="pinerr" id="pinerr"></div>
     <div style="margin-top:13px"><button class="btn bgh sm" onclick="goTo('landing')">← رجوع</button></div>
   </div>
-  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv <b>Faisal Almutairi</b></footer>
+  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv</footer>
 </div>
 
 <!-- ══ HOST SETUP ══ -->
@@ -451,7 +487,7 @@ textarea{resize:vertical;min-height:64px;}
   <div class="topbar">
     <div class="tlogo">Faisal App</div>
     <div class="tr">
-      <span class="badge bg-gold">🎙️ المشرف</span>
+      <span class="badge bg-gold">🎙️ طويل العمر فيصل</span>
       <span class="cdot ok" id="hcdot" style="width:9px;height:9px"></span>
       <button class="thm" onclick="toggleTheme()">🌙</button>
       <button class="btn bgh sm" onclick="lockHost()">🔒</button>
@@ -492,12 +528,15 @@ textarea{resize:vertical;min-height:64px;}
 
     <!-- QUESTIONS TAB -->
     <div id="tab-questions" class="tc">
-      <div class="card">
-        <div class="ct">❓ إضافة سؤال</div>
+      <!-- ADD QUESTION CARD -->
+      <div class="card" id="add-q-card">
+        <div class="ct">❓ <span id="add-q-title">إضافة سؤال جديد</span>
+          <span id="edit-q-badge" style="display:none" class="badge bg-gold" style="font-size:10px">وضع التعديل</span>
+        </div>
         <div class="ttabs">
-          <button class="tt on" onclick="setQt('mcq',this)">🔘 اختيار متعدد</button>
-          <button class="tt"   onclick="setQt('text',this)">✍️ إجابة كتابية</button>
-          <button class="tt"   onclick="setQt('buzz',this)">⚡ زر سريع</button>
+          <button class="tt on" id="tt-mcq" onclick="setQt('mcq',this)">🔘 اختيار متعدد</button>
+          <button class="tt"   id="tt-text" onclick="setQt('text',this)">✍️ إجابة كتابية</button>
+          <button class="tt"   id="tt-buzz" onclick="setQt('buzz',this)">⚡ زر سريع</button>
         </div>
         <div class="fr s"><div><label>نص السؤال</label><textarea id="nq-txt" placeholder="اكتب السؤال..."></textarea></div></div>
         <div class="fr">
@@ -519,8 +558,34 @@ textarea{resize:vertical;min-height:64px;}
           <label>الإجابة المرجعية (للمشرف)</label>
           <input id="ba" placeholder="الإجابة الصحيحة">
         </div>
-        <div style="margin-top:12px"><button class="btn bs full" onclick="addQ()">➕ إضافة السؤال</button></div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn bs full" id="btn-save-q" onclick="saveQ()">➕ إضافة السؤال</button>
+          <button class="btn bgh sm" id="btn-cancel-edit" style="display:none" onclick="cancelEditQ()">✕ إلغاء</button>
+        </div>
       </div>
+
+      <!-- IMPORT FROM EXCEL -->
+      <div class="card">
+        <div class="ct">📥 استيراد أسئلة من Excel
+          <button class="btn bgh sm" onclick="downloadTemplate()" style="margin-right:auto;font-size:11px">⬇️ تحميل نموذج Excel</button>
+        </div>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:10px">
+          حمّل النموذج، أدخل أسئلتك، ثم ارفع الملف هنا. الأعمدة المطلوبة: <b>نص السؤال، النوع، النقاط، الوقت، خ1، خ2، خ3، خ4، الصحيح، الإجابة</b>
+        </p>
+        <div class="import-drop" id="import-drop"
+          onclick="document.getElementById('excel-file').click()"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleExcelDrop(event)">
+          <div style="font-size:28px;margin-bottom:6px">📊</div>
+          <div style="font-size:13px;font-weight:600;color:var(--muted)">اضغط لرفع ملف Excel أو اسحبه هنا</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">.xlsx أو .xls أو .csv</div>
+        </div>
+        <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this)">
+        <div id="import-status" style="margin-top:8px;font-size:12px"></div>
+      </div>
+
+      <!-- QUESTIONS LIST -->
       <div class="card">
         <div class="ct">📋 الأسئلة <span class="badge bg-cyan" id="q-cnt">0</span></div>
         <div class="qlist" id="q-list"><p style="color:var(--muted);text-align:center;padding:12px">لا توجد أسئلة بعد</p></div>
@@ -555,7 +620,7 @@ textarea{resize:vertical;min-height:64px;}
       </div>
     </div>
   </div>
-  <footer class="footer">Dv <b>Faisal Almutairi</b></footer>
+  <footer class="footer">Dv</footer>
 </div>
 
 <!-- ══ GAME HOST ══ -->
@@ -594,7 +659,7 @@ textarea{resize:vertical;min-height:64px;}
     <button class="btn bgh" id="btn-skip" onclick="skipQ()" style="display:none">⏭️ تخطي</button>
     <button class="btn bgo" id="btn-next" onclick="nextQ()" style="display:none">التالي ←</button>
   </div>
-  <footer class="footer">Dv <b>Faisal Almutairi</b></footer>
+  <footer class="footer">Dv</footer>
 </div>
 
 <!-- ══ TEAM VIEW ══ -->
@@ -662,7 +727,7 @@ textarea{resize:vertical;min-height:64px;}
     </div>
   </div>
 
-  <footer class="footer">Dv <b>Faisal Almutairi</b></footer>
+  <footer class="footer">Dv</footer>
 </div>
 
 <!-- ANSWER REVEAL OVERLAY -->
@@ -687,7 +752,7 @@ textarea{resize:vertical;min-height:64px;}
     <button class="bh bhg" onclick="restartGame()">🔄 جديدة</button>
     <button class="bh bhc" onclick="goTo('landing')">🏠 الرئيسية</button>
   </div>
-  <footer class="footer" style="margin-top:22px;width:100%">Dv <b>Faisal Almutairi</b></footer>
+  <footer class="footer" style="margin-top:22px;width:100%">Dv</footer>
 </div>
 
 <!-- VERDICT -->
@@ -753,6 +818,7 @@ function setupListeners(){
     if(g.phase!==undefined) S.phase=g.phase;
     if(g.qShown!==undefined) S.qShown=g.qShown;
     if(g.buzzWinner!==undefined) S.buzzWinner=g.buzzWinner;
+    if(g.buzzHistory!==undefined) S.buzzHistory=g.buzzHistory||[];
     if(g.teamAnswers!==undefined) S.teamAnswers=g.teamAnswers||{};
     if(g.scoreResults!==undefined) S.scoreResults=g.scoreResults||{};
     if(g.settings) Object.assign(S.settings,g.settings);
@@ -804,7 +870,12 @@ function setupListeners(){
       // Buzz winner → re-render to show locked state on TV
       if(S.buzzWinner && prevPhase!=='buzz-answering' && S.phase==='buzz-answering'){
         const q=S.questions[S.currentQ];
-        if(q){ updateTV(); }
+        if(q){ updateTV(); stopTVTimer(); }
+      }
+      // Buzz transferred → re-render buttons
+      if(S.phase==='buzz-answering' && S.buzzWinner){
+        const q=S.questions[S.currentQ];
+        if(q) renderBuzz(q,false);
       }
     }
     if(g.phase==='done'&&active==='team-view'){
@@ -862,7 +933,7 @@ const S={
   teams:[],questions:[],scores:{},
   teamAnswers:{},scoreResults:{},
   currentQ:0,phase:'idle',
-  qShown:false,buzzWinner:null,
+  qShown:false,buzzWinner:null,buzzHistory:[],
   selTeamId:null, tvAnswered:false,
   timerInt:null,timeLeft:30,totalTime:30,
   tvTimerInt:null,tvTimeLeft:30,tvTotalTime:30,
@@ -1081,35 +1152,120 @@ function setQt(type,el){
   document.getElementById('tf-'+type).classList.add('show');
 }
 
-function addQ(){
+// ══════════════════════════════════════
+//  QUESTION CRUD — ADD / EDIT / DELETE
+// ══════════════════════════════════════
+let editingQId = null; // null = add mode, string = edit mode
+
+function getFormQ(){
   const text=document.getElementById('nq-txt').value.trim();
-  if(!text){showN('⚠️ أدخل نص السؤال','e');return;}
+  if(!text){showN('⚠️ أدخل نص السؤال','e');return null;}
   const pts=parseInt(document.getElementById('nq-pts').value)||10;
   const time=parseInt(document.getElementById('nq-tm').value)||30;
-  const q={text,pts,time,type:qtype,order:S.questions.length};
+  const q={text,pts,time,type:qtype};
   if(qtype==='mcq'){
     const opts=Array.from(document.querySelectorAll('.oi')).map(i=>i.value.trim()).filter(v=>v);
-    if(opts.length<2){showN('⚠️ أدخل خيارين على الأقل','e');return;}
+    if(opts.length<2){showN('⚠️ أدخل خيارين على الأقل','e');return null;}
     const ci=parseInt(document.querySelector('input[name="cr"]:checked').value);
     q.options=opts;q.correct=ci<opts.length?ci:0;
   }else if(qtype==='text'){
     const a=document.getElementById('ta').value.trim();
-    if(!a){showN('⚠️ أدخل الإجابة','e');return;}
+    if(!a){showN('⚠️ أدخل الإجابة','e');return null;}
     q.answer=a;
   }else{
     q.answer=document.getElementById('ba').value.trim();
   }
-  const key=gameRef.child('questions').push().key;
-  q.id=key;
-  gameRef.child('questions/'+key).set(q);
+  return q;
+}
+
+function saveQ(){
+  const q=getFormQ();if(!q)return;
+  if(editingQId){
+    // UPDATE existing
+    q.id=editingQId;
+    const existing=S.questions.find(x=>x.id===editingQId);
+    q.order=existing?existing.order:S.questions.length;
+    gameRef.child('questions/'+editingQId).set(q);
+    showN('✅ تم تحديث السؤال','s');
+    cancelEditQ();
+  }else{
+    // CREATE new
+    q.order=S.questions.length;
+    const key=gameRef.child('questions').push().key;
+    q.id=key;
+    gameRef.child('questions/'+key).set(q);
+    showN('✅ تم إضافة السؤال','s');
+    clearQForm();
+  }
+}
+
+function addQ(){saveQ();} // backward compat
+
+function editQ(id){
+  const q=S.questions.find(x=>x.id===id);
+  if(!q)return;
+  editingQId=id;
+
+  // Fill form
+  document.getElementById('nq-txt').value=q.text;
+  document.getElementById('nq-pts').value=q.pts;
+  document.getElementById('nq-tm').value=q.time;
+
+  // Set type tabs
+  const typeMap={mcq:'tt-mcq',text:'tt-text',buzz:'tt-buzz'};
+  document.querySelectorAll('.tt').forEach(t=>t.classList.remove('on'));
+  const tabBtn=document.getElementById(typeMap[q.type]);
+  if(tabBtn){tabBtn.classList.add('on');qtype=q.type;}
+  document.querySelectorAll('.tf').forEach(f=>f.classList.remove('show'));
+  document.getElementById('tf-'+q.type).classList.add('show');
+
+  if(q.type==='mcq'){
+    const inputs=document.querySelectorAll('.oi');
+    inputs.forEach((inp,i)=>{inp.value=(q.options&&q.options[i])||'';});
+    const radios=document.querySelectorAll('input[name="cr"]');
+    radios.forEach((r,i)=>{r.checked=(i===q.correct);});
+  }else if(q.type==='text'){
+    document.getElementById('ta').value=q.answer||'';
+  }else{
+    document.getElementById('ba').value=q.answer||'';
+  }
+
+  // UI edit mode
+  document.getElementById('add-q-title').textContent='تعديل السؤال';
+  document.getElementById('edit-q-badge').style.display='inline-block';
+  document.getElementById('btn-save-q').textContent='💾 حفظ التعديلات';
+  document.getElementById('btn-save-q').className='btn bgo full';
+  document.getElementById('btn-cancel-edit').style.display='inline-block';
+  document.getElementById('add-q-card').classList.add('edit-mode');
+
+  // Scroll to form
+  document.getElementById('add-q-card').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelEditQ(){
+  editingQId=null;
+  clearQForm();
+  document.getElementById('add-q-title').textContent='إضافة سؤال جديد';
+  document.getElementById('edit-q-badge').style.display='none';
+  document.getElementById('btn-save-q').textContent='➕ إضافة السؤال';
+  document.getElementById('btn-save-q').className='btn bs full';
+  document.getElementById('btn-cancel-edit').style.display='none';
+  document.getElementById('add-q-card').classList.remove('edit-mode');
+}
+
+function clearQForm(){
   document.getElementById('nq-txt').value='';
   document.querySelectorAll('.oi').forEach(i=>i.value='');
   document.getElementById('ta').value='';
   document.getElementById('ba').value='';
-  showN('✅ تم إضافة السؤال','s');
+  document.getElementById('nq-pts').value=10;
+  document.getElementById('nq-tm').value=30;
 }
 
-function removeQ(id){gameRef.child('questions/'+id).remove();}
+function removeQ(id){
+  if(editingQId===id) cancelEditQ();
+  gameRef.child('questions/'+id).remove();
+}
 
 function renderQs(){
   const el=document.getElementById('q-list');if(!el)return;
@@ -1119,12 +1275,15 @@ function renderQs(){
   const tl={mcq:'اختيار',text:'كتابي',buzz:'زر'};
   const tc={mcq:'qtm',text:'qtt',buzz:'qtbz'};
   el.innerHTML=S.questions.map((q,i)=>`
-    <div class="qi">
+    <div class="qi" id="qi-${q.id}">
       <div class="qn">${i+1}</div>
       <div class="qt">${q.text}</div>
       <span class="qtb ${tc[q.type]}">${tl[q.type]}</span>
       <span style="color:var(--gold);font-size:10px;font-weight:700">⭐${q.pts}</span>
-      <button class="bic" onclick="removeQ('${q.id||i}')">🗑</button>
+      <div class="q-actions">
+        <button class="bic-edit" onclick="editQ('${q.id}')" title="تعديل">✏️</button>
+        <button class="bic" onclick="removeQ('${q.id}')" title="حذف">🗑</button>
+      </div>
     </div>`).join('');
 }
 
@@ -1132,6 +1291,126 @@ function checkStartBtn(){
   const ok=S.questions.length>0&&S.teams.length>=2;
   const btn=document.getElementById('start-btn');
   if(btn){btn.disabled=!ok;btn.title=ok?'':'يلزم فريقان وسؤال واحد';}
+}
+
+// ══════════════════════════════════════
+//  EXCEL IMPORT
+// ══════════════════════════════════════
+function handleExcelDrop(e){
+  e.preventDefault();
+  document.getElementById('import-drop').classList.remove('drag-over');
+  const file=e.dataTransfer.files[0];
+  if(file) processExcelFile(file);
+}
+
+function handleExcelFile(input){
+  const file=input.files[0];
+  if(file) processExcelFile(file);
+  input.value='';
+}
+
+function processExcelFile(file){
+  const status=document.getElementById('import-status');
+  status.innerHTML='<span style="color:var(--cyan)">⏳ جارٍ معالجة الملف...</span>';
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      let rows=[];
+      if(file.name.toLowerCase().endsWith('.csv')){
+        // CSV parse
+        const text=new TextDecoder('utf-8').decode(new Uint8Array(e.target.result));
+        const lines=text.split('\n').filter(l=>l.trim());
+        const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+        rows=lines.slice(1).map(line=>{
+          const vals=line.match(/(".*?"|[^,]+)(?=,|$)/g)||[];
+          const row={};
+          headers.forEach((h,i)=>row[h]=(vals[i]||'').trim().replace(/^"|"$/g,''));
+          return row;
+        });
+      }else{
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      }
+
+      let imported=0,errors=[];
+      rows.forEach((row,i)=>{
+        const text=(row['نص السؤال']||row['question']||row['text']||'').toString().trim();
+        if(!text)return;
+        const type=(row['النوع']||row['type']||'mcq').toString().trim().toLowerCase();
+        const pts=parseInt(row['النقاط']||row['points']||10)||10;
+        const time=parseInt(row['الوقت']||row['time']||30)||30;
+        const q={text,pts,time,type,order:S.questions.length+imported};
+
+        if(type==='mcq'||type==='اختيار'){
+          q.type='mcq';
+          const opts=[
+            (row['خ1']||row['opt1']||'').toString().trim(),
+            (row['خ2']||row['opt2']||'').toString().trim(),
+            (row['خ3']||row['opt3']||'').toString().trim(),
+            (row['خ4']||row['opt4']||'').toString().trim(),
+          ].filter(o=>o);
+          if(opts.length<2){errors.push(`صف ${i+2}: يلزم خيارين`);return;}
+          const correctVal=(row['الصحيح']||row['correct']||'1').toString().trim();
+          // Accepts: 1,2,3,4 or أ,ب,ج,د or A,B,C,D
+          const correctMap={'1':0,'2':1,'3':2,'4':3,'أ':0,'ب':1,'ج':2,'د':3,'a':0,'b':1,'c':2,'d':3};
+          q.correct=correctMap[correctVal.toLowerCase()]??0;
+          q.options=opts;
+        }else if(type==='text'||type==='كتابي'){
+          q.type='text';
+          q.answer=(row['الإجابة']||row['answer']||'').toString().trim();
+          if(!q.answer){errors.push(`صف ${i+2}: يلزم إجابة للنوع الكتابي`);return;}
+        }else{
+          q.type='buzz';
+          q.answer=(row['الإجابة']||row['answer']||'').toString().trim();
+        }
+
+        const key=gameRef.child('questions').push().key;
+        q.id=key;
+        gameRef.child('questions/'+key).set(q);
+        imported++;
+      });
+
+      let msg=`<span style="color:var(--green)">✅ تم استيراد ${imported} سؤال</span>`;
+      if(errors.length) msg+=`<br><span style="color:var(--red);font-size:11px">${errors.join('<br>')}</span>`;
+      status.innerHTML=msg;
+      showN(`✅ استُورد ${imported} سؤال`,'s');
+    }catch(err){
+      status.innerHTML=`<span style="color:var(--red)">❌ خطأ في قراءة الملف: ${err.message}</span>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function downloadTemplate(){
+  // Build template workbook
+  const wb=XLSX.utils.book_new();
+  const data=[
+    ['نص السؤال','النوع','النقاط','الوقت','خ1','خ2','خ3','خ4','الصحيح','الإجابة'],
+    ['ما هي عاصمة المملكة العربية السعودية؟','mcq',10,30,'جدة','الرياض','مكة المكرمة','الدمام',2,''],
+    ['كم عدد أضلاع المثلث؟','buzz',5,15,'','','','','','ثلاثة'],
+    ['اكتب اسم أكبر كوكب في المجموعة الشمسية','text',15,25,'','','','','','المشتري'],
+  ];
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  // Column widths
+  ws['!cols']=[{wch:40},{wch:10},{wch:8},{wch:8},{wch:20},{wch:20},{wch:20},{wch:20},{wch:8},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws,'أسئلة');
+
+  // Notes sheet
+  const notes=[
+    ['تعليمات النموذج'],
+    [''],
+    ['عمود النوع: mcq = اختيار متعدد | text = إجابة كتابية | buzz = زر سريع'],
+    ['عمود الصحيح: رقم الخيار الصحيح (1، 2، 3، 4) أو الحرف (أ، ب، ج، د)'],
+    ['للأسئلة الكتابية والزر السريع: أدخل الإجابة في عمود "الإجابة"'],
+    ['يمكن ترك الخانات الفارغة'],
+  ];
+  const wsN=XLSX.utils.aoa_to_sheet(notes);
+  wsN['!cols']=[{wch:60}];
+  XLSX.utils.book_append_sheet(wb,wsN,'تعليمات');
+
+  XLSX.writeFile(wb,'Faisal_App_Template.xlsx');
+  showN('✅ تم تحميل نموذج Excel','s');
 }
 
 // ══════════════════════════════════════
@@ -1167,7 +1446,7 @@ function startGame(){
 function loadQ(){
   if(S.currentQ>=S.questions.length){endGame();return;}
   const q=S.questions[S.currentQ];
-  S.qShown=false;S.buzzWinner=null;S.teamAnswers={};S.tvAnswered=false;
+  S.qShown=false;S.buzzWinner=null;S.buzzHistory=[];S.teamAnswers={};S.tvAnswered=false;
   stopTimer();
   const tot=S.questions.length;
   document.getElementById('hq-bdg').textContent=`س ${S.currentQ+1}/${tot}`;
@@ -1183,7 +1462,7 @@ function loadQ(){
   document.getElementById('btn-skip').style.display='none';
   document.getElementById('btn-next').style.display='none';
   renderAwBtns(false);updateSB();
-  gameRef.child('game').update({currentQ:S.currentQ,phase:'idle',qShown:false,buzzWinner:null,teamAnswers:{}});
+  gameRef.child('game').update({currentQ:S.currentQ,phase:'idle',qShown:false,buzzWinner:null,buzzHistory:[],teamAnswers:{}});
 }
 
 function showQ(){
@@ -1370,77 +1649,138 @@ function checkText(){
 }
 
 function renderBuzz(q,host){
+  const usedTeams=S.buzzHistory||[];
   const btns=S.teams.map(t=>{
     const c=getC(t.ci);
     const isWinner=S.buzzWinner===t.id;
-    const locked=!!S.buzzWinner && !isWinner;
-    const isMe=!host && t.id===S.selTeamId;
+    const isUsed=usedTeams.includes(t.id)&&!isWinner;
+    const locked=!!S.buzzWinner;
+    const isMe=!host&&t.id===S.selTeamId;
+    const canPress=!host&&isMe&&!locked&&!usedTeams.includes(t.id);
     return`<button class="bzbtn${!host?' bz-tv-btn':''}" id="bz-${t.id}"
-      style="background:linear-gradient(135deg,${c.h},${c.h}99);color:#fff;box-shadow:0 5px 18px ${c.h}${locked?'22':'44'};${locked?'opacity:.3;':''}${isWinner?'transform:scale(1.08);box-shadow:0 0 30px '+c.h+'88;':''}"
-      onclick="${host?`buzzPress('${t.id}')`:(isMe&&!S.buzzWinner?`tvBuzzPress('${t.id}')`:`void 0`)}"
-      ${locked||(!host&&!isMe)?'disabled':''}>
-        <span class="bic-txt">${isWinner?'🎯':'⚡'}</span>
+      style="background:linear-gradient(135deg,${c.h},${c.h}99);color:#fff;
+        box-shadow:0 5px 18px ${c.h}${isWinner?'99':locked||isUsed?'11':'44'};
+        ${isWinner?`transform:scale(1.1);box-shadow:0 0 35px ${c.h}99;`:''}
+        ${isUsed||(!isWinner&&locked)?'opacity:.28;':''}"
+      onclick="${host?`buzzPressHost('${t.id}')`:(canPress?`tvBuzzPress('${t.id}')`:'')}
+      " ${(!canPress&&!host)||isUsed?'disabled':''}>
+        <span class="bic-txt" style="font-size:${isWinner?'26':'21'}px">${isWinner?'🎯':isUsed?'✕':'⚡'}</span>
         <span>${t.name}</span>
-        ${isWinner?`<span style="font-size:10px;margin-top:2px">ضغط أولاً!</span>`:''}
+        ${isWinner?`<span style="font-size:10px;margin-top:2px">يُجيب الآن</span>`:''}
+        ${isUsed?`<span style="font-size:9px;opacity:.8">أجاب مسبقاً</span>`:''}
       </button>`;
   }).join('');
+
+  const remainTeams=S.teams.filter(t=>!usedTeams.includes(t.id)&&t.id!==S.buzzWinner);
+  const winnerTeam=S.buzzWinner?S.teams.find(x=>x.id===S.buzzWinner):null;
+
+  const transferSection=host&&S.buzzWinner&&remainTeams.length>0?`
+    <div style="margin-top:11px;padding:10px;background:var(--surface2);border-radius:10px;border:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:7px;text-align:center">↪ تحويل السؤال إلى فريق آخر (بعد خصم ${S.settings.pen} نقطة من ${winnerTeam?.name||''})</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+        ${remainTeams.map(t=>{const c=getC(t.ci);
+          return`<button class="btn sm" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15;font-weight:700"
+            onclick="transferBuzz('${t.id}')">↪ ${t.name}</button>`;
+        }).join('')}
+      </div>
+    </div>`:''
+
   const html=`<div class="bzs">
-    <p style="color:var(--muted);font-size:12px;margin-bottom:6px">
-      ${S.buzzWinner?'':'⚡ اضغط الزر أسرع من بقية الفرق!'}
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px;text-align:center">
+      ${winnerTeam?`⚡ ${winnerTeam.name} يُجيب الآن — طويل العمر فيصل يقرر`:'⚡ اضغط الزر أسرع من بقية الفرق!'}
     </p>
     <div class="bzbts">${btns}</div>
-    <div id="bz-res"></div>
-    ${host&&!S.buzzWinner?`<p style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">انتظر حتى يضغط أحد الفرق...</p>`:''}
-    ${host&&S.buzzWinner?`<div id="bz-ans-area" class="buzz-answer-area active">
-      <p id="bz-ans-prompt" style="font-size:12px;color:var(--muted);margin-bottom:6px"></p>
-    </div>`:''}
+    ${host&&winnerTeam?`
+      <div class="buzz-answer-area active" style="margin-top:11px;text-align:center">
+        <div style="font-size:12px"><b>الإجابة المرجعية:</b> <span style="color:var(--cyan)">${q.answer||'—'}</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">✅ صح يكسب النقاط &nbsp;|&nbsp; ❌ خطأ يخسر ${S.settings.pen} نقطة</div>
+      </div>
+      ${transferSection}`:''}
+    ${!host&&winnerTeam&&S.buzzWinner!==S.selTeamId?`
+      <div style="text-align:center;margin-top:10px;padding:10px;background:var(--surface2);border-radius:9px;color:var(--muted);font-size:13px">
+        🔒 الزر مقفل — <b>${winnerTeam.name}</b> يُجيب الآن
+      </div>`:''}
+    ${!host&&S.buzzWinner===S.selTeamId?`
+      <div style="text-align:center;margin-top:10px;padding:10px;background:rgba(10,138,74,.1);border-radius:9px;color:var(--green);font-size:14px;font-weight:700;border:2px solid var(--green)">
+        🎯 أنت ضغطت أولاً! أجب الآن وانتظر قرار طويل العمر فيصل
+      </div>`:''}
   </div>`;
+
   if(host) document.getElementById('hq-con').innerHTML=html;
   else document.getElementById('tv-cnt').innerHTML=html;
-  // Update host buzz answer area if winner exists
-  if(host && S.buzzWinner){
-    const t=S.teams.find(x=>x.id===S.buzzWinner);
-    const prompt=document.getElementById('bz-ans-prompt');
-    if(prompt&&t) prompt.innerHTML=`<b>الإجابة المرجعية:</b> ${q.answer||'—'}<br>
-      <small style="color:var(--muted)">اضغط ✅ صح أو ❌ خطأ بعد سماع إجابة ${t.emoji} ${t.name}</small>`;
-  }
 }
 
-// Team presses buzz button → sends to Firebase
+// Team presses buzz → Firebase race condition: first write wins
 function tvBuzzPress(teamId){
-  if(S.buzzWinner) return; // already locked
+  if(S.buzzWinner) return;
   if(S.selTeamId!==teamId) return;
-  // Optimistically lock locally
-  S.buzzWinner=teamId;
-  // Push to Firebase — host listener handles awarding
+  S.buzzWinner=teamId; // optimistic lock
   gameRef.child('game').update({
     phase:'buzz-answering',
     buzzWinner:teamId,
-    buzzTimestamp:Date.now()
+    buzzTimestamp:firebase.database.ServerValue.TIMESTAMP
   });
-  showN('⚡ ضغطت الزر! انتظر طويل العمر فيصل...','s');
+  showN('⚡ ضغطت أولاً! انتظر قرار طويل العمر فيصل...','s');
 }
 
-function buzzPress(teamId){
-  // Host manually presses on behalf of team (fallback)
-  if(S.buzzWinner)return;
+// Host manually awards buzz (fallback / manual)
+function buzzPressHost(teamId){
+  if(S.buzzWinner) return;
+  const q=S.questions[S.currentQ];
   S.buzzWinner=teamId;
-  stopTimer();S.phase='buzz-answering';
+  stopTimer(); S.phase='buzz-answering';
   const t=S.teams.find(x=>x.id===teamId);
   const c=getC(t.ci);
   const disp=document.getElementById('bz-disp');
-  if(disp){
-    disp.style.display='block';
-    disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">⚡ ${t.name} — الإجابة الآن!</div>`;
-  }
-  renderAwBtns(true);sB('btn-wrong',true);
+  if(disp){ disp.style.display='block'; disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">⚡ ${t.name} — الإجابة الآن!</div>`; }
+  renderBuzz(q,true);
+  renderAwBtns(true); sB('btn-wrong',true);
   document.getElementById('btn-skip').style.display='none';
   document.getElementById('btn-next').style.display='inline-block';
-  // Re-render buzz with locked state
-  const q=S.questions[S.currentQ];
-  renderBuzz(q,true);
   gameRef.child('game').update({phase:'buzz-answering',buzzWinner:teamId,buzzTimestamp:Date.now()});
 }
+
+// Transfer question to another team (penalize current buzzer first)
+function transferBuzz(newTeamId){
+  const pen=S.settings.pen||0;
+  const oldWinner=S.buzzWinner;
+  if(!oldWinner) return;
+
+  // Penalize the team that buzzed wrong
+  if(pen>0){
+    S.scores[oldWinner]=Math.max(0,(S.scores[oldWinner]||0)-pen);
+    gameRef.child('game/scores/'+oldWinner).set(S.scores[oldWinner]);
+  }
+
+  // Add old winner to history (used teams)
+  const newHistory=[...(S.buzzHistory||[]),oldWinner];
+  S.buzzHistory=newHistory;
+
+  // Set new winner
+  S.buzzWinner=newTeamId;
+  S.phase='buzz-answering';
+
+  const t=S.teams.find(x=>x.id===newTeamId);
+  const c=getC(t.ci);
+  const disp=document.getElementById('bz-disp');
+  if(disp){ disp.style.display='block'; disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">↪ تحويل إلى ${t.name} — الإجابة الآن!</div>`; }
+
+  updateSB();
+  const q=S.questions[S.currentQ];
+  renderBuzz(q,true);
+  renderAwBtns(true); sB('btn-wrong',true);
+  document.getElementById('btn-next').style.display='inline-block';
+
+  gameRef.child('game').update({
+    buzzWinner:newTeamId,
+    buzzHistory:newHistory,
+    phase:'buzz-answering',
+    scores:S.scores
+  });
+  showN(`↪ تم التحويل إلى ${t.name}`,'i');
+}
+
+
 
 // ══════════════════════════════════════
 //  AWARD / WRONG / SKIP
@@ -1472,15 +1812,43 @@ function awardPts(teamId){
 function markWrong(){
   const pen=S.settings.pen||0;
   if(S.buzzWinner){
-    // Buzz wrong: penalize buzzer
-    S.scores[S.buzzWinner]=Math.max(0,(S.scores[S.buzzWinner]||0)-pen);
-    gameRef.child('game/scores/'+S.buzzWinner).set(S.scores[S.buzzWinner]);
-    const t=S.teams.find(x=>x.id===S.buzzWinner);
-    showV(false,`${t.emoji} ${t.name}`,pen);
-  }else{
+    // Buzz wrong: penalize buzzer, add to history, clear winner so host can transfer or skip
+    const loser=S.buzzWinner;
+    if(pen>0){
+      S.scores[loser]=Math.max(0,(S.scores[loser]||0)-pen);
+      gameRef.child('game/scores/'+loser).set(S.scores[loser]);
+    }
+    const t=S.teams.find(x=>x.id===loser);
+    showV(false,t?`${t.name}`:'',pen);
+    // Add to history and clear winner so other teams can buzz or host can transfer
+    const newHistory=[...(S.buzzHistory||[]),loser];
+    S.buzzHistory=newHistory;
+    S.buzzWinner=null;
+    const remainTeams=S.teams.filter(x=>!newHistory.includes(x.id));
+    if(remainTeams.length>0){
+      // Re-open buzz for remaining teams
+      S.phase='showing';
+      gameRef.child('game').update({buzzWinner:null,buzzHistory:newHistory,phase:'showing',scores:S.scores});
+      const q=S.questions[S.currentQ];
+      if(q){renderBuzz(q,true);}
+      // Keep aw-wrap and wrong btn active for remaining teams
+      renderAwBtns(false); sB('btn-wrong',false);
+      document.getElementById('btn-next').style.display='none';
+      document.getElementById('btn-skip').style.display='inline-block';
+      showN(`❌ ${t?.name||''} خسر ${pen} نقطة — الزر متاح للباقين!`,'e');
+    } else {
+      // All teams buzzed wrong — end question
+      S.phase='answered';
+      gameRef.child('game').update({buzzWinner:null,buzzHistory:newHistory,phase:'answered',scores:S.scores});
+      renderAwBtns(false); sB('btn-wrong',false);
+      document.getElementById('btn-next').style.display='inline-block';
+      document.getElementById('btn-skip').style.display='none';
+      showN('انتهى الزر — كل الفرق أجابت خطأ','e');
+    }
+  } else {
     showV(false,'',pen);
+    renderAwBtns(false); sB('btn-wrong',false);
   }
-  renderAwBtns(false);sB('btn-wrong',false);
   updateSB();
 }
 
@@ -1572,7 +1940,7 @@ function dTimer(t,tot){
 // ══════════════════════════════════════
 function renderTeamChoose(){
   const el=document.getElementById('tc-grid');if(!el)return;
-  if(!S.teams.length){el.innerHTML='<p style="color:var(--muted);margin-top:18px">لم تُضَف فرق بعد. انتظر المشرف.</p>';return;}
+  if(!S.teams.length){el.innerHTML='<p style="color:var(--muted);margin-top:18px">لم تُضَف فرق بعد. انتظر طويل العمر فيصل.</p>';return;}
   el.innerHTML=S.teams.map(t=>{
     const c=getC(t.ci);
     return`<button class="tcbtn" onclick="selectTeam('${t.id}')"
