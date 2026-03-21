@@ -360,7 +360,24 @@ textarea{resize:vertical;min-height:64px;}
 .tv-text-input-wrap{padding:10px 0;}
 .tv-text-input-wrap .taw{flex-direction:column;}
 
-/* IMPORT DROP ZONE */
+/* ICON PICKER GRID */
+.icon-picker-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.team-icon-btn{
+  width:34px;height:34px;border-radius:7px;
+  border:1px solid var(--border);background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;padding:0;
+}
+.team-icon-btn:hover{border-color:var(--cyan);background:var(--surface2);transform:scale(1.1);}
+.team-icon-sel{
+  border-color:var(--cyan)!important;
+  background:rgba(0,119,204,.12)!important;
+  box-shadow:0 0 0 2px rgba(0,119,204,.3);
+}
+[data-theme="dark"] .team-icon-sel{
+  background:rgba(0,212,255,.15)!important;
+  box-shadow:0 0 0 2px rgba(0,212,255,.3);
+}
 .import-drop{
   border:2px dashed var(--border);border-radius:12px;
   padding:24px 16px;text-align:center;cursor:pointer;
@@ -452,7 +469,7 @@ textarea{resize:vertical;min-height:64px;}
     <button class="bh bhc" onclick="goTo('team-view')">🏆 واجهة الفريق</button>
   </div>
   <p style="color:var(--muted);font-size:12px;text-align:center;max-width:340px;line-height:1.8">
-    أرسل الرابط للربع عشان يفتحونه على أجهزتهم ويختارون فريقهم
+    أرسل الرابط للفرق ليفتحوه على أجهزتهم ويختاروا فريقهم
   </p>
   <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv</footer>
 </div>
@@ -513,13 +530,10 @@ textarea{resize:vertical;min-height:64px;}
             <div><label>وصف (اختياري)</label><input id="nt-desc" placeholder="وصف مختصر"></div>
           </div>
           <label>اختر شعار الفريق</label>
-          <div class="emoji-grid" id="emoji-picker"></div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
-            <div class="emoji-preview" id="emoji-preview">🔵</div>
-            <div style="flex:1">
-              <label>أو أدخل إيموجي مخصص</label>
-              <input id="nt-custom-emoji" placeholder="✏️ اكتب إيموجي" maxlength="4" style="font-size:16px;text-align:center" oninput="customEmojiInput(this.value)">
-            </div>
+          <div class="icon-picker-grid" id="emoji-picker"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+            <div class="emoji-preview" id="emoji-preview" style="width:36px;height:36px;border-radius:9px;border:2px solid var(--cyan);background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+            <div style="font-size:11px;color:var(--muted)">الشعار المختار — اضغط على أي رمز لاختياره</div>
           </div>
           <button class="btn bs full" style="margin-top:12px" onclick="addTeam()">✚ إضافة الفريق</button>
         </div>
@@ -803,7 +817,10 @@ function setupListeners(){
     const raw=snap.val();
     S.teams=raw?Object.values(raw).sort((a,b)=>a.order-b.order):[];
     S.teams.forEach(t=>{if(S.scores[t.id]===undefined)S.scores[t.id]=0;});
-    renderTeams(); renderTeamChoose(); checkStartBtn();
+    renderTeamChoose(); checkStartBtn();
+    // Only re-render teams list if no input inside it is currently focused
+    const focusedInTeams = document.activeElement && document.getElementById('teams-list')?.contains(document.activeElement);
+    if(!focusedInTeams) renderTeams();
   });
   gameRef.child('questions').on('value',snap=>{
     const raw=snap.val();
@@ -949,22 +966,34 @@ function buildEmojiPicker(){
   if(!el)return;
   el.innerHTML=TEAM_ICONS.map(icon=>{
     const isSel=icon.id===selectedEmoji;
-    return`<button class="ep${isSel?' sel':''}" onclick="selectEmoji('${icon.id}')" title="${icon.label}"
-      style="display:flex;align-items:center;justify-content:center;gap:0">
-      ${teamIconSVG(icon.id,'currentColor',20)}
+    return`<button class="team-icon-btn${isSel?' team-icon-sel':''}"
+      onclick="selectEmoji('${icon.id}')"
+      title="${icon.label}"
+      style="color:var(--cyan)">
+      ${teamIconSVG(icon.id,'currentColor',16)}
     </button>`;
   }).join('');
+  // Update preview
+  const prev=document.getElementById('emoji-preview');
+  if(prev) prev.innerHTML=teamIconSVG(selectedEmoji,'var(--cyan)',20);
 }
+
 function selectEmoji(iconId){
   selectedEmoji=iconId;
+  // Update picker selection highlight without full rebuild
+  document.querySelectorAll('#emoji-picker .team-icon-btn').forEach(b=>{
+    b.classList.remove('team-icon-sel');
+  });
+  // Find the clicked button by its onclick attribute pattern
+  const btns=document.querySelectorAll('#emoji-picker .team-icon-btn');
+  btns.forEach(b=>{
+    if(b.getAttribute('onclick')===`selectEmoji('${iconId}')`){
+      b.classList.add('team-icon-sel');
+    }
+  });
+  // Update preview
   const prev=document.getElementById('emoji-preview');
-  if(prev){ prev.innerHTML=teamIconSVG(iconId,'currentColor',24); }
-  const ci=document.getElementById('nt-custom-emoji');
-  if(ci) ci.value='';
-  buildEmojiPicker();
-}
-function customEmojiInput(v){
-  // custom text fallback (ignored now — keep for compatibility)
+  if(prev) prev.innerHTML=teamIconSVG(iconId,'var(--cyan)',20);
 }
 
 // Helper: render team icon in any context
@@ -981,7 +1010,11 @@ function toggleTheme(){
   h.setAttribute('data-theme',d?'light':'dark');
   document.querySelectorAll('.thm').forEach(b=>b.textContent=d?'🌙':'☀️');
   localStorage.setItem('arena-theme',d?'light':'dark');
-  renderTeams();updateSB();
+  // Re-render only if no input is focused
+  if(!document.activeElement || document.activeElement.tagName!=='INPUT'){
+    renderTeams();
+  }
+  updateSB();
 }
 (function(){
   const t=localStorage.getItem('arena-theme')==='dark'?'dark':'light';
@@ -1042,7 +1075,7 @@ function addTeam(){
   const name=document.getElementById('nt-name').value.trim();
   const desc=document.getElementById('nt-desc').value.trim();
   if(!name){showN('⚠️ أدخل اسم الفريق','e');return;}
-  const emoji=selectedEmoji||'star'; // stores icon id
+  const emoji=selectedEmoji||'star';
   const id='t'+(tid++);
   const ci=S.teams.length%12;
   const team={id,name,emoji,desc,members:[],ci,order:S.teams.length};
@@ -1051,11 +1084,8 @@ function addTeam(){
   gameRef.child('game/scores/'+id).set(0);
   document.getElementById('nt-name').value='';
   document.getElementById('nt-desc').value='';
-  document.getElementById('nt-custom-emoji').value='';
   selectedEmoji='star';
-  const prev=document.getElementById('emoji-preview');
-  if(prev) prev.innerHTML=teamIconSVG('star','currentColor',24);
-  buildEmojiPicker();
+  buildEmojiPicker(); // rebuild to reset selection highlight
   showN(`✅ تم إضافة "${name}"`,'s');
 }
 
@@ -1087,58 +1117,131 @@ function toggleBody(id){
   const open=b.classList.toggle('open');
   a.textContent=open?'▲':'▼';
 }
-function updTF(id,f,v){const t=S.teams.find(x=>x.id===id);if(t){t[f]=v;gameRef.child('teams/'+id+'/'+f).set(v);}}
+// Debounce timers for team field updates — prevents Firebase re-render on every keystroke
+const _debounceTimers={};
+function updTF(id,f,v){
+  const t=S.teams.find(x=>x.id===id);
+  if(!t)return;
+  t[f]=v; // update local state immediately (no DOM re-render)
+  // Debounce Firebase write by 600ms so keyboard stays open
+  clearTimeout(_debounceTimers[id+f]);
+  _debounceTimers[id+f]=setTimeout(()=>{
+    gameRef.child('teams/'+id+'/'+f).set(v);
+  },600);
+}
 
 function renderTeams(){
   const el=document.getElementById('teams-list');if(!el)return;
   document.getElementById('teams-cnt').textContent=S.teams.length;
   checkStartBtn();
   if(!S.teams.length){el.innerHTML='<p style="color:var(--muted);text-align:center;padding:12px">لا توجد فرق بعد.</p>';return;}
-  el.innerHTML=S.teams.map(t=>{
-    const c=getC(t.ci);
-    const iconId=t.emoji||'star';
-    return`<div class="tec" id="tec-${t.id}">
-      <div class="tech" onclick="toggleBody('${t.id}')">
-        <div class="tesw" style="background:${c.h}22;color:${c.h}">${teamIconSVG(iconId,c.h,18)}</div>
-        <div><div class="tenm" style="color:${c.h}" id="tn-${t.id}">${t.name}</div>
-        <div class="temt">${(t.members||[]).length} عضو${t.desc?' · '+t.desc:''}</div></div>
-        <div style="flex:1"></div>
-        <button class="bic" style="margin-left:5px" onclick="event.stopPropagation();removeTeam('${t.id}')">🗑</button>
-        <span class="tear" id="ta-${t.id}">▼</span>
-      </div>
-      <div class="tebd" id="tb-${t.id}">
-        <div class="fr" style="margin-top:11px">
-          <div><label>الاسم</label><input type="text" value="${t.name}" oninput="updTF('${t.id}','name',this.value);document.getElementById('tn-${t.id}').textContent=this.value||'?'"></div>
-          <div><label>الوصف</label><input type="text" value="${t.desc||''}" oninput="updTF('${t.id}','desc',this.value)" placeholder="اختياري"></div>
-        </div>
-        <label style="margin-bottom:8px">تغيير الشعار</label>
-        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
-          ${TEAM_ICONS.map(icon=>`
-            <button onclick="updTF('${t.id}','emoji','${icon.id}');this.closest('.tebd').querySelectorAll('.icon-sel-btn').forEach(b=>b.classList.remove('icon-sel-btn'));this.classList.add('icon-sel-btn');document.querySelector('#tec-${t.id} .tesw').innerHTML='${teamIconSVG(icon.id,c.h,18).replace(/'/g,"\\'")}';"
-              title="${icon.label}"
-              style="width:34px;height:34px;border-radius:7px;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:${c.h}">
-              ${teamIconSVG(icon.id,c.h,16)}
-            </button>`).join('')}
-        </div>
-        <div class="divider"></div>
-        <label>الأعضاء</label>
-        <div style="margin-top:6px">
-          ${(t.members||[]).length?(t.members||[]).map((m,i)=>`
-            <div class="mrow">
-              <div class="mav" style="background:${c.h}22;color:${c.h}">${m.name.charAt(0)}</div>
-              <div class="mnm">${m.name}</div>
-              ${m.role?`<div class="mrl">${m.role}</div>`:''}
-              <button class="brm" onclick="removeMember('${t.id}',${i})">✕</button>
-            </div>`).join(''):'<div style="color:var(--muted);font-size:11px;margin-bottom:4px">لا يوجد أعضاء</div>'}
-        </div>
-        <div class="addm">
-          <input type="text" id="mn-n-${t.id}" placeholder="اسم العضو">
-          <input type="text" id="mn-r-${t.id}" placeholder="الدور" style="max-width:90px">
-          <button class="btn bp sm" onclick="addMember('${t.id}')">+</button>
-        </div>
-      </div>
-    </div>`;
+
+  // Only re-render teams that changed (avoid blowing away active inputs)
+  // Simple approach: render if count changed or IDs changed
+  const existingIds=Array.from(el.querySelectorAll('.tec')).map(e=>e.id.replace('tec-',''));
+  const newIds=S.teams.map(t=>t.id);
+  const needsFullRender=existingIds.join(',')!==newIds.join(',');
+
+  if(needsFullRender){
+    el.innerHTML=S.teams.map(t=>buildTeamCard(t)).join('');
+  } else {
+    // Partial update: just refresh scores/meta without touching inputs
+    S.teams.forEach(t=>{
+      const c=getC(t.ci);
+      const iconId=t.emoji||'star';
+      const sw=el.querySelector(`#tec-${t.id} .tesw`);
+      const nm=document.getElementById('tn-'+t.id);
+      if(sw) sw.innerHTML=teamIconSVG(iconId,c.h,18);
+      if(nm) nm.textContent=t.name||'?';
+    });
+  }
+}
+
+function buildTeamCard(t){
+  const c=getC(t.ci);
+  const iconId=t.emoji||'star';
+  // Build icon picker — no inline style injection that breaks oninput
+  const iconPicker=TEAM_ICONS.map(icon=>{
+    const isCurrent=icon.id===iconId;
+    return`<button
+      onclick="changeTeamIcon('${t.id}','${icon.id}',this)"
+      title="${icon.label}"
+      class="team-icon-btn${isCurrent?' team-icon-sel':''}"
+      style="color:${c.h}">
+      ${teamIconSVG(icon.id,c.h,16)}
+    </button>`;
   }).join('');
+
+  return`<div class="tec" id="tec-${t.id}">
+    <div class="tech" onclick="toggleBody('${t.id}')">
+      <div class="tesw" style="background:${c.h}22;color:${c.h}">${teamIconSVG(iconId,c.h,18)}</div>
+      <div>
+        <div class="tenm" style="color:${c.h}" id="tn-${t.id}">${t.name}</div>
+        <div class="temt">${(t.members||[]).length} عضو${t.desc?' · '+t.desc:''}</div>
+      </div>
+      <div style="flex:1"></div>
+      <button class="bic" style="margin-left:5px" onclick="event.stopPropagation();removeTeam('${t.id}')">🗑</button>
+      <span class="tear" id="ta-${t.id}">▼</span>
+    </div>
+    <div class="tebd" id="tb-${t.id}">
+      <div class="fr" style="margin-top:11px">
+        <div>
+          <label>الاسم</label>
+          <input type="text" value="${escH(t.name)}"
+            oninput="updTF('${t.id}','name',this.value);document.getElementById('tn-${t.id}').textContent=this.value||'?'"
+            autocomplete="off">
+        </div>
+        <div>
+          <label>الوصف</label>
+          <input type="text" value="${escH(t.desc||'')}"
+            oninput="updTF('${t.id}','desc',this.value)"
+            placeholder="اختياري" autocomplete="off">
+        </div>
+      </div>
+      <label style="margin-bottom:7px;display:block">تغيير الشعار</label>
+      <div class="icon-picker-grid">${iconPicker}</div>
+      <div class="divider"></div>
+      <label>الأعضاء</label>
+      <div style="margin-top:6px">
+        ${(t.members||[]).length
+          ? (t.members||[]).map((m,i)=>`
+            <div class="mrow">
+              <div class="mav" style="background:${c.h}22;color:${c.h}">${escH(m.name.charAt(0))}</div>
+              <div class="mnm">${escH(m.name)}</div>
+              ${m.role?`<div class="mrl">${escH(m.role)}</div>`:''}
+              <button class="brm" onclick="removeMember('${t.id}',${i})">✕</button>
+            </div>`).join('')
+          : '<div style="color:var(--muted);font-size:11px;margin-bottom:4px">لا يوجد أعضاء</div>'}
+      </div>
+      <div class="addm">
+        <input type="text" id="mn-n-${t.id}" placeholder="اسم العضو" autocomplete="off">
+        <input type="text" id="mn-r-${t.id}" placeholder="الدور" style="max-width:90px" autocomplete="off">
+        <button class="btn bp sm" onclick="addMember('${t.id}')">+</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function changeTeamIcon(teamId, iconId, btn){
+  // Update local state
+  const t=S.teams.find(x=>x.id===teamId);
+  if(!t)return;
+  t.emoji=iconId;
+  // Update Firebase
+  gameRef.child('teams/'+teamId+'/emoji').set(iconId);
+  // Update icon display in header
+  const c=getC(t.ci);
+  const sw=document.querySelector(`#tec-${teamId} .tesw`);
+  if(sw) sw.innerHTML=teamIconSVG(iconId,c.h,18);
+  // Highlight selected
+  btn.closest('.icon-picker-grid').querySelectorAll('.team-icon-btn').forEach(b=>b.classList.remove('team-icon-sel'));
+  btn.classList.add('team-icon-sel');
+}
+
+// Escape HTML helper
+function escH(s){
+  if(!s)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ══════════════════════════════════════
