@@ -2285,8 +2285,7 @@ function processExcelFile(file){
       if(file.name.toLowerCase().endsWith('.csv')){
         // CSV parse
         const text=new TextDecoder('utf-8').decode(new Uint8Array(e.target.result));
-        const lines=text.split('
-').filter(l=>l.trim());
+        const lines=text.split('\n').filter(l=>l.trim());
         const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
         rows=lines.slice(1).map(line=>{
           const vals=line.match(/(".*?"|[^,]+)(?=,|$)/g)||[];
