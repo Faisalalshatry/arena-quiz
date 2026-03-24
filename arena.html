@@ -552,6 +552,68 @@ body {
 .bq-delta-pos { background:rgba(0,230,118,.15); color:var(--green); }
 .bq-delta-zero { background:rgba(100,100,120,.15); color:var(--muted); }
 
+/* ══════════════════════════════
+   LIGHT THEME
+══════════════════════════════ */
+[data-theme="light"] {
+  --bg:#f0f4ff; --bg2:#e8edf8; --surface:#ffffff; --surface2:#eef2ff;
+  --border:#d0d8f0; --border2:#b8c4e0;
+  --neon:#0066cc; --neon-d:#0052a3; --gold:#c47f00; --gold-d:#a86c00;
+  --green:#027a48; --red:#c0392b; --purple:#5b21b6; --orange:#c05200;
+  --text:#0f172a; --text2:#334155; --muted:#64748b;
+  --bar:rgba(240,244,255,.95);
+  --glow-neon:0 0 16px rgba(0,102,204,.18);
+  --glow-gold:0 0 16px rgba(196,127,0,.18);
+  --shadow:0 2px 16px rgba(15,23,92,.08);
+  --surface3:#dde4f5;
+}
+[data-theme="light"] .arena-bg {
+  background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(0,102,204,.06) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 80%,rgba(91,33,182,.05) 0%,transparent 60%);
+}
+[data-theme="light"] .arena-grid {
+  background-image:linear-gradient(rgba(0,102,204,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,102,204,.04) 1px,transparent 1px);
+}
+[data-theme="light"] .arena-logo { filter:drop-shadow(0 0 20px rgba(0,102,204,.15)); }
+[data-theme="light"] .action-btn { background:#fff; }
+[data-theme="light"] .opt-btn { background:#fff; }
+[data-theme="light"] .player-card { background:#fff; }
+[data-theme="light"] .room-card { background:#fff; }
+[data-theme="light"] .card { background:#fff; }
+[data-theme="light"] .tf-btn { background:#fff; }
+[data-theme="light"] .topbar { background:rgba(240,244,255,.95); border-bottom-color:#c8d4f0; }
+[data-theme="light"] .arena-tagline { color:#64748b; }
+[data-theme="light"] .ab-title { color:#0f172a; }
+[data-theme="light"] .ico-btn { background:#e8edf8; border-color:#c8d4f0; color:#334155; }
+[data-theme="light"] .name-card { background:#fff; border-color:#d0d8f0; }
+[data-theme="light"] .av-btn { background:#eef2ff; border-color:#c8d4f0; }
+[data-theme="light"] .lobby-code { background:transparent; }
+[data-theme="light"] .scores-bar { background:#e8edf8; }
+[data-theme="light"] .game-header { background:#e8edf8; }
+[data-theme="light"] .q-body-wrap { background:#f0f4ff; }
+[data-theme="light"] .vote-cat-card { background:#fff; }
+[data-theme="light"] .bq-row { background:#fff; }
+[data-theme="light"] .scores-bar { background:#e8edf8; }
+[data-theme="light"] .game-header { background:#e8edf8; }
+[data-theme="light"] .q-body-wrap { background:#f0f4ff; }
+
+/* @keyframes */
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* QR Modal */
+.qr-modal-backdrop {
+  position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:400;
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  animation:fade-in .2s;
+}
+.qr-modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:28px; max-width:340px; width:100%;
+  text-align:center;
+  animation:slide-up .3s cubic-bezier(.175,.885,.32,1.275);
+}
+.qr-canvas-wrap { background:#fff; padding:14px; border-radius:var(--r); display:inline-block; margin:14px 0; }
 
 @media(max-width:480px) {
   .options-grid { grid-template-columns:1fr; }
@@ -660,54 +722,76 @@ body {
      CREATE ROOM
 ════════════════════════════════ -->
 <div id="create-room" class="screen">
-  <div style="background:rgba(10,10,20,.85);border-bottom:1px solid var(--border);padding:14px 18px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px">
+  <div class="topbar">
     <button class="ico-btn" onclick="goScreen('home')">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <span style="font-size:16px;font-weight:800">إعداد الغرفة</span>
+    <span class="tb-brand" style="font-size:17px">إنشاء غرفة جديدة</span>
+    <div style="width:36px"></div>
   </div>
-  <div class="content">
-    <div class="card" style="margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--neon);margin-bottom:12px;display:flex;align-items:center;gap:7px">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-        الفئات
+  <div class="content" style="padding-top:18px">
+
+    <!-- Host info strip -->
+    <div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 16px;margin-bottom:18px">
+      <div id="cr-host-av" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+      <div>
+        <div style="font-size:13px;font-weight:700" id="cr-host-name">—</div>
+        <div style="font-size:11px;color:var(--muted)">أنت المضيف</div>
+      </div>
+      <span class="badge b-gold" style="margin-right:auto">مضيف</span>
+    </div>
+
+    <!-- Categories -->
+    <div style="margin-bottom:18px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        الفئات <span id="cat-count-badge" class="badge b-neon" style="font-size:10px">0 محددة</span>
       </div>
       <div class="cat-grid" id="cat-grid-create"></div>
-      <p style="font-size:11px;color:var(--muted);margin-top:6px">اختر فئة واحدة على الأقل</p>
     </div>
 
-    <div class="card" style="margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--neon);margin-bottom:16px;display:flex;align-items:center;gap:7px">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        عدد الأسئلة
-      </div>
-      <div class="slider-row">
-        <input type="range" class="slider" id="q-count-slider" min="5" max="25" value="10" oninput="document.getElementById('q-count-val').textContent=this.value">
-        <div class="slider-val" id="q-count-val">10</div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--neon);margin-bottom:16px;display:flex;align-items:center;gap:7px">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        وقت كل سؤال (ثانية)
-      </div>
-      <div class="slider-row">
-        <input type="range" class="slider" id="q-time-slider" min="10" max="60" step="5" value="30" oninput="document.getElementById('q-time-val').textContent=this.value">
-        <div class="slider-val" id="q-time-val">30</div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:13px;font-weight:700">غرفة عامة</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">يظهر في قائمة الغرف للجميع</div>
+    <!-- Settings row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/></svg>
+          عدد الأسئلة
         </div>
-        <label style="position:relative;width:44px;height:24px;flex-shrink:0">
-          <input type="checkbox" id="room-public" checked style="opacity:0;width:0;height:0">
-          <span style="position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:12px;transition:.3s"></span>
-        </label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="range" class="slider" id="q-count-slider" min="5" max="25" value="10"
+            oninput="document.getElementById('q-count-val').textContent=this.value" style="flex:1">
+          <div class="slider-val" id="q-count-val">10</div>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          وقت السؤال (ث)
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="range" class="slider" id="q-time-slider" min="10" max="60" step="5" value="30"
+            oninput="document.getElementById('q-time-val').textContent=this.value" style="flex:1">
+          <div class="slider-val" id="q-time-val">30</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Public toggle - FIXED VISIBILITY -->
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:20px" id="public-toggle-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+        <div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:3px">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:5px"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            غرفة عامة
+          </div>
+          <div style="font-size:11px;color:var(--muted)">تظهر في قائمة الغرف — يمكن لأي شخص الانضمام</div>
+        </div>
+        <!-- Custom visible toggle -->
+        <button id="public-toggle-btn" onclick="togglePublic()" style="position:relative;width:56px;height:28px;border-radius:14px;border:none;cursor:pointer;transition:all .3s;flex-shrink:0;background:var(--green);box-shadow:0 0 12px rgba(0,230,118,.3)" aria-label="غرفة عامة">
+          <span style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:all .3s;box-shadow:0 1px 4px rgba(0,0,0,.3)" id="toggle-knob"></span>
+        </button>
+      </div>
+      <div style="font-size:11px;font-weight:700;margin-top:10px;padding:6px 10px;border-radius:8px;transition:all .3s" id="public-status-label">
       </div>
     </div>
 
@@ -773,9 +857,19 @@ body {
   <div class="lobby-code">
     <div class="lc-label">كود الغرفة</div>
     <div class="lc-code" id="lobby-code">——</div>
-    <div class="lc-share" onclick="shareRoom()">
-      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-      مشاركة الرابط
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="shareRoom()">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        مشاركة
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="copyRoomLink()">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        نسخ الرابط
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="showQR()">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/><path d="M14 14h3v3h-3zM17 14h3M17 17v3M14 17h3v3"/></svg>
+        QR كود
+      </button>
     </div>
   </div>
 
@@ -1199,11 +1293,155 @@ function avSVG(avId, size=22, color=null) {
 // ══════════════════════════════════════
 //  THEME
 // ══════════════════════════════════════
-let darkMode = true;
+let isDark = true;
 function toggleTheme() {
-  darkMode = !darkMode;
-  // For now stays dark — arena is dark-first
-  showN(darkMode ? 'وضع مظلم' : 'وضع مضيء', 'i');
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  localStorage.setItem('arena-theme', isDark ? 'dark' : 'light');
+  // Update icon
+  const thm = document.getElementById('thm-btn');
+  if (thm) {
+    thm.innerHTML = isDark
+      ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  }
+}
+(function() {
+  const saved = localStorage.getItem('arena-theme') || 'dark';
+  isDark = saved === 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+})();
+
+// ══════════════════════════════════════
+//  PUBLIC TOGGLE
+// ══════════════════════════════════════
+let roomIsPublic = true;
+function togglePublic() {
+  roomIsPublic = !roomIsPublic;
+  const btn = document.getElementById('public-toggle-btn');
+  const knob = document.getElementById('toggle-knob');
+  const label = document.getElementById('public-status-label');
+  const card = document.getElementById('public-toggle-card');
+  if (btn) {
+    btn.style.background = roomIsPublic ? 'var(--green)' : 'var(--border2)';
+    btn.style.boxShadow = roomIsPublic ? '0 0 12px rgba(0,230,118,.3)' : 'none';
+  }
+  if (knob) {
+    knob.style.right = roomIsPublic ? '3px' : 'auto';
+    knob.style.left = roomIsPublic ? 'auto' : '3px';
+  }
+  if (label) {
+    label.style.background = roomIsPublic ? 'rgba(0,230,118,.1)' : 'rgba(100,100,120,.1)';
+    label.style.color = roomIsPublic ? 'var(--green)' : 'var(--muted)';
+    label.textContent = roomIsPublic ? 'الغرفة عامة — تظهر في القائمة للجميع' : 'الغرفة خاصة — فقط من يعرف الكود يدخل';
+  }
+  if (card) {
+    card.style.borderColor = roomIsPublic ? 'var(--green)' : 'var(--border)';
+  }
+}
+function initPublicToggle() {
+  // Set initial state
+  roomIsPublic = true;
+  const btn = document.getElementById('public-toggle-btn');
+  const knob = document.getElementById('toggle-knob');
+  const label = document.getElementById('public-status-label');
+  const card = document.getElementById('public-toggle-card');
+  if (btn) { btn.style.background='var(--green)'; btn.style.boxShadow='0 0 12px rgba(0,230,118,.3)'; }
+  if (knob) { knob.style.right='3px'; knob.style.left='auto'; }
+  if (label) { label.style.background='rgba(0,230,118,.1)'; label.style.color='var(--green)'; label.textContent='الغرفة عامة — تظهر في القائمة للجميع'; }
+  if (card) { card.style.borderColor='var(--green)'; }
+}
+
+// ══════════════════════════════════════
+//  SHARE / COPY / QR
+// ══════════════════════════════════════
+function getRoomURL() {
+  return location.href.split('?')[0] + '?room=' + State.roomCode;
+}
+
+function shareRoom() {
+  const url = getRoomURL();
+  const code = State.roomCode;
+  if (navigator.share) {
+    navigator.share({
+      title: 'Faisal Arena — انضم للغرفة',
+      text: `انضم لغرفتي في Faisal Arena!\nكود الغرفة: ${code}`,
+      url
+    }).catch(() => {});
+  } else {
+    // Fallback: copy
+    navigator.clipboard.writeText(`انضم لغرفتي في Faisal Arena!\nكود الغرفة: ${code}\n${url}`)
+      .then(() => showN('تم نسخ رسالة المشاركة', 's'));
+  }
+}
+
+function copyRoomLink() {
+  navigator.clipboard.writeText(getRoomURL())
+    .then(() => showN('تم نسخ الرابط', 's'))
+    .catch(() => showN('تعذّر النسخ', 'e'));
+}
+
+function showQR() {
+  const url = getRoomURL();
+  const code = State.roomCode;
+
+  // Remove existing QR modal
+  document.getElementById('qr-modal-wrap')?.remove();
+
+  const wrap = document.createElement('div');
+  wrap.id = 'qr-modal-wrap';
+  wrap.className = 'qr-modal-backdrop';
+  wrap.onclick = e => { if (e.target === wrap) wrap.remove(); };
+  wrap.innerHTML = `
+    <div class="qr-modal">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">مشاركة الغرفة</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">امسح الكود أو شارك الرابط</div>
+      <div class="qr-canvas-wrap">
+        <canvas id="qr-canvas" width="200" height="200"></canvas>
+      </div>
+      <div style="font-family:'Exo 2',sans-serif;font-size:28px;font-weight:900;letter-spacing:6px;color:var(--neon);margin-bottom:12px">${code}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-neon btn-sm" onclick="shareRoom();document.getElementById('qr-modal-wrap').remove()">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          مشاركة
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="copyRoomLink();document.getElementById('qr-modal-wrap').remove()">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          نسخ الرابط
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qr-modal-wrap').remove()">إغلاق</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+
+  // Generate QR using canvas — simple QR implementation
+  generateQR(document.getElementById('qr-canvas'), url);
+}
+
+function generateQR(canvas, text) {
+  // Use qrcode.js CDN if available, otherwise draw simple placeholder
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  script.onload = () => {
+    canvas.parentNode.innerHTML = '<div id="qr-div" style="display:inline-block"></div>';
+    new QRCode(document.getElementById('qr-div'), {
+      text, width:180, height:180, colorDark:'#000', colorLight:'#fff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  };
+  script.onerror = () => {
+    // Draw simple fallback with text
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0,0,200,200);
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 14px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('QR: ' + State.roomCode, 100, 100);
+    ctx.font = '10px sans-serif';
+    ctx.fillText('امسح لفتح الرابط', 100, 120);
+  };
+  document.head.appendChild(script);
 }
 
 // ══════════════════════════════════════
@@ -1245,6 +1483,11 @@ function confirmName() {
   if (State.pendingAction === 'create') {
     goScreen('create-room');
     renderCreateCats();
+    initPublicToggle();
+    const avEl = document.getElementById('cr-host-av');
+    const nmEl = document.getElementById('cr-host-name');
+    if (avEl) avEl.innerHTML = avSVG(State.playerAvatar, 24);
+    if (nmEl) nmEl.textContent = State.playerName;
   } else if (State.pendingAction === 'join') {
     goScreen('join-room');
     document.getElementById('join-code-input').value = '';
@@ -1266,10 +1509,17 @@ function renderCreateCats() {
   el.innerHTML = CATS.map(c => `
     <button class="cat-pill ${State.selectedCats.has(c.id) ? 'sel' : ''}"
       onclick="toggleCat('${c.id}')"
-      style="${State.selectedCats.has(c.id) ? `background:${c.color}18;border-color:${c.color};color:${c.color}` : ''}">
+      style="${State.selectedCats.has(c.id) ? `background:${c.color}15;border-color:${c.color};color:${c.color}` : ''}">
       <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="${c.path}"/></svg>
       ${c.label}
     </button>`).join('');
+
+  // Update count badge
+  const badge = document.getElementById('cat-count-badge');
+  if (badge) {
+    badge.textContent = State.selectedCats.size + ' محددة';
+    badge.style.display = State.selectedCats.size ? 'inline-flex' : 'none';
+  }
   updateCreateBtn();
 }
 
@@ -1293,15 +1543,15 @@ function generateRoomCode() {
 async function createRoom() {
   if (!State.selectedCats.size) { showN('اختر فئة واحدة على الأقل', 'e'); return; }
   const btn = document.getElementById('create-room-btn');
-  btn.disabled = true; btn.textContent = 'جارٍ الإنشاء...';
+  btn.disabled = true;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-dasharray="60" stroke-dashoffset="60"/></svg> جارٍ الإنشاء...';
 
   const code = generateRoomCode();
   const qCount = parseInt(document.getElementById('q-count-slider').value) || 10;
   const qTime = parseInt(document.getElementById('q-time-slider').value) || 30;
-  const isPublic = document.getElementById('room-public').checked;
+  const isPublic = roomIsPublic; // Use the toggle state variable
   const cats = [...State.selectedCats];
 
-  // Generate questions
   const questions = getQuestionsForCats(cats, qCount);
 
   const roomData = {
@@ -1313,6 +1563,7 @@ async function createRoom() {
     createdAt: Date.now(),
     players: {
       [State.playerId]: {
+        id: State.playerId,
         name: State.playerName,
         avatar: State.playerAvatar,
         score: 0,
@@ -1327,12 +1578,14 @@ async function createRoom() {
     await roomsRef.child(code).set(roomData);
     State.roomCode = code;
     State.isHost = true;
+    State.questions = questions;
     State.roomRef = roomsRef.child(code);
     State.gameRef = State.roomRef.child('game');
     enterLobby();
   } catch(e) {
     showN('خطأ في إنشاء الغرفة: ' + e.message, 'e');
-    btn.disabled = false; btn.textContent = 'إنشاء الغرفة';
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> إنشاء الغرفة';
   }
 }
 
@@ -1502,10 +1755,18 @@ function enterLobby() {
   // Listen for game status
   addListener(State.roomRef.child('status').on('value', snap => {
     const status = snap.val();
+    if (status === 'voting') {
+      // Host and players go to voting screen
+      State.roomRef.child('config').once('value', cfgSnap => {
+        const cats = cfgSnap.val()?.categories || [];
+        openVotingScreen(cats);
+      });
+    }
     if (status === 'playing') {
       // Load questions and enter game
       State.roomRef.child('questions').once('value', snap2 => {
-        State.questions = snap2.val() ? Object.values(snap2.val()) : [];
+        const raw = snap2.val();
+        State.questions = raw ? Object.values(raw) : [];
         State.questions.sort((a,b) => (a.id||0) - (b.id||0));
         enterGame();
       });
@@ -1536,24 +1797,73 @@ function renderLobbyConfig(cfg) {
 }
 
 function shareRoom() {
-  const url = location.href.split('?')[0] + '?room=' + State.roomCode;
+  const url = getRoomURL();
+  const code = State.roomCode;
+  const text = `انضم لغرفة مسابقة في Faisal Arena!\nكود الغرفة: ${code}\n${url}`;
+
   if (navigator.share) {
-    navigator.share({ title: 'Faisal Arena', text: 'انضم لغرفتي: ' + State.roomCode, url });
+    navigator.share({
+      title: 'Faisal Arena — انضم للغرفة ' + code,
+      text,
+      url
+    }).catch(() => fallbackShare(text));
   } else {
-    navigator.clipboard.writeText(url).then(() => showN('تم نسخ الرابط', 's'));
+    fallbackShare(text);
   }
 }
 
+function fallbackShare(text) {
+  // Show share options modal
+  const existing = document.getElementById('share-options-wrap');
+  if (existing) existing.remove();
+
+  const url = getRoomURL();
+  const code = State.roomCode;
+  const encoded = encodeURIComponent(url);
+  const textEncoded = encodeURIComponent(`انضم لغرفة مسابقة في Faisal Arena! كود: ${code}`);
+
+  const wrap = document.createElement('div');
+  wrap.id = 'share-options-wrap';
+  wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:flex;align-items:flex-end;justify-content:center;padding:20px;animation:fade-in .2s';
+  wrap.onclick = e => { if (e.target === wrap) wrap.remove(); };
+  wrap.innerHTML = `
+    <div style="background:var(--surface);border-radius:var(--r-xl);padding:24px;width:100%;max-width:400px;animation:slide-up .3s ease">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px;text-align:center">مشاركة الغرفة</div>
+      <div style="font-family:'Exo 2',sans-serif;font-size:32px;font-weight:900;letter-spacing:6px;color:var(--neon);text-align:center;margin:12px 0;padding:12px;background:var(--surface2);border-radius:var(--r)">${code}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <a href="https://wa.me/?text=${textEncoded}%20${encoded}" target="_blank" class="btn btn-ghost" style="text-decoration:none;justify-content:center">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          واتساب
+        </a>
+        <a href="https://t.me/share/url?url=${encoded}&text=${textEncoded}" target="_blank" class="btn btn-ghost" style="text-decoration:none;justify-content:center">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          تيليغرام
+        </a>
+        <button class="btn btn-ghost" onclick="navigator.clipboard.writeText('${url}').then(()=>{showN('تم نسخ الرابط','s')});document.getElementById('share-options-wrap').remove()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          نسخ الرابط
+        </button>
+        <button class="btn btn-ghost" onclick="document.getElementById('share-options-wrap').remove();showQR()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/></svg>
+          QR كود
+        </button>
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="document.getElementById('share-options-wrap').remove()">إغلاق</button>
+    </div>`;
+  document.body.appendChild(wrap);
+}
+
 function hostStartGame() {
-  // Open voting phase first, then game starts after votes
-  State.roomRef.child('status').set('voting');
-  // Load questions placeholder (will be replaced after voting)
-  State.roomRef.child('config').once('value', snap => {
-    const cfg = snap.val() || {};
-    // Pre-generate questions as fallback
-    const questions = getQuestionsForCats(cfg.categories||['culture'], cfg.qCount||10);
-    State.questions = questions;
-    State.roomRef.child('questions').set(questions);
+  const btn = document.getElementById('start-game-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'جارٍ البدء...'; }
+
+  // Questions already generated at room creation — use them
+  // Just open voting, then start
+  State.roomRef.child('status').set('voting').then(() => {
+    showN('فُتح التصويت على الفئات', 'i');
+  }).catch(e => {
+    showN('خطأ: ' + e.message, 'e');
+    if (btn) { btn.disabled = false; btn.textContent = 'ابدأ المسابقة'; }
   });
 }
 
@@ -1573,17 +1883,32 @@ function leaveRoom() {
 //  GAME
 // ══════════════════════════════════════
 function enterGame() {
+  if (document.getElementById('game').classList.contains('active')) return;
   State.myScore = 0;
   State.currentQ = -1;
   State.answered = false;
   clearInterval(State.timerInt);
   goScreen('game');
 
-  // Listen for game state
+  State.gameRef.off();
+
+  // Read current state immediately on entry
+  State.gameRef.once('value', snap => {
+    const g = snap.val();
+    if (g) {
+      if (g.phase === 'question' && g.currentQ !== undefined) {
+        State.currentQ = g.currentQ;
+        State.totalTime = State.questions[g.currentQ]?.time || 30;
+        showQuestion(g.currentQ);
+      }
+      if (g.scores) updateScoresBar(g.scores);
+    }
+  });
+
+  // Then listen for changes
   addListener(State.gameRef.on('value', snap => {
     const g = snap.val();
     if (!g) return;
-
     if (g.phase === 'question' && g.currentQ !== State.currentQ) {
       State.currentQ = g.currentQ;
       State.totalTime = State.questions[g.currentQ]?.time || 30;
@@ -1598,16 +1923,8 @@ function enterGame() {
     if (g.scores) updateScoresBar(g.scores);
   }));
 
-  // Listen for voting phase
-  addListener(State.roomRef.child('status').on('value', snap => {
-    const status = snap.val();
-    if (status === 'voting') {
-      State.roomRef.child('config').once('value', cfgSnap => {
-        const cats = cfgSnap.val()?.categories || [];
-        openVotingScreen(cats);
-      });
-    }
-  }));
+  if (State.isHost) hostDriveGame();
+}
 
   // Host drives the game
   if (State.isHost) hostDriveGame();
@@ -1753,29 +2070,45 @@ async function hostApplyVotesAndStart() {
 
   let questions;
   if (total === 0) {
-    // No votes — use all cats
-    const cfg = (await State.roomRef.child('config').once('value')).val();
-    questions = getQuestionsForCats(cfg?.categories || ['culture'], cfg?.qCount || 10);
+    // No votes — use existing questions or regenerate
+    if (State.questions.length > 0) {
+      questions = State.questions;
+    } else {
+      const cfg = (await State.roomRef.child('config').once('value')).val();
+      questions = getQuestionsForCats(cfg?.categories || ['culture'], cfg?.qCount || 10);
+    }
   } else {
-    const qCount = State.questions.length || 10;
+    const cfg = (await State.roomRef.child('config').once('value')).val();
+    const qCount = cfg?.qCount || State.questions.length || 10;
     let pool = [];
     Object.entries(counts).forEach(([catId, catVotes]) => {
-      const quota = Math.max(1, Math.round(catVotes/total * qCount));
-      (QBANK[catId]||[]).sort(()=>Math.random()-.5).slice(0, quota).forEach(q => {
-        pool.push({id:pool.length, text:q.t, options:q.o, correct:q.c, category:catId, pts:10, time:30});
+      const quota = Math.max(1, Math.round(catVotes / total * qCount));
+      const catQs = QBANK[catId] || [];
+      catQs.sort(() => Math.random() - .5).slice(0, quota).forEach((q, i) => {
+        pool.push({
+          id: pool.length,
+          text: q.t, type: q.ty || 'mcq',
+          options: q.o || null, correct: q.c !== undefined ? q.c : null,
+          answer: q.a !== undefined ? q.a : null,
+          category: catId, pts: 10,
+          time: q.ty === 'fill' ? 40 : q.ty === 'tf' ? 20 : 30
+        });
       });
     });
     pool.sort(() => Math.random() - .5);
     questions = pool.slice(0, qCount);
   }
 
-  // Save new questions
+  // Save questions to Firebase
   await State.roomRef.child('questions').set(questions);
   State.questions = questions;
 
-  // Start game
-  State.roomRef.child('status').set('playing');
-  State.gameRef.set({ currentQ: 0, phase: 'question', startedAt: Date.now() });
+  // Start game — set status first (triggers guests), then host enters directly
+  await State.roomRef.child('status').set('playing');
+  await State.gameRef.set({ currentQ: 0, phase: 'question', startedAt: Date.now() });
+
+  // Host enters game directly (guests will enter via status listener)
+  enterGame();
 }
 
 // ══════════════════════════════════════
