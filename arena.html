@@ -479,8 +479,42 @@ body {
 .n-i { background:var(--neon); color:#000; }
 
 /* ══════════════════════════════
-   RESPONSIVE
+   VOTE SCREEN
 ══════════════════════════════ */
+.vote-cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-bottom:16px; }
+.vote-cat-card {
+  border:2px solid var(--border2); border-radius:var(--r-lg);
+  padding:14px 10px; text-align:center; cursor:pointer;
+  background:var(--surface); transition:all .2s; position:relative;
+}
+.vote-cat-card:hover { border-color:var(--neon); transform:translateY(-2px); }
+.vote-cat-card.voted { border-color:var(--gold); background:rgba(255,215,0,.07); }
+.vote-cat-card.voted::after { content:''; position:absolute; top:6px; right:8px; width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 6px var(--gold); }
+.vcc-icon { width:38px; height:38px; border-radius:10px; margin:0 auto 8px; display:flex; align-items:center; justify-content:center; }
+.vcc-name { font-size:12px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.vcc-bar { height:3px; background:var(--border); border-radius:2px; margin-top:6px; overflow:hidden; }
+.vcc-bar-fill { height:100%; border-radius:2px; background:var(--gold); transition:width .5s; }
+.vcc-votes { font-size:10px; color:var(--muted); margin-top:3px; }
+
+/* Between questions */
+.bq-row {
+  display:flex; align-items:center; gap:12px;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r); padding:12px 16px; margin-bottom:8px;
+  transition:all .4s;
+  animation:bq-slide .4s ease both;
+}
+.bq-row.me-bq { border-color:var(--neon); background:rgba(0,245,255,.05); }
+.bq-row.top-bq { border-color:var(--gold); }
+@keyframes bq-slide { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+.bq-rank { font-family:'Exo 2',sans-serif; font-size:16px; font-weight:900; width:24px; text-align:center; }
+.bq-name { flex:1; font-size:14px; font-weight:700; }
+.bq-pts { font-family:'Exo 2',sans-serif; font-size:18px; font-weight:900; color:var(--neon); }
+.bq-delta { font-size:11px; font-weight:700; padding:2px 7px; border-radius:10px; }
+.bq-delta-pos { background:rgba(0,230,118,.15); color:var(--green); }
+.bq-delta-zero { background:rgba(100,100,120,.15); color:var(--muted); }
+
+
 @media(max-width:480px) {
   .options-grid { grid-template-columns:1fr; }
   .podium { gap:4px; }
@@ -539,7 +573,7 @@ body {
         </div>
       </button>
 
-      <button class="action-btn rooms-btn" onclick="goNameEntry('public')">
+      <button class="action-btn rooms-btn" onclick="goScreen('public-rooms');loadPublicRoomsAnon()">
         <div class="ab-icon" style="background:rgba(224,64,251,.1)">
           <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
         </div>
@@ -730,8 +764,78 @@ body {
 </div>
 
 <!-- ══════════════════════════════
-     GAME
+     VOTING SCREEN
 ════════════════════════════════ -->
+<div id="vote-screen" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">التصويت على الفئات</div>
+    <div class="tb-right">
+      <span class="badge b-gold" id="vote-timer-badge">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="vote-countdown">30</span>ث
+      </span>
+    </div>
+  </div>
+  <div class="content" style="max-width:640px">
+    <div id="vote-waiting-state" style="text-align:center;padding:48px 20px">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(255,215,0,.1);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;animation:logo-pulse 2s infinite">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>
+      </div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:6px">في انتظار التصويت...</div>
+      <div style="font-size:13px;color:var(--muted)">المضيف سيفتح التصويت قريباً</div>
+    </div>
+
+    <div id="vote-open-state" style="display:none">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:18px;font-weight:900;margin-bottom:4px">صوّت على الفئات التي تريدها</div>
+        <div style="font-size:13px;color:var(--muted)">يمكنك اختيار أكثر من فئة — الأسئلة تُنتقى نسبة وتناسب</div>
+      </div>
+      <div class="vote-cat-grid" id="vote-cat-grid"></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;color:var(--muted)">أصواتك</span>
+        <span style="font-size:13px;font-weight:700;color:var(--neon)" id="my-vote-summary">لم تصوّت بعد</span>
+      </div>
+      <button class="btn btn-neon btn-full btn-lg" id="submit-vote-btn" onclick="submitMyVote()">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>
+        إرسال تصويتي
+      </button>
+      <div id="vote-submitted-msg" style="display:none;text-align:center;padding:16px;color:var(--green);font-weight:700;font-size:15px">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:6px"><polyline points="20 6 9 17 4 12"/></svg>
+        تم إرسال تصويتك — في انتظار البقية
+      </div>
+    </div>
+
+    <!-- Live vote results (host sees this too) -->
+    <div id="vote-results-live" style="display:none;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+        <span>نتائج التصويت المباشرة</span>
+        <span class="badge b-neon" id="vote-participants-count">0 صوّتوا</span>
+      </div>
+      <div id="vote-results-bars"></div>
+      <!-- Host only -->
+      <button id="start-after-vote-btn" class="btn btn-gold btn-full btn-lg" style="display:none;margin-top:16px" onclick="hostApplyVotesAndStart()">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+        تطبيق التصويت وبدء المسابقة
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     BETWEEN QUESTIONS LEADERBOARD
+════════════════════════════════ -->
+<div id="between-qs" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">الترتيب</div>
+    <span class="badge b-neon" id="bq-next-label">السؤال التالي خلال ٣...</span>
+  </div>
+  <div class="content" style="max-width:480px;padding-top:24px">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:13px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">الترتيب الحالي</div>
+    </div>
+    <div id="bq-leaderboard"></div>
+  </div>
+</div>
 <div id="game" class="screen">
   <div class="game-header">
     <span class="q-counter" id="g-q-num">١ / ١٠</span>
@@ -826,7 +930,8 @@ const State = {
   playerId: null,
   roomCode: null,
   isHost: false,
-  pendingAction: null, // 'create' | 'join' | 'public'
+  pendingAction: null,
+  pendingRoomCode: null,
   roomRef: null,
   gameRef: null,
   listeners: [],
@@ -1026,7 +1131,6 @@ function confirmName() {
   const name = document.getElementById('player-name').value.trim();
   if (!name) { showN('أدخل اسمك أولاً', 'e'); return; }
   State.playerName = name;
-  // Generate unique player ID
   if (!State.playerId) State.playerId = db.ref().push().key;
 
   if (State.pendingAction === 'create') {
@@ -1039,7 +1143,9 @@ function confirmName() {
     setTimeout(() => document.getElementById('join-code-input').focus(), 300);
   } else if (State.pendingAction === 'public') {
     goScreen('public-rooms');
-    loadPublicRooms();
+    loadPublicRoomsAnon();
+  } else if (State.pendingAction === 'public-join') {
+    quickJoin(State.pendingRoomCode);
   }
 }
 
@@ -1185,10 +1291,61 @@ function loadPublicRooms() {
   });
 }
 
+// Public rooms - show list WITHOUT requiring name first
+function loadPublicRoomsAnon() {
+  roomsRef.on('value', snap => {
+    const rooms = snap.val() || {};
+    // Only show waiting rooms that are public
+    const publicRooms = Object.values(rooms).filter(r =>
+      r.config?.isPublic && r.status === 'waiting'
+    );
+    document.getElementById('rooms-count').textContent = publicRooms.length + ' غرفة';
+    const el = document.getElementById('rooms-list');
+    if (!publicRooms.length) {
+      el.innerHTML = `<div style="text-align:center;padding:48px;color:var(--muted)">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 14px;opacity:.3"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        لا توجد غرف مفتوحة الآن<br>
+        <span style="font-size:12px;display:block;margin-top:8px">أنشئ غرفة وادعُ الآخرين</span>
+      </div>`;
+      return;
+    }
+    el.innerHTML = publicRooms.sort((a,b) => b.createdAt - a.createdAt).map(r => {
+      const pCount = Object.keys(r.players||{}).length;
+      const cats = (r.config?.categories||[]).map(id => CATS.find(c=>c.id===id)?.label||id).join(' · ');
+      return `<div class="room-card" onclick="pickRoomToJoin('${r.code}')">
+        <div class="room-code-badge">${r.code}</div>
+        <div class="room-info">
+          <div class="room-host">${r.host || 'مجهول'}</div>
+          <div class="room-meta">
+            <span>${cats}</span>
+            <span>${r.config?.qCount||10} سؤال · ${r.config?.qTime||30}ث</span>
+          </div>
+        </div>
+        <div class="room-players">
+          <div class="player-dot"></div>
+          <span style="font-size:13px;font-weight:900;color:var(--green)">${pCount}</span>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function pickRoomToJoin(code) {
+  // Stop watching rooms list
+  roomsRef.off();
+  // Ask for name first, then join
+  State.pendingAction = 'public-join';
+  State.pendingRoomCode = code;
+  goScreen('name-entry');
+  renderAvatarGrid();
+  document.getElementById('player-name').value = State.playerName || '';
+  setTimeout(() => document.getElementById('player-name').focus(), 300);
+}
+
 async function quickJoin(code) {
   const snap = await roomsRef.child(code).once('value');
   const room = snap.val();
-  if (!room || room.status !== 'waiting') { showN('الغرفة لم تعد متاحة', 'e'); return; }
+  if (!room || room.status !== 'waiting') { showN('الغرفة لم تعد متاحة', 'e'); goScreen('home'); return; }
 
   await roomsRef.child(code).child('players').child(State.playerId).set({
     name: State.playerName,
@@ -1202,8 +1359,6 @@ async function quickJoin(code) {
   State.isHost = false;
   State.roomRef = roomsRef.child(code);
   State.gameRef = State.roomRef.child('game');
-  // Remove public rooms listener
-  roomsRef.off();
   enterLobby();
 }
 
@@ -1281,8 +1436,16 @@ function shareRoom() {
 }
 
 function hostStartGame() {
-  State.roomRef.update({ status: 'playing' });
-  State.gameRef.set({ currentQ: 0, phase: 'question', startedAt: Date.now() });
+  // Open voting phase first, then game starts after votes
+  State.roomRef.child('status').set('voting');
+  // Load questions placeholder (will be replaced after voting)
+  State.roomRef.child('config').once('value', snap => {
+    const cfg = snap.val() || {};
+    // Pre-generate questions as fallback
+    const questions = getQuestionsForCats(cfg.categories||['culture'], cfg.qCount||10);
+    State.questions = questions;
+    State.roomRef.child('questions').set(questions);
+  });
 }
 
 function leaveRoom() {
@@ -1311,67 +1474,305 @@ function enterGame() {
   addListener(State.gameRef.on('value', snap => {
     const g = snap.val();
     if (!g) return;
+
     if (g.phase === 'question' && g.currentQ !== State.currentQ) {
       State.currentQ = g.currentQ;
+      State.totalTime = State.questions[g.currentQ]?.time || 30;
       showQuestion(g.currentQ);
     }
-    if (g.phase === 'reveal') showReveal(g.currentQ, g.correctAnswer);
+    if (g.phase === 'reveal' && g.correctAnswer !== undefined) {
+      showReveal(g.currentQ, g.correctAnswer, g.roundScores);
+    }
+    if (g.phase === 'leaderboard' && g.leaderboard) {
+      showBetweenQuestions(g.leaderboard);
+    }
     if (g.scores) updateScoresBar(g.scores);
+  }));
+
+  // Listen for voting phase
+  addListener(State.roomRef.child('status').on('value', snap => {
+    const status = snap.val();
+    if (status === 'voting') {
+      State.roomRef.child('config').once('value', cfgSnap => {
+        const cats = cfgSnap.val()?.categories || [];
+        openVotingScreen(cats);
+      });
+    }
   }));
 
   // Host drives the game
   if (State.isHost) hostDriveGame();
 }
 
+// ══════════════════════════════════════
+//  VOTING SYSTEM
+// ══════════════════════════════════════
+const VoteState = { myVotes: new Set(), submitted: false, timer: null };
+
+function openVotingScreen(cats) {
+  goScreen('vote-screen');
+  VoteState.myVotes.clear();
+  VoteState.submitted = false;
+  document.getElementById('vote-waiting-state').style.display = 'none';
+  document.getElementById('vote-open-state').style.display = 'block';
+  document.getElementById('vote-submitted-msg').style.display = 'none';
+  document.getElementById('submit-vote-btn').style.display = 'block';
+  document.getElementById('vote-results-live').style.display = 'none';
+  if (State.isHost) {
+    document.getElementById('start-after-vote-btn').style.display = 'block';
+    document.getElementById('vote-results-live').style.display = 'block';
+  }
+
+  // Render category cards
+  const el = document.getElementById('vote-cat-grid');
+  el.innerHTML = cats.map(id => {
+    const c = CATS.find(x => x.id === id);
+    if (!c) return '';
+    return `<div class="vote-cat-card" id="vcc-${c.id}" onclick="toggleVoteCat('${c.id}')">
+      <div class="vcc-icon" style="background:${c.color}18">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${c.color}" stroke-width="2"><path d="${c.path}"/></svg>
+      </div>
+      <div class="vcc-name">${c.label}</div>
+      <div class="vcc-votes" id="vcc-count-${c.id}">0 صوت</div>
+      <div class="vcc-bar"><div class="vcc-bar-fill" id="vcc-bar-${c.id}" style="width:0%"></div></div>
+    </div>`;
+  }).join('');
+
+  // Listen to live votes
+  State.roomRef.child('votes').on('value', snap => {
+    const votes = snap.val() || {};
+    updateVoteDisplay(votes, cats);
+    const voterCount = Object.keys(votes).length;
+    document.getElementById('vote-participants-count').textContent = voterCount + ' صوّتوا';
+
+    // Auto start if all players voted
+    if (State.isHost) {
+      State.roomRef.child('players').once('value', pSnap => {
+        const pCount = Object.keys(pSnap.val() || {}).length;
+        if (voterCount >= pCount && pCount > 0) {
+          // All voted — auto-proceed after 2s
+          setTimeout(hostApplyVotesAndStart, 2000);
+        }
+      });
+    }
+  });
+
+  // Vote countdown (30s)
+  let vt = 30;
+  VoteState.timer = setInterval(() => {
+    vt--;
+    document.getElementById('vote-countdown').textContent = vt;
+    if (vt <= 0) {
+      clearInterval(VoteState.timer);
+      if (State.isHost) hostApplyVotesAndStart();
+    }
+  }, 1000);
+}
+
+function toggleVoteCat(id) {
+  if (VoteState.submitted) return;
+  if (VoteState.myVotes.has(id)) VoteState.myVotes.delete(id);
+  else VoteState.myVotes.add(id);
+  document.querySelectorAll('.vote-cat-card').forEach(c => {
+    const cid = c.id.replace('vcc-','');
+    c.classList.toggle('voted', VoteState.myVotes.has(cid));
+  });
+  const summary = document.getElementById('my-vote-summary');
+  if (summary) summary.textContent = VoteState.myVotes.size
+    ? [...VoteState.myVotes].map(id => CATS.find(c=>c.id===id)?.label||id).join(' · ')
+    : 'لم تصوّت بعد';
+}
+
+function submitMyVote() {
+  if (!VoteState.myVotes.size) { showN('اختر فئة واحدة على الأقل', 'e'); return; }
+  const voteData = {};
+  VoteState.myVotes.forEach(id => { voteData[id] = true; });
+  State.roomRef.child('votes').child(State.playerId).set(voteData).then(() => {
+    VoteState.submitted = true;
+    document.getElementById('submit-vote-btn').style.display = 'none';
+    document.getElementById('vote-submitted-msg').style.display = 'block';
+    document.getElementById('vote-results-live').style.display = 'block';
+  });
+}
+
+function updateVoteDisplay(votes, cats) {
+  const counts = {};
+  Object.values(votes).forEach(tv => {
+    Object.keys(tv).forEach(cid => { counts[cid] = (counts[cid]||0) + 1; });
+  });
+  const total = Object.values(counts).reduce((s,v) => s+v, 0);
+  cats.forEach(id => {
+    const cnt = counts[id] || 0;
+    const pct = total > 0 ? Math.round(cnt/total*100) : 0;
+    const countEl = document.getElementById('vcc-count-'+id);
+    const barEl = document.getElementById('vcc-bar-'+id);
+    if (countEl) countEl.textContent = cnt + ' صوت';
+    if (barEl) barEl.style.width = pct + '%';
+  });
+
+  // Update results bars for host
+  const barsEl = document.getElementById('vote-results-bars');
+  if (!barsEl) return;
+  const sorted = cats.map(id => ({
+    id, label: CATS.find(c=>c.id===id)?.label||id,
+    color: CATS.find(c=>c.id===id)?.color||'#00f5ff',
+    votes: counts[id]||0
+  })).sort((a,b) => b.votes-a.votes).filter(c => c.votes > 0);
+  barsEl.innerHTML = sorted.map(c => {
+    const pct = total>0 ? Math.round(c.votes/total*100) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;font-weight:700;width:80px;color:${c.color}">${c.label}</span>
+      <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+        <div style="height:100%;background:${c.color};border-radius:3px;width:${pct}%;transition:width .5s"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);min-width:50px;text-align:left">${c.votes} صوت (${pct}%)</span>
+    </div>`;
+  }).join('');
+}
+
+async function hostApplyVotesAndStart() {
+  clearInterval(VoteState.timer);
+  State.roomRef.child('votes').off();
+
+  const vSnap = await State.roomRef.child('votes').once('value');
+  const votes = vSnap.val() || {};
+  const counts = {};
+  Object.values(votes).forEach(tv => {
+    Object.keys(tv).forEach(cid => { counts[cid] = (counts[cid]||0)+1; });
+  });
+  const total = Object.values(counts).reduce((s,v) => s+v, 0);
+
+  let questions;
+  if (total === 0) {
+    // No votes — use all cats
+    const cfg = (await State.roomRef.child('config').once('value')).val();
+    questions = getQuestionsForCats(cfg?.categories || ['culture'], cfg?.qCount || 10);
+  } else {
+    const qCount = State.questions.length || 10;
+    let pool = [];
+    Object.entries(counts).forEach(([catId, catVotes]) => {
+      const quota = Math.max(1, Math.round(catVotes/total * qCount));
+      (QBANK[catId]||[]).sort(()=>Math.random()-.5).slice(0, quota).forEach(q => {
+        pool.push({id:pool.length, text:q.t, options:q.o, correct:q.c, category:catId, pts:10, time:30});
+      });
+    });
+    pool.sort(() => Math.random() - .5);
+    questions = pool.slice(0, qCount);
+  }
+
+  // Save new questions
+  await State.roomRef.child('questions').set(questions);
+  State.questions = questions;
+
+  // Start game
+  State.roomRef.child('status').set('playing');
+  State.gameRef.set({ currentQ: 0, phase: 'question', startedAt: Date.now() });
+}
+
+// ══════════════════════════════════════
+//  GAME DRIVER (HOST)
+// ══════════════════════════════════════
 function hostDriveGame() {
   let qi = 0;
-  const qTime = State.questions[0]?.time || 30;
+  let totalPlayers = Object.keys({}).length; // will be set below
 
-  function nextQuestion() {
+  // Get player count
+  State.roomRef.child('players').once('value', snap => {
+    totalPlayers = Object.keys(snap.val()||{}).length;
+  });
+
+  function runQuestion() {
     if (qi >= State.questions.length) {
-      // End game
+      // Game over
       State.gameRef.update({ phase: 'done' });
       State.roomRef.child('status').set('finished');
+      db.ref('arena_stats/totalGames').transaction(v => (v||0)+1);
       return;
     }
-    State.gameRef.update({ currentQ: qi, phase: 'question', timeLeft: qTime });
-    // Start countdown
+
+    const q = State.questions[qi];
+    const qTime = q.time || 30;
+    State.gameRef.update({ currentQ: qi, phase: 'question', timeLeft: qTime, answers: null });
+
     let t = qTime;
+    let answered = 0;
     clearInterval(State.timerInt);
+
+    // Watch answers count for early reveal
+    const answersRef = State.gameRef.child('answers');
+    answersRef.on('value', aSnap => {
+      answered = Object.keys(aSnap.val()||{}).length;
+      // If everyone answered — end question early
+      if (answered >= totalPlayers && totalPlayers > 0) {
+        answersRef.off();
+        clearInterval(State.timerInt);
+        revealAndNext(qi, q);
+      }
+    });
+
     State.timerInt = setInterval(() => {
       t--;
       State.gameRef.child('timeLeft').set(t);
       if (t <= 0) {
         clearInterval(State.timerInt);
-        // Reveal answer
-        const q = State.questions[qi];
-        State.gameRef.update({ phase: 'reveal', correctAnswer: q.correct });
-        // Award points based on speed
-        State.gameRef.child('answers').once('value', snap => {
-          const answers = snap.val() || {};
-          const scores = {};
-          Object.entries(answers).forEach(([pid, ans]) => {
-            if (ans.answer === q.correct) {
-              const speedBonus = Math.round((ans.timeLeft / qTime) * 5);
-              scores[pid] = (scores[pid] || 0) + q.pts + speedBonus;
-            }
-          });
-          // Update cumulative scores
-          Object.entries(scores).forEach(([pid, pts]) => {
-            State.roomRef.child('players').child(pid).child('score').transaction(s => (s||0) + pts);
-          });
-          State.gameRef.update({ scores });
-        });
-        // Next question after delay
-        setTimeout(() => {
-          State.gameRef.child('answers').remove();
-          qi++;
-          nextQuestion();
-        }, 3500);
+        answersRef.off();
+        revealAndNext(qi, q);
       }
     }, 1000);
   }
-  nextQuestion();
+
+  function revealAndNext(qIdx, q) {
+    // Calculate scores
+    State.gameRef.child('answers').once('value', aSnap => {
+      const answers = aSnap.val() || {};
+      const qTime = q.time || 30;
+      const roundScores = {};
+
+      Object.entries(answers).forEach(([pid, ans]) => {
+        if (ans.answer === q.correct) {
+          const speedBonus = Math.max(0, Math.round((ans.timeLeft / qTime) * 5));
+          roundScores[pid] = q.pts + speedBonus;
+        } else {
+          roundScores[pid] = 0;
+        }
+      });
+
+      // Update cumulative player scores
+      const updates = {};
+      Object.entries(roundScores).forEach(([pid, pts]) => {
+        if (pts > 0) {
+          State.roomRef.child('players').child(pid).child('score').transaction(s => (s||0) + pts);
+        }
+      });
+
+      // Push reveal state
+      State.gameRef.update({
+        phase: 'reveal',
+        correctAnswer: q.correct,
+        roundScores
+      });
+
+      // Show between-questions leaderboard, then next Q
+      setTimeout(() => {
+        // Get fresh scores
+        State.roomRef.child('players').once('value', pSnap => {
+          const players = Object.values(pSnap.val()||{});
+          State.gameRef.update({
+            phase: 'leaderboard',
+            leaderboard: players.map(p => ({name:p.name,avatar:p.avatar,score:p.score||0,id:p.id}))
+          });
+          // Next question after leaderboard display
+          setTimeout(() => {
+            State.gameRef.child('answers').remove();
+            qi++;
+            runQuestion();
+          }, 3000);
+        });
+      }, 2500);
+    });
+  }
+
+  runQuestion();
 }
 
 function showQuestion(qi) {
@@ -1442,43 +1843,62 @@ function answerQ(optIdx) {
   });
 }
 
-function showReveal(qi, correctIdx) {
+function showReveal(qi, correctIdx, roundScores) {
   clearInterval(State.timerInt);
   const q = State.questions[qi];
   if (!q) return;
 
   document.getElementById('g-question').style.display = 'none';
+  document.getElementById('g-waiting').style.display = 'none';
   document.getElementById('g-reveal').style.display = 'block';
 
-  const L = ['أ','ب','ج','د'];
   document.getElementById('g-correct-answer').textContent = q.options[correctIdx] || '—';
 
-  // Check my answer
-  State.gameRef.child('answers').child(State.playerId).once('value', snap => {
-    const myAns = snap.val();
-    const resultEl = document.getElementById('g-my-result');
-    if (!myAns) {
-      resultEl.textContent = 'لم تُجب';
-      resultEl.style.background = 'rgba(100,100,120,.2)';
-      resultEl.style.color = 'var(--muted)';
-    } else if (myAns.answer === correctIdx) {
-      resultEl.textContent = 'إجابة صحيحة!';
-      resultEl.style.background = 'rgba(0,230,118,.15)';
-      resultEl.style.color = 'var(--green)';
-    } else {
-      resultEl.textContent = 'إجابة خاطئة';
-      resultEl.style.background = 'rgba(255,23,68,.12)';
-      resultEl.style.color = 'var(--red)';
-    }
-  });
+  // Show my result + points earned
+  const myPts = roundScores?.[State.playerId] || 0;
+  const resultEl = document.getElementById('g-my-result');
+  const myAns = State.answered;
+  if (!myAns) {
+    resultEl.textContent = 'لم تُجب — 0 نقطة';
+    resultEl.style.background = 'rgba(100,100,120,.15)';
+    resultEl.style.color = 'var(--muted)';
+  } else if (myPts > 0) {
+    resultEl.textContent = `إجابة صحيحة! +${myPts} نقطة`;
+    resultEl.style.background = 'rgba(0,230,118,.15)';
+    resultEl.style.color = 'var(--green)';
+  } else {
+    resultEl.textContent = 'إجابة خاطئة — 0 نقطة';
+    resultEl.style.background = 'rgba(255,23,68,.1)';
+    resultEl.style.color = 'var(--red)';
+  }
 
-  // Mark correct/wrong options
-  const btns = document.querySelectorAll('.opt-btn');
-  btns.forEach((b, i) => {
+  // Mark options
+  document.querySelectorAll('.opt-btn').forEach((b, i) => {
     b.disabled = true;
     if (i === correctIdx) b.classList.add('correct');
     else if (b.classList.contains('selected')) b.classList.add('wrong');
   });
+}
+
+function showBetweenQuestions(leaderboard) {
+  goScreen('between-qs');
+  const sorted = [...leaderboard].sort((a,b) => b.score - a.score);
+  const isLast = State.currentQ >= State.questions.length - 1;
+  document.getElementById('bq-next-label').textContent = isLast
+    ? 'آخر سؤال — النتائج قريباً'
+    : `السؤال التالي خلال ٣...`;
+
+  const el = document.getElementById('bq-leaderboard');
+  el.innerHTML = sorted.map((p, i) => `
+    <div class="bq-row ${p.id===State.playerId?'me-bq':''} ${i===0?'top-bq':''}"
+         style="animation-delay:${i*0.07}s">
+      <div class="bq-rank" style="color:${i===0?'var(--gold)':i===1?'#aaa':i===2?'#cd7f32':'var(--muted)'}">
+        ${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}
+      </div>
+      ${avSVG(p.avatar||'star', 20)}
+      <div class="bq-name">${p.name}${p.id===State.playerId?' (أنت)':''}</div>
+      <div class="bq-pts">${p.score||0}</div>
+    </div>`).join('');
 }
 
 function updateScoresBar(scores) {
