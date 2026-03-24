@@ -1753,7 +1753,9 @@ async function simulateBotAnswers(q,active,qTime){
   }
 }
 
+function hostDrive(){ startGame(); }
 
+function startGame(){
   let qi=0;
 
   G.gameRef.once('value',snap=>{qi=snap.val()?.qIndex||0;runRound(qi);});
