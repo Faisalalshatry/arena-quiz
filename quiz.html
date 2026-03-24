@@ -1580,8 +1580,8 @@ textarea { resize:vertical; min-height:68px; }
     <div id="ai-loading" style="display:none" class="card">
       <div class="ai-loading">
         <div class="ai-spinner"></div>
-        <div style="font-size:15px;font-weight:700;color:var(--text)">جارٍ توليد الأسئلة...</div>
-        <div class="ai-status" id="ai-status-msg">يعمل الذكاء الاصطناعي على صياغة أسئلة مميزة</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">جارٍ اختيار الأسئلة...</div>
+        <div class="ai-status" id="ai-status-msg">يختار النظام أسئلة من الفئات المطلوبة</div>
       </div>
     </div>
 
@@ -3591,31 +3591,10 @@ ${context ? `سياق إضافي: ${context}` : ''}
   ]
 }`;
 
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 3000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
+    // Use local bank directly (API calls blocked by CORS from browser)
     clearInterval(statusInt);
-
-    if (!resp.ok) {
-      // CORS blocked — fallback to local generation
-      console.warn('API blocked, using local fallback');
-      aiGeneratedQuestions = generateLocalQuestions([...aiSelectedCats], count);
-      if (!aiGeneratedQuestions.length) throw new Error('تعذّر التوليد — تأكد من الاتصال بالإنترنت');
-    } else {
-      const data = await resp.json();
-      const text = data.content?.find(b => b.type === 'text')?.text || '';
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('لم يُرجع الذكاء الاصطناعي نتيجة صحيحة');
-      const parsed = JSON.parse(jsonMatch[0]);
-      aiGeneratedQuestions = parsed.questions || [];
-    }
+    aiGeneratedQuestions = generateLocalQuestions([...aiSelectedCats], count, context);
+    if (!aiGeneratedQuestions.length) throw new Error('لا توجد أسئلة في الفئات المختارة');
 
     // Save to global bank if publish enabled
     if (doPublish && aiGeneratedQuestions.length) {
@@ -4051,25 +4030,27 @@ const LOCAL_QUESTIONS = {
   ],
 };
 
-function generateLocalQuestions(catIds, count) {
+function generateLocalQuestions(catIds, count, context='') {
   const result = [];
-  const countPerCat = Math.ceil(count / catIds.length);
+  // Build pool from all selected categories
   catIds.forEach(catId => {
-    const pool = LOCAL_QUESTIONS[catId] || LOCAL_QUESTIONS.culture;
-    const shuffled = [...pool].sort(() => Math.random() - .5);
-    shuffled.slice(0, countPerCat).forEach(q => {
-      result.push({
-        text: q.text,
-        type: 'mcq',
-        options: q.options,
-        correct: q.correct,
-        pts: 10,
-        time: 30,
-        category: catId
-      });
-    });
+    const pool = LOCAL_QUESTIONS[catId] || LOCAL_QUESTIONS.culture || [];
+    pool.forEach(q => result.push({...q, category: catId}));
   });
-  return result.sort(() => Math.random() - .5).slice(0, count);
+
+  // Shuffle pool
+  result.sort(() => Math.random() - .5);
+
+  // Format as quiz questions
+  return result.slice(0, count).map(q => ({
+    text: q.text,
+    type: 'mcq',
+    options: q.options,
+    correct: q.correct,
+    pts: 10,
+    time: 30,
+    category: q.category
+  }));
 }
 
 // ══════════════════════════════════════
