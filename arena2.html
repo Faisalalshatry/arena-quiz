@@ -1234,9 +1234,12 @@ function renderLbPlayers(ps){
   const el=document.getElementById('lb-players');
   el.innerHTML=Object.values(ps).map(p=>`
     <div class="pc ${p.isHost?'hpc':''} ${p.isSpec?'spc':''}">
-      <div class="pav" style="background:${AVS.find(a=>a.id===p.avatar)?.c||'#7c3aed'}22">${avSVG(p.avatar,22)}</div>
+      <div class="pav" style="background:${AVS.find(a=>a.id===p.avatar)?.c||'#7c3aed'}22;position:relative">
+        ${avSVG(p.avatar,22)}
+        ${p.isBot?'<span style="position:absolute;bottom:-2px;right:-2px;font-size:9px;line-height:1;background:var(--bg2);border-radius:50%;padding:1px">🤖</span>':''}
+      </div>
       <div class="pn">${p.name}</div>
-      <div class="pl" style="color:${p.isHost?'var(--gold)':p.isSpec?'var(--blue)':'var(--muted)'}">${p.isHost?'مضيف':p.isSpec?'مشاهد':'لاعب'}</div>
+      <div class="pl" style="color:${p.isHost?'var(--gold)':p.isSpec?'var(--blue)':p.isBot?'var(--muted)':'var(--muted)'}">${p.isHost?'مضيف':p.isSpec?'مشاهد':p.isBot?'ذكاء اصطناعي':'لاعب'}</div>
     </div>`).join('');
 }
 
@@ -1253,14 +1256,16 @@ function renderLbCfg(cfg){
     <div class="cfgr"><span class="cfgk">اللاعبون</span><span class="cfgv">حتى ${cfg.maxPlayers||10}</span></div>`;
 }
 
-function hostStart(){
-  const psSnap=G.roomRef.child('players').once('value',ps=>{
-    const players=Object.values(ps.val()||{}).filter(p=>!p.isSpec);
-    G.turnOrder=players.map(p=>p.id);
-    G.turnIdx=0;
-    G.roomRef.child('status').set('pick_cat');
-    G.gameRef.set({qIndex:0,turnIndex:0,startedAt:Date.now()});
-  });
+async function hostStart(){
+  // Add bots if fewer than 3 real human players
+  await addBotsIfNeeded();
+
+  const psSnap=await G.roomRef.child('players').once('value');
+  const players=Object.values(psSnap.val()||{}).filter(p=>!p.isSpec);
+  G.turnOrder=players.map(p=>p.id);
+  G.turnIdx=0;
+  G.roomRef.child('status').set('pick_cat');
+  G.gameRef.set({qIndex:0,turnIndex:0,startedAt:Date.now()});
 }
 
 // ══ PICK CATEGORY ══
@@ -1515,7 +1520,103 @@ function subFill(){
 }
 
 // ══ HOST DRIVER ══
-function hostDrive(){
+// ══════════════════════════════════════
+//  BOT SYSTEM
+// ══════════════════════════════════════
+const BOT_NAMES=[
+  'أبو نواف','سلطان⚡','الفهد','نجم الشمال','أبو خالد',
+  'صقر','الوحش','ذئب الصحراء','أبو فيصل','النمر',
+  'المتحدي','بطل الأرقام','القناص','سيف','بدر'
+];
+const BOT_AVATARS=['bolt','star','crown','shield','fire','diamond','rocket','target'];
+
+// Adaptive difficulty: bot accuracy adjusts based on human player score
+function botAccuracy(humanScore){
+  // Base: 65% — drops if human is losing (don't pile on), rises if human is winning
+  if(humanScore>1500) return .78;      // Human winning → bots get harder
+  if(humanScore>1200) return .70;
+  if(humanScore<600)  return .45;      // Human struggling → bots ease off
+  if(humanScore<800)  return .55;
+  return .65;                           // Average
+}
+
+function botAnswerTime(qTime){
+  // Random between 30-85% of question time — human-like variance
+  const pct=.30+Math.random()*.55;
+  return Math.floor(qTime*pct);
+}
+
+async function addBotsIfNeeded(){
+  if(!G.isHost) return;
+  const snap=await G.roomRef.child('players').once('value');
+  const players=Object.values(snap.val()||{});
+  const realHumans=players.filter(p=>!p.isBot&&!p.isSpec);
+  const existingBots=players.filter(p=>p.isBot);
+  const mp=((await G.roomRef.child('config/maxPlayers').once('value')).val())||10;
+
+  // Condition: fewer than half maxPlayers → add bots to fill up to half
+  if(realHumans.length < Math.ceil(mp/2) && existingBots.length===0){
+    const botsNeeded = Math.min(
+      Math.ceil(mp/2) - realHumans.length,  // fill to half
+      4                                        // max 4 bots
+    );
+    const shuffledNames=[...BOT_NAMES].sort(()=>Math.random()-.5);
+    const botUpdates={};
+    for(let i=0;i<botsNeeded;i++){
+      const bid='bot_'+Date.now()+'_'+i;
+      botUpdates[bid]={
+        id:bid,
+        name:shuffledNames[i]||'لاعب'+(i+1),
+        avatar:BOT_AVATARS[Math.floor(Math.random()*BOT_AVATARS.length)],
+        score:1000,lives:3,
+        isHost:false,isSpec:false,isBot:true,
+        joinedAt:Date.now()
+      };
+    }
+    await G.roomRef.child('players').update(botUpdates);
+    G.botsAdded=true;
+  }
+}
+
+async function simulateBotAnswers(q,active,qTime){
+  if(!G.isHost) return;
+  const bots=active.filter(p=>p.isBot);
+  if(!bots.length) return;
+
+  // Get human score for adaptive difficulty
+  const humanSnap=await G.roomRef.child('players').child(G.pid).once('value');
+  const humanScore=humanSnap.val()?.score||1000;
+  const acc=botAccuracy(humanScore);
+
+  for(const bot of bots){
+    const delay=botAnswerTime(qTime)*1000;
+    setTimeout(()=>{
+      let answer;
+      const correct=Math.random()<acc;
+
+      if(q.type==='tf'){
+        answer=correct?q.answer:!q.answer;
+      }else if(q.type==='fill'){
+        answer=correct?(q.answer||''):['غير معروف','لا أعلم','—'][Math.floor(Math.random()*3)];
+      }else{
+        if(correct){
+          answer=q.correct;
+        }else{
+          // Pick wrong answer
+          const opts=(q.options||[]).map((_,i)=>i).filter(i=>i!==q.correct);
+          answer=opts[Math.floor(Math.random()*opts.length)]??0;
+        }
+      }
+
+      G.gameRef.child('answers').child(bot.id).set({
+        answer,
+        timeLeft:Math.max(1,qTime-Math.floor(delay/1000))
+      });
+    },delay);
+  }
+}
+
+
   let qi=0;
 
   G.gameRef.once('value',snap=>{qi=snap.val()?.qIndex||0;runRound(qi);});
@@ -1538,7 +1639,11 @@ function hostDrive(){
 
         G.gameRef.update({qIndex:qi,currentQ:q,turnPid:tpid,phase:'question',timeLeft:q.time||30,answers:null,bets:null});
 
-        let t=q.time||30;
+        // Fire bot answers with realistic delays
+        const qTime=q.time||30;
+        simulateBotAnswers(q,active,qTime);
+
+        let t=qTime;
         let roundProcessed=false;
         clearInterval(G.timerInt);
 
@@ -1722,23 +1827,32 @@ function updateAnsweredPips(count,total){
 function showResults(){
   goS('results');spawnConf();
   G.roomRef.child('players').once('value',snap=>{
-    const ps=Object.values(snap.val()||{}).filter(p=>!p.isSpec).sort((a,b)=>b.score-a.score);
-    const w=ps[0];
+    const all=Object.values(snap.val()||{}).filter(p=>!p.isSpec);
+    const humans=all.filter(p=>!p.isBot).sort((a,b)=>b.score-a.score);
+    const bots=all.filter(p=>p.isBot).sort((a,b)=>b.score-a.score);
+
+    // Winner = top human (bots can't win)
+    const w=humans[0]||all[0];
     document.getElementById('res-nm').textContent=w?.name||'—';
     document.getElementById('res-pt').textContent=(w?.score||0)+' نقطة';
+
+    // Podium — humans only
     const pod=document.getElementById('res-pod');
-    const top=[ps[1],ps[0],ps[2]].filter(Boolean);
-    pod.innerHTML=top.map((p,i)=>`
+    const top=[humans[1],humans[0],humans[2]].filter(Boolean);
+    pod.innerHTML=top.length?top.map((p,i)=>`
       <div class="pod ${i===1?'p1':i===0?'p2':'p3'}">
         <div class="pod-b"><div class="pod-n">${i===1?'1':i===0?'2':'3'}</div></div>
         <div class="pod-nm">${p?.name||''}</div><div class="pod-p">${p?.score||0}</div>
-      </div>`).join('');
-    document.getElementById('res-lb').innerHTML=ps.map((p,i)=>`
+      </div>`).join(''):'';
+
+    // Full leaderboard — humans first then bots (with AI label)
+    const ranked=[...humans,...bots];
+    document.getElementById('res-lb').innerHTML=ranked.map((p,i)=>`
       <div class="lb-row ${p.id===G.pid?'me':''}">
-        <div class="lb-rk" style="color:${i===0?'var(--gold)':i===1?'#aaa':i===2?'#cd7f32':'var(--muted)'}">${i+1}</div>
+        <div class="lb-rk" style="color:${p.isBot?'var(--b2)':i===0?'var(--gold)':i===1?'#aaa':i===2?'#cd7f32':'var(--muted)'}">${p.isBot?'🤖':i+1}</div>
         ${avSVG(p.avatar||'bolt',18)}
-        <div class="lb-nm">${p.name}${p.id===G.pid?' (أنت)':''}</div>
-        <div class="lb-pt">${p.score||0}</div>
+        <div class="lb-nm" style="color:${p.isBot?'var(--muted)':'var(--text)'}">${p.name}${p.id===G.pid?' (أنت)':''}${p.isBot?' <span style="font-size:9px;opacity:.6">AI</span>':''}</div>
+        <div class="lb-pt" style="color:${p.isBot?'var(--muted)':'var(--neon2)'}">${p.score||0}</div>
       </div>`).join('');
   });
 }
