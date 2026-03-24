@@ -465,23 +465,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);ove
   <div class="bar">
     <button class="ico" onclick="goS('home')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
     <span class="bar-brand">الغرف المفتوحة</span>
-    <span class="badge bn" id="sys-cnt">0</span>
+    <span class="badge bn" id="sys-cnt">0 غرفة</span>
   </div>
-  <div style="flex:1;padding:16px;max-width:600px;margin:0 auto;width:100%;overflow-y:auto">
-    <!-- Tabs -->
-    <div style="display:flex;gap:0;background:var(--s2);border-radius:var(--r);padding:3px;margin-bottom:14px">
-      <button id="tab-sys" onclick="switchRoomsTab('sys')" style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Tajawal';font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--neon2);color:#fff">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px"><path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18"/></svg>
-        تلقائية
-      </button>
-      <button id="tab-pub" onclick="switchRoomsTab('pub')" style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Tajawal';font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted)">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-        عامة
-      </button>
-    </div>
-    <div id="sys-list"></div>
-    <div id="pub-list" style="display:none"></div>
-  </div>
+  <div style="flex:1;padding:14px;max-width:600px;margin:0 auto;width:100%;overflow-y:auto" id="all-rooms-list"></div>
 </div>
 
 <!-- LOBBY -->
@@ -999,87 +985,102 @@ async function createSysRoom(t){
 }
 
 // ══ ROOMS TABS ══
-let currentRoomsTab='sys';
-function switchRoomsTab(tab){
-  currentRoomsTab=tab;
-  const sysBtn=document.getElementById('tab-sys'),pubBtn=document.getElementById('tab-pub');
-  const sysList=document.getElementById('sys-list'),pubList=document.getElementById('pub-list');
-  if(tab==='sys'){
-    sysBtn.style.background='var(--neon2)';sysBtn.style.color='#fff';
-    pubBtn.style.background='transparent';pubBtn.style.color='var(--muted)';
-    sysList.style.display='block';pubList.style.display='none';
-  }else{
-    pubBtn.style.background='var(--neon2)';pubBtn.style.color='#fff';
-    sysBtn.style.background='transparent';sysBtn.style.color='var(--muted)';
-    sysList.style.display='none';pubList.style.display='block';
-  }
-}
 
 function loadSysRooms(){
   roomsRef.on('value',snap=>{
     const all=Object.values(snap.val()||{});
-    const sys=all.filter(r=>(r.type==='system')&&(r.status==='waiting'||r.status==='playing'));
-    const pub=all.filter(r=>(r.type!=='system')&&r.config?.isPublic&&(r.status==='waiting'||r.status==='playing'));
-    const total=sys.length+pub.length;
-    document.getElementById('sys-cnt').textContent=total;
-    renderSysList(sys);
-    renderPubList(pub);
-    renderSysPreview([...sys,...pub].filter(r=>r.status==='waiting').slice(0,5));
+    const open=all.filter(r=>
+      (r.status==='waiting'||r.status==='playing')&&
+      (r.type==='system'||r.config?.isPublic)
+    );
+    document.getElementById('sys-cnt').textContent=open.length+' غرفة';
+    renderAllRooms(open);
+    renderSysPreview(open.filter(r=>r.status==='waiting').slice(0,5));
 
     // Auto-recreate finished system rooms
-    const finished=all.filter(r=>r.type==='system'&&r.status==='finished');
-    finished.forEach(r=>{
-      const template=SYS_TEMPLATES.find(t=>t.name===r.name);
-      if(template) createSysRoom(template);
+    all.filter(r=>r.type==='system'&&r.status==='finished').forEach(r=>{
+      const t=SYS_TEMPLATES.find(t=>t.name===r.name);
+      if(t) createSysRoom(t);
     });
   });
 }
 
-function renderSysList(rooms){
-  const el=document.getElementById('sys-list');if(!el)return;
-  if(!rooms.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px;opacity:.3"><path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18"/></svg>جارٍ إنشاء الغرف...</div>';return;}
+function renderAllRooms(rooms){
+  const el=document.getElementById('all-rooms-list');if(!el)return;
+  if(!rooms.length){
+    el.innerHTML=`<div style="text-align:center;padding:56px 20px;color:var(--muted)">
+      <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 14px;opacity:.25"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">لا توجد غرف مفتوحة الآن</div>
+      <div style="font-size:13px">أنشئ غرفة أو انتظر قليلاً</div>
+    </div>`;
+    return;
+  }
+
+  // Sort: waiting first, then playing
+  rooms.sort((a,b)=>{
+    if(a.status==='waiting'&&b.status!=='waiting') return -1;
+    if(b.status==='waiting'&&a.status!=='waiting') return 1;
+    return(Object.keys(b.players||{}).length)-(Object.keys(a.players||{}).length);
+  });
+
   el.innerHTML=rooms.map(r=>{
-    const pc=Object.keys(r.players||{}).length,mp=r.config?.maxPlayers||10;
+    const pc=Object.keys(r.players||{}).length;
+    const mp=r.config?.maxPlayers||10;
     const pct=Math.round(pc/mp*100);
     const cats=(r.config?.cats||[]).map(id=>catById(id).l).join(' · ');
+    const isSys=r.type==='system';
+    const accentColor=isSys?(r.color||'var(--neon2)'):'var(--gold)';
     const ready=pc>=3&&r.status==='waiting';
-    return`<div class="src-card" onclick="joinSysRoom('${r.code}')" style="border-right-color:${r.color||'var(--neon2)'}">
-      <div class="src-name">
-        <span style="color:${r.color||'var(--neon2)'}">${r.name||r.code}</span>
-        <span class="badge" style="background:${r.color||'var(--neon2)'}18;color:${r.color||'var(--neon2)'};border:1px solid ${r.color||'var(--neon2)'}33;font-size:10px">تلقائية</span>
-        ${r.status==='playing'?'<span class="badge br2" style="font-size:10px">جارية الآن</span>':''}
-        ${ready?'<span class="badge bgr" style="font-size:10px">جاهز للبدء!</span>':''}
-      </div>
-      <div class="src-meta2">
-        <span>${cats}</span>
-        <span>${r.config?.qCount||10} سؤال</span>
-        <span style="font-weight:800;color:${pc>=3?'var(--green)':'var(--text2)'}">${pc}/${mp} لاعب</span>
-      </div>
-      <div class="src-pbar"><div class="src-fill" style="width:${pct}%"></div></div>
-    </div>`;
-  }).join('');
-}
+    const isPlaying=r.status==='playing';
 
-function renderPubList(rooms){
-  const el=document.getElementById('pub-list');if(!el)return;
-  if(!rooms.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px;opacity:.3"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>لا توجد غرف عامة الآن</div>';return;}
-  el.innerHTML=rooms.map(r=>{
-    const pc=Object.keys(r.players||{}).length,mp=r.config?.maxPlayers||10;
-    const cats=(r.config?.cats||[]).map(id=>catById(id).l).join(' · ');
     const feats=[];
     if(r.config?.features?.betting) feats.push('مراهنة');
-    if(r.config?.features?.danger) feats.push('خطر×٢');
+    if(r.config?.features?.danger) feats.push('×٢');
     if(r.config?.features?.lives) feats.push('حيوات');
-    return`<div class="src-card" onclick="joinSysRoom('${r.code}')" style="border-right-color:var(--gold)">
-      <div class="src-name">
-        <span style="color:var(--gold)">${r.host||'لاعب'}</span>
-        <span class="badge bg2" style="font-size:10px">عامة</span>
-        ${r.status==='playing'?'<span class="badge br2" style="font-size:10px">جارية</span>':''}
+
+    return`<div onclick="joinSysRoom('${r.code}')" style="
+      background:var(--s);border-radius:16px;
+      border:1.5px solid ${ready?'var(--green)':isPlaying?'rgba(239,68,68,.4)':'var(--b)'};
+      border-right:4px solid ${accentColor};
+      padding:14px 16px;margin-bottom:10px;cursor:pointer;
+      transition:all .22s;position:relative;overflow:hidden">
+
+      <!-- Top row: name + code + status -->
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:800;color:${accentColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${isSys?r.name:r.host+' • غرفة'}
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:1px">${cats}</div>
+        </div>
+
+        <!-- CODE badge — prominent -->
+        <div style="
+          font-family:'Exo 2',sans-serif;font-size:15px;font-weight:900;
+          letter-spacing:2px;padding:5px 12px;border-radius:10px;
+          background:${accentColor}18;border:1.5px solid ${accentColor}55;
+          color:${accentColor};flex-shrink:0;cursor:pointer"
+          onclick="event.stopPropagation();navigator.clipboard.writeText('${r.code}').then(()=>showN('كود ${r.code} تم نسخه','s'))"
+          title="انقر لنسخ الكود">
+          ${r.code}
+        </div>
       </div>
-      <div class="src-meta2">
-        <span>${cats}</span>
-        <span>${pc}/${mp} لاعب</span>
-        ${feats.length?`<span style="color:var(--neon2)">${feats.join(' · ')}</span>`:''}
+
+      <!-- Middle row: players + features -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="${pc>=3?'var(--green)':'var(--muted)'}" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span style="font-size:12px;font-weight:800;color:${pc>=3?'var(--green)':'var(--text2)'}">${pc}/${mp} لاعب</span>
+        </div>
+        <span style="font-size:11px;color:var(--muted)">${r.config?.qCount||10} سؤال</span>
+        ${feats.map(f=>`<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:var(--s2);color:var(--text2);border:1px solid var(--b)">${f}</span>`).join('')}
+        ${isPlaying?'<span style="font-size:11px;font-weight:700;color:var(--red)">● جارية</span>':''}
+        ${ready?'<span style="font-size:11px;font-weight:700;color:var(--green)">✓ جاهزة للبدء</span>':''}
+      </div>
+
+      <!-- Progress bar -->
+      <div style="height:3px;background:var(--b);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${accentColor},var(--gold));border-radius:2px;transition:width .5s"></div>
       </div>
     </div>`;
   }).join('');
@@ -1087,12 +1088,16 @@ function renderPubList(rooms){
 
 function renderSysPreview(rooms){
   const el=document.getElementById('sys-preview');if(!el)return;
-  if(!rooms.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:10px 0">جارٍ إنشاء الغرف...</div>';return;}
-  el.innerHTML=rooms.map(r=>`
-    <div class="sr-chip" onclick="joinSysRoom('${r.code}')">
-      <div class="src-name" style="color:${r.color||'var(--neon2)'};font-size:12px;font-weight:800;margin-bottom:3px">${r.name}</div>
-      <div class="src-meta"><div class="sr-dot"></div><span>${Object.keys(r.players||{}).length}/${r.config?.maxPlayers||10}</span></div>
-    </div>`).join('');
+  if(!rooms.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px 0">جارٍ إنشاء الغرف...</div>';return;}
+  el.innerHTML=rooms.map(r=>{
+    const pc=Object.keys(r.players||{}).length,mp=r.config?.maxPlayers||10;
+    const ac=r.type==='system'?(r.color||'var(--neon2)'):'var(--gold)';
+    return`<div class="sr-chip" onclick="joinSysRoom('${r.code}')">
+      <div style="font-size:11px;font-weight:800;color:${ac};margin-bottom:4px">${r.type==='system'?r.name:r.host+' • غرفة'}</div>
+      <div style="font-family:'Exo 2';font-size:13px;font-weight:900;letter-spacing:2px;color:${ac};margin-bottom:3px">${r.code}</div>
+      <div class="src-meta"><div class="sr-dot" style="background:${ac}"></div><span>${pc}/${mp}</span></div>
+    </div>`;
+  }).join('');
 }
 
 function joinSysRoom(code){
