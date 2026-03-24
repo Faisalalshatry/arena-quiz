@@ -2,780 +2,1254 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Faisal App — منصة المسابقات</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Faisal App — المسابقة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{
-  --bg:#f0f4fa;--surface:#fff;--surface2:#e8edf5;
-  --border:#d0d8e8;--gold:#c47f00;--gold2:#a86c00;
-  --cyan:#0077cc;--green:#0a8a4a;--red:#d42040;
-  --purple:#6d28d9;--text:#0f1626;--muted:#64748b;--radius:12px;
-  --topbar:rgba(255,255,255,.93);--shadow:0 2px 14px rgba(0,0,0,.07);
-  --grid:rgba(0,100,200,.04);--glow:rgba(0,119,204,.06);
+/* ══════════════════════════════════════
+   TOKENS
+══════════════════════════════════════ */
+:root {
+  --bg: #f8f9ff;
+  --surface: #ffffff;
+  --surface2: #f0f2fb;
+  --border: #e2e6f3;
+  --shadow: 0 2px 16px rgba(15,23,92,.07);
+  --shadow-lg: 0 8px 36px rgba(15,23,92,.13);
+
+  --blue: #2563eb;
+  --blue-d: #1d4ed8;
+  --blue-l: #eff6ff;
+  --gold: #d97706;
+  --gold-l: #fffbeb;
+  --green: #059669;
+  --green-l: #ecfdf5;
+  --red: #dc2626;
+  --red-l: #fef2f2;
+  --purple: #7c3aed;
+  --purple-l: #f5f3ff;
+
+  --text: #0f172a;
+  --text2: #334155;
+  --muted: #64748b;
+  --bar: rgba(255,255,255,.94);
+  --r: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
 }
-[data-theme="dark"]{
-  --bg:#05070f;--surface:#0d1120;--surface2:#141829;
-  --border:#1e2540;--gold:#f5c842;--gold2:#e8a800;
-  --cyan:#00d4ff;--green:#00ff88;--red:#ff3864;
-  --purple:#8b5cf6;--text:#e8eaf6;--muted:#6b7280;
-  --topbar:rgba(13,17,32,.9);--shadow:none;
-  --grid:rgba(0,212,255,.03);--glow:rgba(0,212,255,.08);
+[data-theme="dark"] {
+  --bg: #060913;
+  --surface: #0d1117;
+  --surface2: #13192b;
+  --border: #1e293b;
+  --shadow: 0 2px 16px rgba(0,0,0,.4);
+  --shadow-lg: 0 8px 36px rgba(0,0,0,.5);
+
+  --blue: #3b82f6;
+  --blue-d: #2563eb;
+  --blue-l: #172554;
+  --gold: #f59e0b;
+  --gold-l: #1c1400;
+  --green: #10b981;
+  --green-l: #052e16;
+  --red: #ef4444;
+  --red-l: #1f0707;
+  --purple: #8b5cf6;
+  --purple-l: #1e0e4b;
+
+  --text: #f1f5f9;
+  --text2: #cbd5e1;
+  --muted: #64748b;
+  --bar: rgba(6,9,19,.94);
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
-.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
-.bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 50% 0%,var(--glow),transparent 70%);}
-.screen{display:none;position:relative;z-index:1;min-height:100vh;flex-direction:column;}
-.screen.active{display:flex;}
 
-/* TOPBAR */
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--topbar);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;transition:background .25s;}
-.tlogo{font-family:'Exo 2',sans-serif;font-size:22px;font-weight:900;background:linear-gradient(135deg,var(--cyan),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.tr{display:flex;gap:8px;align-items:center;}
-.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;}
-.bg-gold{background:rgba(196,127,0,.12);border-color:var(--gold);color:var(--gold);}
-.bg-cyan{background:rgba(0,119,204,.1);border-color:var(--cyan);color:var(--cyan);}
-.bg-green{background:rgba(10,138,74,.1);border-color:var(--green);color:var(--green);}
-.bg-red{background:rgba(212,32,64,.1);border-color:var(--red);color:var(--red);}
-[data-theme="dark"] .bg-gold{background:rgba(245,200,66,.15);border-color:#f5c842;color:#f5c842;}
-[data-theme="dark"] .bg-cyan{background:rgba(0,212,255,.12);border-color:#00d4ff;color:#00d4ff;}
-[data-theme="dark"] .bg-green{background:rgba(0,255,136,.12);border-color:#00ff88;color:#00ff88;}
-[data-theme="dark"] .bg-red{background:rgba(255,56,100,.12);border-color:#ff3864;color:#ff3864;}
-.thm{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
-.thm:hover{border-color:var(--cyan);transform:rotate(18deg);}
-.cdot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-.cdot.ok{background:var(--green);}
-.cdot.bad{background:var(--red);animation:pulse .6s infinite alternate;}
-@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.4)}}
+/* ══════════════════════════════════════
+   BASE
+══════════════════════════════════════ */
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Tajawal',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  transition:background .3s,color .3s;
+}
 
-/* CONTENT */
-.content{flex:1;padding:20px;max-width:1060px;margin:0 auto;width:100%;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow);transition:background .25s;}
-.ct{font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
-label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;}
-input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:13px;transition:border-color .2s,background .25s;}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,119,204,.1);}
-[data-theme="dark"] input:focus{box-shadow:0 0 0 3px rgba(0,212,255,.1);}
-textarea{resize:vertical;min-height:64px;}
-.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-.fr.s{grid-template-columns:1fr;}
-.fr.t{grid-template-columns:1fr 1fr 1fr;}
-.divider{height:1px;background:var(--border);margin:13px 0;}
+/* Ambient BG */
+.amb {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 50% 40% at 80% 10%, rgba(37,99,235,.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 20% 90%, rgba(124,58,237,.04) 0%, transparent 60%);
+}
+[data-theme="dark"] .amb {
+  background:
+    radial-gradient(ellipse 50% 40% at 80% 10%, rgba(59,130,246,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 20% 90%, rgba(139,92,246,.05) 0%, transparent 60%);
+}
 
-/* BUTTONS */
-.btn{padding:8px 16px;border:none;border-radius:8px;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
-.btn:hover{transform:translateY(-2px);}
-.btn:active{transform:translateY(0);}
-.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important;}
-.bp{background:linear-gradient(135deg,var(--cyan),#005fa3);color:#fff;}
-.bp:hover{box-shadow:0 4px 16px rgba(0,119,204,.35);}
-[data-theme="dark"] .bp{background:linear-gradient(135deg,#00d4ff,#0090b8);color:#05070f;}
-.bs{background:linear-gradient(135deg,var(--green),#077a3f);color:#fff;}
-[data-theme="dark"] .bs{background:linear-gradient(135deg,#00ff88,#00b85e);color:#05070f;}
-.bd{background:linear-gradient(135deg,var(--red),#a8001a);color:#fff;}
-.bgo{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;}
-[data-theme="dark"] .bgo{color:#111;}
-.bgh{background:transparent;border:1px solid var(--border);color:var(--text);}
-.bgh:hover{border-color:var(--cyan);color:var(--cyan);}
-.sm{padding:5px 11px;font-size:11px;}
-.lg{padding:12px 28px;font-size:15px;}
-.full{width:100%;}
-.bic{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 7px;cursor:pointer;color:var(--red);font-size:11px;transition:all .2s;}
-.bic:hover{background:rgba(212,32,64,.1);}
+/* ══════════════════════════════════════
+   SCREENS
+══════════════════════════════════════ */
+.screen { display:none; position:relative; z-index:1; min-height:100vh; flex-direction:column; }
+.screen.active { display:flex; }
 
-/* TABS */
-.tabs{display:flex;gap:3px;padding:3px;background:var(--bg);border-radius:10px;margin-bottom:14px;border:1px solid var(--border);}
-.tab{flex:1;padding:7px;border:none;border-radius:7px;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;}
-.tab:hover{color:var(--text);}
-.tab.active{background:var(--surface);color:var(--cyan);}
-.tc{display:none;}
-.tc.active{display:block;}
+/* ══════════════════════════════════════
+   TOPBAR
+══════════════════════════════════════ */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; height:60px;
+  background:var(--bar); border-bottom:1px solid var(--border);
+  backdrop-filter:blur(16px); position:sticky; top:0; z-index:200;
+  transition:background .3s;
+}
+.tb-brand {
+  font-family:'Exo 2',sans-serif; font-size:20px; font-weight:900;
+  background:linear-gradient(135deg,var(--blue),var(--gold));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.tb-right { display:flex; align-items:center; gap:8px; }
 
-/* EMOJI PICKER */
-.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
-.ep{width:38px;height:38px;border-radius:9px;border:2px solid var(--border);background:var(--bg);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
-.ep:hover{border-color:var(--cyan);background:var(--surface2);transform:scale(1.1);}
-.ep.sel{border-color:var(--cyan);background:rgba(0,119,204,.1);}
-[data-theme="dark"] .ep.sel{background:rgba(0,212,255,.12);}
-.emoji-preview{font-size:28px;width:42px;height:42px;border-radius:10px;border:2px solid var(--cyan);background:var(--surface2);display:flex;align-items:center;justify-content:center;}
+/* Icon Button */
+.ico-btn {
+  width:34px; height:34px; border-radius:50%;
+  border:1.5px solid var(--border); background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .2s; color:var(--text2);
+  flex-shrink:0;
+}
+.ico-btn:hover { border-color:var(--blue); color:var(--blue); transform:scale(1.08); }
 
-/* TEAMS */
-.tlist{display:flex;flex-direction:column;gap:9px;margin-bottom:12px;}
-.tec{background:var(--bg);border:2px solid var(--border);border-radius:12px;overflow:hidden;}
-.tech{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;user-select:none;}
-.tesw{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.tenm{flex:1;font-weight:700;font-size:13px;}
-.temt{font-size:10px;color:var(--muted);}
-.tear{color:var(--muted);font-size:10px;}
-.tebd{display:none;padding:0 13px 13px;border-top:1px solid var(--border);}
-.tebd.open{display:block;}
-.mrow{display:flex;align-items:center;gap:6px;background:var(--surface);border-radius:7px;padding:6px 9px;font-size:12px;margin-bottom:4px;}
-.mav{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;}
-.mnm{flex:1;}
-.mrl{font-size:10px;color:var(--muted);}
-.brm{background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;padding:1px 4px;transition:color .2s;}
-.brm:hover{color:var(--red);}
-.addm{display:flex;gap:5px;margin-top:6px;}
-.addm input{flex:1;padding:7px 9px;font-size:11px;}
-.addt{background:var(--bg);border:2px dashed var(--border);border-radius:12px;padding:15px;}
-.addt:hover{border-color:rgba(0,119,204,.4);}
+/* Connection dot */
+.cdot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.cdot.ok { background:var(--green); box-shadow:0 0 6px var(--green); }
+.cdot.bad { background:var(--red); animation:blink .8s infinite alternate; }
+@keyframes blink { from{opacity:1} to{opacity:.3} }
 
-/* QUESTIONS */
-.qlist{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;}
-.qi{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:8px;}
-.qn{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#005fa3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff;flex-shrink:0;}
-[data-theme="dark"] .qn{background:linear-gradient(135deg,#00d4ff,#0090b8);color:#05070f;}
-.qt{flex:1;font-size:12px;}
-.qtb{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;}
-.qtm{background:rgba(109,40,217,.12);color:var(--purple);}
-.qtt{background:rgba(10,138,74,.1);color:var(--green);}
-.qtbz{background:rgba(196,127,0,.12);color:var(--gold);}
-[data-theme="dark"] .qtm{background:rgba(139,92,246,.2);color:#a78bfa;}
-[data-theme="dark"] .qtt{background:rgba(0,255,136,.15);color:#00ff88;}
-[data-theme="dark"] .qtbz{background:rgba(245,200,66,.15);color:#f5c842;}
-.ttabs{display:flex;gap:5px;margin-bottom:11px;}
-.tt{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;}
-.tt:hover{border-color:var(--cyan);color:var(--text);}
-.tt.on{background:rgba(0,119,204,.12);border-color:var(--cyan);color:var(--cyan);}
-[data-theme="dark"] .tt.on{background:rgba(0,212,255,.15);}
-.tf{display:none;}
-.tf.show{display:block;}
-.opts{display:flex;flex-direction:column;gap:5px;margin-bottom:9px;}
-.optr{display:flex;gap:5px;align-items:center;}
-.optr input{flex:1;}
-.cr{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);cursor:pointer;white-space:nowrap;}
-.cr input[type=radio]{accent-color:var(--green);}
+/* ══════════════════════════════════════
+   BADGES
+══════════════════════════════════════ */
+.badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 10px; border-radius:20px;
+  font-size:11px; font-weight:700; letter-spacing:.2px;
+}
+.b-blue { background:var(--blue-l); color:var(--blue); }
+.b-gold { background:var(--gold-l); color:var(--gold); }
+.b-green { background:var(--green-l); color:var(--green); }
+.b-red { background:var(--red-l); color:var(--red); }
+.b-purple { background:var(--purple-l); color:var(--purple); }
 
-/* SCOREBOARD */
-.sb{display:flex;gap:9px;overflow-x:auto;padding-bottom:5px;margin-bottom:14px;scrollbar-width:thin;}
-.sc{min-width:110px;flex-shrink:0;border-radius:11px;padding:12px 10px;text-align:center;position:relative;overflow:hidden;border:2px solid;transition:all .3s;}
-.sc.lead::after{content:'👑';position:absolute;top:4px;left:5px;font-size:12px;}
-.scnm{font-size:12px;font-weight:800;margin-bottom:2px;}
-.scpts{font-family:'Exo 2',sans-serif;font-size:34px;font-weight:900;line-height:1;margin:4px 0;}
-.sclbl{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+/* ══════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════ */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  padding:9px 18px; border:none; border-radius:var(--r);
+  font-family:'Tajawal',sans-serif; font-size:13px; font-weight:700;
+  cursor:pointer; transition:all .2s; white-space:nowrap;
+}
+.btn:hover { transform:translateY(-2px); }
+.btn:active { transform:translateY(0) scale(.98); }
+.btn:disabled { opacity:.35; cursor:not-allowed; transform:none!important; }
 
-/* Q DISPLAY */
-.qdisp{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:14px;text-align:center;box-shadow:var(--shadow);}
-.qhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.qctr{font-size:11px;color:var(--muted);font-weight:600;}
-.qptb{padding:4px 12px;border-radius:20px;background:rgba(196,127,0,.12);border:1px solid var(--gold);color:var(--gold);font-weight:700;font-size:11px;}
-[data-theme="dark"] .qptb{background:rgba(245,200,66,.15);}
-.qbody{font-size:clamp(15px,3vw,21px);font-weight:700;line-height:1.5;margin-bottom:18px;min-height:55px;display:flex;align-items:center;justify-content:center;}
-.prog{height:3px;background:var(--border);border-radius:2px;margin-bottom:15px;overflow:hidden;}
-.progf{height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:2px;transition:width .4s;}
+.btn-blue { background:linear-gradient(135deg,var(--blue),var(--blue-d)); color:#fff; }
+.btn-blue:hover { box-shadow:0 4px 18px rgba(37,99,235,.35); }
+.btn-green { background:linear-gradient(135deg,var(--green),#047857); color:#fff; }
+.btn-green:hover { box-shadow:0 4px 18px rgba(5,150,105,.35); }
+.btn-gold { background:linear-gradient(135deg,var(--gold),#b45309); color:#fff; }
+.btn-gold:hover { box-shadow:0 4px 18px rgba(217,119,6,.35); }
+.btn-red { background:linear-gradient(135deg,var(--red),#b91c1c); color:#fff; }
+.btn-ghost { background:transparent; border:1.5px solid var(--border); color:var(--text2); }
+.btn-ghost:hover { border-color:var(--blue); color:var(--blue); }
 
-/* TIMER */
-.tmrw{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:14px;}
-.tmr{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Exo 2',sans-serif;font-size:21px;font-weight:900;position:relative;}
-.tmr::before{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--bg);z-index:0;}
-.tmr span{position:relative;z-index:1;}
-.trg{background:conic-gradient(var(--green) var(--p,360deg),var(--border) 0);color:var(--green);}
-.try{background:conic-gradient(var(--gold) var(--p,180deg),var(--border) 0);color:var(--gold);}
-.trr{background:conic-gradient(var(--red) var(--p,72deg),var(--border) 0);color:var(--red);animation:pr .5s infinite alternate;}
-@keyframes pr{from{transform:scale(1)}to{transform:scale(1.07)}}
-.tmrlbl{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+[data-theme="dark"] .btn-blue { background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+[data-theme="dark"] .btn-green { background:linear-gradient(135deg,#10b981,#059669); }
+
+.btn-sm { padding:5px 12px; font-size:12px; border-radius:8px; }
+.btn-lg { padding:13px 28px; font-size:15px; border-radius:var(--r-lg); }
+.btn-xl { padding:15px 36px; font-size:17px; border-radius:var(--r-lg); }
+.btn-full { width:100%; }
+
+/* ══════════════════════════════════════
+   FORMS
+══════════════════════════════════════ */
+label { display:block; font-size:11px; font-weight:700; color:var(--muted); margin-bottom:4px; letter-spacing:.3px; text-transform:uppercase; }
+input, select, textarea {
+  width:100%; background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:var(--r); padding:10px 13px; color:var(--text);
+  font-family:'Tajawal',sans-serif; font-size:13px;
+  transition:border-color .2s, box-shadow .2s, background .3s;
+}
+input:focus, select:focus, textarea:focus {
+  outline:none; border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.1); background:var(--surface);
+}
+textarea { resize:vertical; min-height:68px; }
+.fr { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+.fr.s { grid-template-columns:1fr; }
+.fr.t { grid-template-columns:1fr 1fr 1fr; }
+
+/* ══════════════════════════════════════
+   CARD
+══════════════════════════════════════ */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:22px; margin-bottom:16px;
+  box-shadow:var(--shadow); transition:background .3s, border-color .2s;
+}
+.card-title {
+  display:flex; align-items:center; gap:8px;
+  font-size:14px; font-weight:800; color:var(--text); margin-bottom:16px;
+}
+.card-title .ico-wrap { width:28px; height:28px; border-radius:8px; background:var(--blue-l); display:flex; align-items:center; justify-content:center; color:var(--blue); }
+.divider { height:1px; background:var(--border); margin:14px 0; }
+.content { flex:1; padding:20px; max-width:1080px; margin:0 auto; width:100%; }
+
+/* ══════════════════════════════════════
+   TABS
+══════════════════════════════════════ */
+.tabs {
+  display:flex; gap:2px; padding:4px;
+  background:var(--surface2); border-radius:var(--r-lg);
+  margin-bottom:18px; border:1px solid var(--border);
+}
+.tab {
+  flex:1; padding:9px 6px; border:none; border-radius:var(--r);
+  font-family:'Tajawal',sans-serif; font-size:12px; font-weight:700;
+  cursor:pointer; background:transparent; color:var(--muted);
+  transition:all .2s; display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.tab:hover { color:var(--text); }
+.tab.active { background:var(--surface); color:var(--blue); box-shadow:var(--shadow); }
+.tc { display:none; }
+.tc.active { display:block; }
+
+/* ══════════════════════════════════════
+   LANDING SCREEN
+══════════════════════════════════════ */
+#landing {
+  align-items:center; justify-content:center;
+  padding:40px 20px 100px; gap:0;
+}
+.land-inner { display:flex; flex-direction:column; align-items:center; gap:0; max-width:460px; width:100%; }
+.land-logo-wrap { margin-bottom:12px; }
+.land-logo {
+  font-family:'Exo 2',sans-serif;
+  font-size:clamp(52px,12vw,96px); font-weight:900; letter-spacing:-3px;
+  background:linear-gradient(135deg,var(--blue),var(--gold));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  line-height:1;
+  filter:drop-shadow(0 0 30px rgba(37,99,235,.2));
+  text-align:center;
+}
+[data-theme="dark"] .land-logo { filter:drop-shadow(0 0 30px rgba(59,130,246,.3)); }
+.land-sub {
+  font-size:11px; letter-spacing:6px; text-transform:uppercase;
+  color:var(--muted); text-align:center; margin-top:4px; margin-bottom:24px;
+}
+.land-conn {
+  display:flex; align-items:center; gap:7px;
+  font-size:12px; color:var(--muted); margin-bottom:28px;
+  background:var(--surface); border:1px solid var(--border);
+  padding:6px 14px; border-radius:20px;
+}
+.land-btns { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:28px; width:100%; }
+.land-btn {
+  flex:1; min-width:160px; padding:18px 20px;
+  border:none; border-radius:var(--r-xl);
+  font-family:'Tajawal',sans-serif; font-size:17px; font-weight:800;
+  cursor:pointer; transition:all .25s;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.land-btn:hover { transform:translateY(-4px); }
+.land-btn-host {
+  background:linear-gradient(145deg,var(--gold),#b45309);
+  color:#fff; box-shadow:0 6px 24px rgba(217,119,6,.3);
+}
+.land-btn-team {
+  background:linear-gradient(145deg,var(--blue),var(--blue-d));
+  color:#fff; box-shadow:0 6px 24px rgba(37,99,235,.3);
+}
+[data-theme="dark"] .land-btn-host { box-shadow:0 6px 24px rgba(245,158,11,.25); }
+[data-theme="dark"] .land-btn-team { box-shadow:0 6px 24px rgba(59,130,246,.25); }
+.land-btn-icon { width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; }
+.land-btn-lbl { font-size:14px; font-weight:700; opacity:.9; }
+.land-hint { font-size:12px; color:var(--muted); text-align:center; line-height:1.7; max-width:320px; }
+
+/* ══════════════════════════════════════
+   PIN SCREEN
+══════════════════════════════════════ */
+#pin-screen { align-items:center; justify-content:center; padding:24px; }
+.pin-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:40px 32px;
+  width:100%; max-width:380px; text-align:center;
+  box-shadow:var(--shadow-lg);
+  animation:card-in .4s ease;
+}
+@keyframes card-in { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.pin-logo { font-family:'Exo 2',sans-serif; font-size:28px; font-weight:900; background:linear-gradient(135deg,var(--blue),var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:4px; }
+.pin-sub { font-size:12px; color:var(--muted); margin-bottom:26px; }
+.pin-label { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:3px; text-transform:uppercase; margin-bottom:14px; }
+.pin-dots { display:flex; gap:14px; justify-content:center; margin-bottom:22px; }
+.pd {
+  width:16px; height:16px; border-radius:50%;
+  border:2px solid var(--border); background:transparent; transition:all .2s;
+}
+.pd.f { background:var(--blue); border-color:var(--blue); box-shadow:0 0 8px rgba(37,99,235,.4); }
+.pd.sh { animation:shake .4s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.pin-kp { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:230px; margin:0 auto; }
+.pk {
+  aspect-ratio:1; border-radius:var(--r); border:1.5px solid var(--border);
+  background:var(--surface2); color:var(--text);
+  font-family:'Exo 2',sans-serif; font-size:20px; font-weight:700;
+  cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.pk:hover { background:var(--blue-l); border-color:var(--blue); color:var(--blue); transform:scale(1.06); }
+.pk:active { transform:scale(.92); }
+.pk-del { font-size:14px; }
+.pk-del:hover { color:var(--red); border-color:var(--red); background:var(--red-l); }
+.pk-zero { grid-column:2; }
+.pin-err { color:var(--red); font-size:12px; font-weight:600; margin-top:12px; min-height:18px; }
+
+/* ══════════════════════════════════════
+   HOST SETUP
+══════════════════════════════════════ */
+/* Icon picker */
+.icon-picker-grid { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.team-icon-btn {
+  width:36px; height:36px; border-radius:9px;
+  border:1.5px solid var(--border); background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .15s; padding:0; color:var(--muted);
+}
+.team-icon-btn:hover { border-color:var(--blue); color:var(--blue); transform:scale(1.1); }
+.team-icon-sel { border-color:var(--blue)!important; background:var(--blue-l)!important; color:var(--blue)!important; box-shadow:0 0 0 2px rgba(37,99,235,.2); }
+
+/* Teams */
+.tec { background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--r-lg); overflow:hidden; margin-bottom:10px; transition:border-color .2s; }
+.tec:hover { border-color:var(--blue); }
+.tech { display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer; user-select:none; }
+.tesw { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tenm { flex:1; font-weight:800; font-size:14px; }
+.temt { font-size:11px; color:var(--muted); margin-top:2px; }
+.tear { color:var(--muted); transition:transform .2s; }
+.tebd { display:none; padding:0 16px 16px; border-top:1px solid var(--border); }
+.tebd.open { display:block; }
+.mrow { display:flex; align-items:center; gap:7px; background:var(--surface); border-radius:9px; padding:7px 11px; font-size:12px; margin-bottom:5px; }
+.mav { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
+.mnm { flex:1; font-weight:600; }
+.mrl { font-size:10px; color:var(--muted); }
+.brm { background:none; border:none; cursor:pointer; color:var(--muted); padding:2px 5px; transition:color .2s; border-radius:4px; }
+.brm:hover { color:var(--red); background:var(--red-l); }
+.addm { display:flex; gap:6px; margin-top:8px; }
+.addm input { flex:1; padding:8px 10px; font-size:12px; }
+.addt { background:var(--surface2); border:2px dashed var(--border); border-radius:var(--r-lg); padding:16px; transition:all .2s; }
+.addt:hover { border-color:var(--blue); }
+
+/* Questions */
+.qtype-tabs { display:flex; gap:6px; margin-bottom:14px; }
+.qtype-btn {
+  flex:1; padding:10px 8px; border-radius:var(--r);
+  border:1.5px solid var(--border); background:var(--surface2);
+  color:var(--muted); font-family:'Tajawal',sans-serif;
+  font-size:12px; font-weight:700; cursor:pointer; transition:all .2s;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+}
+.qtype-btn:hover { border-color:var(--blue); color:var(--text); }
+.qtype-btn.on { background:var(--blue-l); border-color:var(--blue); color:var(--blue); }
+.qtype-btn svg { width:20px; height:20px; }
+.tf { display:none; }
+.tf.show { display:block; }
+
+/* MCQ option row */
+.opts { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+.optr { display:flex; gap:8px; align-items:center; }
+.optr input { flex:1; }
+.opt-radio { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); cursor:pointer; white-space:nowrap; }
+.opt-radio input[type=radio] { accent-color:var(--green); width:15px; height:15px; cursor:pointer; }
+
+/* Question list item */
+.qi {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--r); padding:10px 14px;
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:7px; transition:all .2s;
+}
+.qi:hover { border-color:var(--blue); background:var(--surface); }
+.qn {
+  width:26px; height:26px; border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--blue-d));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Exo 2',sans-serif; font-weight:900; font-size:11px; color:#fff; flex-shrink:0;
+}
+[data-theme="dark"] .qn { background:linear-gradient(135deg,#3b82f6,#1d4ed8); }
+.qt { flex:1; font-size:12px; font-weight:500; color:var(--text2); }
+.qtb { font-size:9px; padding:2px 7px; border-radius:20px; font-weight:700; letter-spacing:.3px; }
+.q-actions { display:flex; gap:4px; }
+.qbtn { background:none; border:1.5px solid var(--border); border-radius:7px; padding:4px 8px; cursor:pointer; transition:all .2s; }
+.qbtn-edit { color:var(--blue); }
+.qbtn-edit:hover { background:var(--blue-l); border-color:var(--blue); }
+.qbtn-del { color:var(--red); }
+.qbtn-del:hover { background:var(--red-l); border-color:var(--red); }
+
+/* Import drop */
+.import-drop {
+  border:2px dashed var(--border); border-radius:var(--r-lg);
+  padding:28px 20px; text-align:center; cursor:pointer;
+  transition:all .2s; background:var(--surface2);
+}
+.import-drop:hover, .import-drop.drag-over { border-color:var(--blue); background:var(--blue-l); }
+
+/* Edit mode */
+#add-q-card.edit-mode { border:2px solid var(--gold); }
+
+/* ══════════════════════════════════════
+   SCOREBOARD (host)
+══════════════════════════════════════ */
+.sb {
+  display:flex; gap:10px; overflow-x:auto;
+  padding-bottom:6px; margin-bottom:16px;
+  scrollbar-width:thin; scrollbar-color:var(--border) transparent;
+}
+.sc {
+  min-width:120px; flex-shrink:0; border-radius:var(--r-lg);
+  padding:14px 12px; text-align:center;
+  border:2px solid; position:relative; overflow:hidden;
+  transition:all .3s;
+}
+.sc.lead { box-shadow:0 0 20px rgba(217,119,6,.2); }
+.sc-crown {
+  position:absolute; top:6px; left:8px;
+  width:16px; height:16px; color:var(--gold);
+}
+.scnm { font-size:12px; font-weight:800; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.scpts { font-family:'Exo 2',sans-serif; font-size:36px; font-weight:900; line-height:1; margin:4px 0; }
+.sclbl { font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+
+/* ══════════════════════════════════════
+   GAME HOST - QUESTION DISPLAY
+══════════════════════════════════════ */
+.qdisp {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:24px; margin-bottom:16px;
+  box-shadow:var(--shadow-lg); text-align:center;
+}
+.qhdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.qctr { font-size:12px; color:var(--muted); font-weight:700; }
+.qptb {
+  display:flex; align-items:center; gap:5px;
+  padding:5px 12px; border-radius:20px;
+  background:var(--gold-l); border:1px solid rgba(217,119,6,.3);
+  color:var(--gold); font-weight:700; font-size:12px;
+}
+.prog { height:4px; background:var(--border); border-radius:2px; margin-bottom:18px; overflow:hidden; }
+.progf { height:100%; background:linear-gradient(90deg,var(--blue),var(--gold)); border-radius:2px; transition:width .5s; }
+.qbody {
+  font-size:clamp(15px,3vw,22px); font-weight:800; line-height:1.5;
+  margin-bottom:20px; min-height:60px;
+  display:flex; align-items:center; justify-content:center; color:var(--text);
+}
+.q-placeholder { color:var(--muted); font-size:14px; font-weight:500; }
+
+/* Timer */
+.tmrw { display:flex; flex-direction:column; align-items:center; gap:5px; margin-bottom:16px; }
+.tmr {
+  width:68px; height:68px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Exo 2',sans-serif; font-size:22px; font-weight:900;
+  position:relative;
+}
+.tmr::before { content:''; position:absolute; inset:5px; border-radius:50%; background:var(--bg); z-index:0; }
+.tmr span { position:relative; z-index:1; }
+.tr-g { background:conic-gradient(var(--green) var(--p,360deg),var(--border) 0); color:var(--green); }
+.tr-y { background:conic-gradient(var(--gold) var(--p,180deg),var(--border) 0); color:var(--gold); }
+.tr-r { background:conic-gradient(var(--red) var(--p,72deg),var(--border) 0); color:var(--red); animation:pulse-r .5s infinite alternate; }
+@keyframes pulse-r { from{transform:scale(1)} to{transform:scale(1.08)} }
+.tmrlbl { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
 
 /* MCQ */
-.mcqg{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.mcqo{padding:11px 13px;border-radius:9px;border:2px solid var(--border);background:var(--bg);cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;text-align:right;display:flex;align-items:center;gap:8px;}
-.mcqo:hover{border-color:var(--cyan);transform:translateY(-2px);}
-.mcqo.sel{border-color:var(--cyan);background:rgba(0,119,204,.08);}
-.mcqo.ok{border-color:var(--green);background:rgba(10,138,74,.08);color:var(--green);}
-.mcqo.no{border-color:var(--red);background:rgba(212,32,64,.06);color:var(--red);opacity:.65;}
-[data-theme="dark"] .mcqo.sel{background:rgba(0,212,255,.1);}
-[data-theme="dark"] .mcqo.ok{background:rgba(0,255,136,.1);}
-[data-theme="dark"] .mcqo.no{background:rgba(255,56,100,.08);}
-.olttr{width:24px;height:24px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Exo 2',sans-serif;font-size:10px;font-weight:900;background:var(--surface2);color:var(--text);}
-.mcqo.ok .olttr{background:var(--green);color:#fff;}
-[data-theme="dark"] .mcqo.ok .olttr{color:#05070f;}
+.mcqg { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.mcqo {
+  padding:13px 15px; border-radius:var(--r); border:2px solid var(--border);
+  background:var(--surface2); cursor:pointer; font-size:13px; font-weight:600;
+  transition:all .2s; text-align:right; display:flex; align-items:center; gap:9px;
+}
+.mcqo:hover { border-color:var(--blue); transform:translateY(-2px); box-shadow:var(--shadow); }
+.mcqo.sel { border-color:var(--blue); background:var(--blue-l); }
+.mcqo.ok { border-color:var(--green); background:var(--green-l); color:var(--green); }
+.mcqo.no { border-color:var(--red); background:var(--red-l); color:var(--red); opacity:.7; }
+.olttr {
+  width:26px; height:26px; border-radius:7px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Exo 2',sans-serif; font-size:11px; font-weight:900;
+  background:var(--surface); color:var(--text); border:1px solid var(--border);
+}
+.mcqo.ok .olttr { background:var(--green); color:#fff; border-color:var(--green); }
+.mcqo.no .olttr { background:var(--red); color:#fff; border-color:var(--red); }
 
-/* TEAM ANSWERS PANEL (host view) */
-.team-answers{margin-top:14px;}
-.ta-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-align:center;letter-spacing:1px;text-transform:uppercase;}
-.ta-grid{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
-.ta-card{background:var(--surface);border:2px solid var(--border);border-radius:10px;padding:10px 14px;min-width:120px;text-align:center;transition:all .3s;}
-.ta-card.answered{border-color:var(--cyan);}
-.ta-card.correct-ans{border-color:var(--green);background:rgba(10,138,74,.06);}
-[data-theme="dark"] .ta-card.correct-ans{background:rgba(0,255,136,.06);}
-.ta-card.wrong-ans{border-color:var(--red);background:rgba(212,32,64,.05);}
-.ta-tnm{font-size:11px;font-weight:700;margin-bottom:4px;}
-.ta-ans{font-size:13px;font-weight:800;}
-.ta-status{font-size:10px;margin-top:3px;}
+/* Team Answers Panel */
+.ta-panel { margin-top:16px; }
+.ta-header { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:2px; text-transform:uppercase; text-align:center; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:7px; }
+.ta-grid { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.ta-card {
+  background:var(--surface); border:2px solid var(--border);
+  border-radius:var(--r); padding:11px 14px; min-width:110px; text-align:center; transition:all .3s;
+}
+.ta-card.answered { border-color:var(--blue); }
+.ta-card.correct-ans { border-color:var(--green); background:var(--green-l); }
+.ta-card.wrong-ans { border-color:var(--red); background:var(--red-l); }
+.ta-tnm { font-size:11px; font-weight:700; margin-bottom:4px; }
+.ta-ans { font-size:12px; font-weight:800; }
+.ta-status { font-size:10px; margin-top:3px; }
 
-/* TEXT ANSWER */
-.taw{display:flex;flex-direction:column;gap:8px;align-items:center;}
-.taw input{max-width:400px;text-align:center;font-size:15px;font-weight:600;}
+/* Text answer */
+.taw { display:flex; flex-direction:column; gap:9px; align-items:center; }
+.taw input { max-width:420px; text-align:center; font-size:15px; font-weight:700; }
 
-/* BUZZ */
-.bzs{display:flex;flex-direction:column;align-items:center;gap:12px;}
-.bzbts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
-.bzbtn{width:128px;height:128px;border-radius:50%;border:none;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:13px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:all .15s;position:relative;overflow:hidden;}
-.bzbtn::before{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.25),transparent);opacity:0;transition:opacity .2s;}
-.bzbtn:hover::before{opacity:1;}
-.bzbtn:hover{transform:scale(1.07);}
-.bzbtn:active{transform:scale(.92);}
-.bzbtn:disabled{opacity:.2;cursor:not-allowed;transform:none;box-shadow:none!important;}
-.bzbtn .bic-txt{font-size:22px;}
-.bzwon{padding:10px 20px;border-radius:9px;font-size:15px;font-weight:800;text-align:center;animation:popin .4s cubic-bezier(.175,.885,.32,1.275);}
-@keyframes popin{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+/* TV text input */
+.tv-text-wrap { padding:10px 0; }
+.tv-text-row { display:flex; gap:8px; max-width:420px; margin:0 auto; }
+.tv-text-row input { flex:1; font-size:15px; font-weight:700; text-align:center; }
 
-/* BUZZ ANSWER INPUT (after buzz) */
-.buzz-answer-area{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;text-align:center;}
-.buzz-answer-area.active{border-color:var(--cyan);}
+/* Buzz buttons */
+.bzs { display:flex; flex-direction:column; align-items:center; gap:14px; }
+.bzbts { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+.bzbtn {
+  width:130px; height:130px; border-radius:50%; border:none;
+  cursor:pointer; font-family:'Tajawal',sans-serif; font-size:13px; font-weight:800;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  transition:all .2s; position:relative; overflow:hidden; color:#fff;
+}
+.bzbtn::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.2),transparent);
+  border-radius:50% 50% 0 0;
+}
+.bzbtn:hover { transform:scale(1.07); }
+.bzbtn:active { transform:scale(.92); }
+.bzbtn:disabled { opacity:.2; cursor:not-allowed; transform:none!important; box-shadow:none!important; }
+.bzbtn svg { width:26px; height:26px; }
+.bz-tv-btn { width:110px; height:110px; }
+.bzwon {
+  padding:12px 24px; border-radius:var(--r); font-size:15px; font-weight:800;
+  animation:pop-in .4s cubic-bezier(.175,.885,.32,1.275);
+}
+@keyframes pop-in { 0%{transform:scale(.4);opacity:0} 100%{transform:scale(1);opacity:1} }
+.buzz-answer-area { background:var(--surface); border:2px solid var(--border); border-radius:var(--r-lg); padding:16px; margin-top:12px; text-align:center; }
+.buzz-answer-area.active { border-color:var(--blue); }
 
-/* HOST CONTROLS */
-.hctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:12px 15px;background:var(--surface);border-top:1px solid var(--border);position:sticky;bottom:0;box-shadow:0 -2px 10px rgba(0,0,0,.05);}
-.awwrap{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+/* Host controls */
+.hctrl {
+  display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+  padding:13px 16px; background:var(--surface); border-top:1px solid var(--border);
+  position:sticky; bottom:0; box-shadow:0 -4px 16px rgba(0,0,0,.07);
+}
+.awwrap { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; }
 
-/* VERDICT */
-.verdict{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.82);}
-.vcard{border-radius:20px;padding:38px 48px;text-align:center;animation:popin .4s cubic-bezier(.175,.885,.32,1.275);}
-.vcard.cv{background:linear-gradient(135deg,rgba(10,138,74,.14),rgba(10,138,74,.05));border:2px solid var(--green);}
-.vcard.wv{background:linear-gradient(135deg,rgba(212,32,64,.14),rgba(212,32,64,.05));border:2px solid var(--red);}
-[data-theme="dark"] .vcard.cv{background:linear-gradient(135deg,rgba(0,255,136,.13),rgba(0,255,136,.04));}
-[data-theme="dark"] .vcard.wv{background:linear-gradient(135deg,rgba(255,56,100,.13),rgba(255,56,100,.04));}
-.vic{font-size:56px;margin-bottom:11px;}
-.vti{font-size:28px;font-weight:900;margin-bottom:4px;}
-.cv .vti{color:var(--green);}
-.wv .vti{color:var(--red);}
-.vpt{font-size:15px;color:var(--gold);font-weight:700;margin-bottom:15px;}
+/* ══════════════════════════════════════
+   VERDICT OVERLAY
+══════════════════════════════════════ */
+.verdict {
+  position:fixed; inset:0; z-index:300;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.75); backdrop-filter:blur(4px);
+}
+.vcard {
+  border-radius:var(--r-xl); padding:40px 50px; text-align:center;
+  animation:pop-in .4s cubic-bezier(.175,.885,.32,1.275);
+  max-width:420px; width:90%;
+}
+.vcard.cv { background:var(--green-l); border:2px solid var(--green); }
+.vcard.wv { background:var(--red-l); border:2px solid var(--red); }
+.vcard-icon { width:64px; height:64px; border-radius:50%; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; }
+.cv .vcard-icon { background:var(--green); }
+.wv .vcard-icon { background:var(--red); }
+.vti { font-size:28px; font-weight:900; margin-bottom:6px; }
+.cv .vti { color:var(--green); }
+.wv .vti { color:var(--red); }
+.vpt { font-size:16px; color:var(--gold); font-weight:700; margin-bottom:18px; }
 
-/* PIN */
-#pin-screen{align-items:center;justify-content:center;padding:40px 18px;}
-.pinbx{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:40px 36px;width:100%;max-width:370px;text-align:center;box-shadow:var(--shadow);}
-.pinlogo{font-family:'Exo 2',sans-serif;font-size:40px;font-weight:900;background:linear-gradient(135deg,var(--cyan),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:3px;}
-.pinsub{color:var(--muted);font-size:12px;margin-bottom:22px;}
-.pinlbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;}
-.pindots{display:flex;gap:13px;justify-content:center;margin-bottom:19px;}
-.pd{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:all .2s;}
-.pd.f{background:var(--cyan);border-color:var(--cyan);}
-.pd.sh{animation:sh .4s ease;}
-@keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.pinkp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:230px;margin:0 auto;}
-.pk{aspect-ratio:1;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;font-size:19px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;}
-.pk:hover{background:var(--surface2);border-color:var(--cyan);color:var(--cyan);transform:scale(1.05);}
-.pk:active{transform:scale(.93);}
-.pk.del{font-size:14px;color:var(--muted);}
-.pk.del:hover{color:var(--red);border-color:var(--red);}
-.pk.z{grid-column:2;}
-.pinerr{color:var(--red);font-size:12px;font-weight:600;margin-top:11px;min-height:17px;}
+/* ══════════════════════════════════════
+   TEAM VIEW
+══════════════════════════════════════ */
+#team-choose { text-align:center; padding:30px 16px; }
+.choose-title { font-size:24px; font-weight:900; margin-bottom:6px; }
+.choose-sub { font-size:13px; color:var(--muted); margin-bottom:24px; }
+.tcgrid { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.tcbtn {
+  padding:18px 22px; border:2px solid var(--border); border-radius:var(--r-xl);
+  background:var(--surface); cursor:pointer; font-family:'Tajawal',sans-serif;
+  font-size:15px; font-weight:800; color:var(--text);
+  transition:all .2s; min-width:140px; display:flex; flex-direction:column;
+  align-items:center; gap:8px; box-shadow:var(--shadow);
+}
+.tcbtn:hover { transform:translateY(-5px); box-shadow:var(--shadow-lg); }
+.tc-icon-wrap { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; }
 
-/* LANDING */
-#landing{align-items:center;justify-content:center;gap:30px;padding:40px 18px 80px;}
-.logo{font-family:'Exo 2',sans-serif;font-size:clamp(56px,11vw,106px);font-weight:900;letter-spacing:-4px;background:linear-gradient(135deg,var(--cyan),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;filter:drop-shadow(0 0 26px rgba(0,119,204,.22));}
-[data-theme="dark"] .logo{filter:drop-shadow(0 0 34px rgba(0,212,255,.36));}
-.logosub{font-size:12px;letter-spacing:7px;text-transform:uppercase;color:var(--muted);text-align:center;margin-top:-6px;}
-.lbtns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
-.bh{padding:16px 40px;border:none;border-radius:var(--radius);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:18px;font-weight:700;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
-.bh::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.15),transparent);opacity:0;transition:opacity .2s;}
-.bh:hover::before{opacity:1;}
-.bh:hover{transform:translateY(-3px);}
-.bhg{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;}
-.bhg:hover{box-shadow:0 7px 24px rgba(196,127,0,.36);}
-[data-theme="dark"] .bhg{color:#111;}
-.bhc{background:linear-gradient(135deg,var(--cyan),#005fa3);color:#fff;}
-.bhc:hover{box-shadow:0 7px 24px rgba(0,119,204,.36);}
-[data-theme="dark"] .bhc{background:linear-gradient(135deg,#00d4ff,#0090b8);color:#05070f;}
-
-/* TEAM VIEW */
-#team-choose{text-align:center;padding:28px 15px;}
-.tcgrid{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:20px;}
-.tcbtn{padding:15px 22px;border:2px solid var(--border);border-radius:14px;background:var(--surface);cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:15px;font-weight:700;color:var(--text);transition:all .2s;min-width:130px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--shadow);}
-.tcbtn:hover{transform:translateY(-4px);}
-.tcem{font-size:28px;}
-
-/* TEAM DASHBOARD LAYOUT */
-.tv-layout{display:flex;gap:0;flex:1;overflow:hidden;}
-.tv-main{flex:1;overflow-y:auto;min-width:0;}
-.tv-sidebar{width:190px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:12px 10px;overflow-y:auto;transition:background .25s;}
-@media(max-width:640px){
-  .tv-layout{flex-direction:column-reverse;}
-  .tv-sidebar{width:100%;border-right:none;border-top:1px solid var(--border);padding:10px;}
+/* Team Dashboard Layout */
+.tv-layout { display:flex; flex:1; overflow:hidden; }
+.tv-main { flex:1; overflow-y:auto; min-width:0; }
+.tv-sidebar {
+  width:188px; flex-shrink:0;
+  background:var(--surface); border-right:1px solid var(--border);
+  padding:14px 12px; overflow-y:auto;
+}
+@media(max-width:600px) {
+  .tv-layout { flex-direction:column-reverse; }
+  .tv-sidebar { width:100%; border-right:none; border-top:1px solid var(--border); padding:10px; max-height:200px; }
 }
 
-/* TV TIMER BAR */
-.tv-timer-bar-wrap{padding:0 15px;margin-bottom:2px;}
-.tv-timer-bar-bg{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
-.tv-timer-bar-fill{height:100%;border-radius:3px;transition:width 1s linear,background .5s;}
-.tv-timer-info{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:11px;color:var(--muted);}
-.tv-timer-secs{font-family:'Exo 2',sans-serif;font-size:20px;font-weight:900;}
+/* TV Header */
+.tvhdr { text-align:center; padding:22px 16px 10px; }
+.tvnm { font-size:clamp(20px,5vw,40px); font-weight:900; margin-bottom:3px; }
+.tvsc { font-family:'Exo 2',sans-serif; font-size:clamp(36px,8vw,60px); font-weight:900; line-height:1; margin:4px 0; }
+.tvsclbl { font-size:9px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; }
+.tvstrip { margin:0 15px 8px; display:flex; gap:5px; flex-wrap:wrap; justify-content:center; }
+.tvchip { display:flex; align-items:center; gap:4px; background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:3px 9px; font-size:10px; }
 
-/* TV QUESTION BOX */
-.tvhdr{text-align:center;padding:20px 15px 8px;}
-.tvnm{font-size:clamp(20px,5vw,42px);font-weight:900;margin-bottom:3px;}
-.tvsc{font-family:'Exo 2',sans-serif;font-size:clamp(38px,8vw,64px);font-weight:900;line-height:1;margin:4px 0;}
-.tvsclbl{font-size:9px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
-.tvqb{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px;margin:6px 15px;text-align:center;font-size:15px;font-weight:700;min-height:70px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);}
-.tvwt{color:var(--muted);font-size:13px;animation:pt 2s ease infinite;}
-@keyframes pt{0%,100%{opacity:.5}50%{opacity:1}}
-.tvcnt{padding:0 15px 15px;}
-.tvstrip{margin:0 15px 7px;display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
-.tvchip{display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 8px;font-size:10px;}
+/* TV Timer bar */
+.tv-timer-wrap { padding:0 15px; margin-bottom:4px; }
+.tv-timer-top { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted); margin-bottom:4px; }
+.tv-timer-secs { font-family:'Exo 2',sans-serif; font-size:22px; font-weight:900; }
+.tv-timer-bg { height:7px; background:var(--border); border-radius:4px; overflow:hidden; }
+.tv-timer-fill { height:100%; border-radius:4px; transition:width 1s linear, background .5s; }
 
-/* ANSWER REVEAL OVERLAY (team side) */
-.answer-reveal{
-  position:fixed;inset:0;z-index:150;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.78);
-  animation:fade-in .3s ease;
+/* TV Question Box */
+.tvqb {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:16px; margin:8px 15px;
+  text-align:center; font-size:15px; font-weight:700;
+  min-height:72px; display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow);
 }
-@keyframes fade-in{from{opacity:0}to{opacity:1}}
-.answer-reveal-card{
-  background:var(--surface);border-radius:20px;
-  padding:32px 40px;text-align:center;
-  max-width:420px;width:90%;
-  box-shadow:0 0 60px rgba(0,0,0,.3);
-  animation:popin .4s cubic-bezier(.175,.885,.32,1.275);
-}
-.ar-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;}
-.ar-answer{font-size:26px;font-weight:900;color:var(--text);margin-bottom:4px;}
-.ar-team-result{font-size:18px;font-weight:800;margin-top:12px;padding:10px 18px;border-radius:10px;}
-.ar-correct{background:rgba(10,138,74,.1);color:var(--green);border:2px solid var(--green);}
-[data-theme="dark"] .ar-correct{background:rgba(0,255,136,.1);}
-.ar-wrong{background:rgba(212,32,64,.08);color:var(--red);border:2px solid var(--red);}
-[data-theme="dark"] .ar-wrong{background:rgba(255,56,100,.08);}
-.ar-neutral{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.tvwt { color:var(--muted); font-size:13px; animation:breathe 2.5s ease infinite; }
+@keyframes breathe { 0%,100%{opacity:.5} 50%{opacity:1} }
+.tvcnt { padding:0 15px 15px; }
 
-/* SIDE LEADERBOARD */
-.sb-side-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:center;}
-.sb-side-row{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;margin-bottom:5px;border:1px solid var(--border);background:var(--bg);transition:all .3s;}
-.sb-side-row.top1{border-color:var(--gold);background:linear-gradient(135deg,rgba(196,127,0,.08),rgba(196,127,0,.03));}
-[data-theme="dark"] .sb-side-row.top1{border-color:#f5c842;background:linear-gradient(135deg,rgba(245,200,66,.1),rgba(245,200,66,.03));}
-.sb-rank{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:var(--muted);width:14px;text-align:center;flex-shrink:0;}
-.sb-em{font-size:16px;flex-shrink:0;}
-.sb-info{flex:1;min-width:0;}
-.sb-nm{font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sb-pts{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;}
-.sb-speed{font-size:9px;color:var(--muted);margin-top:1px;}
-
-/* HOST SIDE LEADERBOARD */
-.host-side-sb{margin-top:10px;}
-.host-side-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
-
-/* TV TEXT INPUT WRAPPER */
-.tv-text-input-wrap{padding:10px 0;}
-.tv-text-input-wrap .taw{flex-direction:column;}
-
-/* ICON PICKER GRID */
-.icon-picker-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
-.team-icon-btn{
-  width:34px;height:34px;border-radius:7px;
-  border:1px solid var(--border);background:var(--bg);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all .15s;padding:0;
+/* Answer Reveal */
+.answer-reveal {
+  position:fixed; inset:0; z-index:250;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.75); backdrop-filter:blur(4px);
+  animation:fade-in .25s;
 }
-.team-icon-btn:hover{border-color:var(--cyan);background:var(--surface2);transform:scale(1.1);}
-.team-icon-sel{
-  border-color:var(--cyan)!important;
-  background:rgba(0,119,204,.12)!important;
-  box-shadow:0 0 0 2px rgba(0,119,204,.3);
+@keyframes fade-in { from{opacity:0} to{opacity:1} }
+.ar-card {
+  background:var(--surface); border-radius:var(--r-xl);
+  padding:32px 36px; text-align:center;
+  max-width:420px; width:90%;
+  box-shadow:0 24px 60px rgba(0,0,0,.3);
+  animation:pop-in .35s cubic-bezier(.175,.885,.32,1.275);
 }
-[data-theme="dark"] .team-icon-sel{
-  background:rgba(0,212,255,.15)!important;
-  box-shadow:0 0 0 2px rgba(0,212,255,.3);
-}
-.import-drop{
-  border:2px dashed var(--border);border-radius:12px;
-  padding:24px 16px;text-align:center;cursor:pointer;
-  transition:all .2s;background:var(--bg);
-}
-.import-drop:hover,.import-drop.drag-over{
-  border-color:var(--cyan);background:rgba(0,119,204,.05);
-}
-[data-theme="dark"] .import-drop:hover,[data-theme="dark"] .import-drop.drag-over{
-  background:rgba(0,212,255,.05);
-}
+.ar-label { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:3px; text-transform:uppercase; margin-bottom:10px; }
+.ar-answer { font-size:26px; font-weight:900; margin-bottom:6px; }
+.ar-result { font-size:17px; font-weight:800; margin-top:14px; padding:12px 20px; border-radius:var(--r); }
+.ar-correct { background:var(--green-l); color:var(--green); border:2px solid var(--green); }
+.ar-wrong { background:var(--red-l); color:var(--red); border:2px solid var(--red); }
+.ar-neutral { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
 
-/* EDIT MODE HIGHLIGHT */
-#add-q-card.edit-mode{
-  border:2px solid var(--gold);
+/* Side Leaderboard */
+.sb-side-title { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; text-align:center; }
+.sb-side-row {
+  display:flex; align-items:center; gap:7px;
+  padding:8px 9px; border-radius:var(--r); margin-bottom:6px;
+  border:1px solid var(--border); background:var(--bg); transition:all .3s;
 }
-[data-theme="dark"] #add-q-card.edit-mode{
-  border-color:#f5c842;
+.sb-side-row.top1 { border-color:var(--gold); background:var(--gold-l); }
+.sb-rank { font-family:'Exo 2',sans-serif; font-size:11px; font-weight:900; color:var(--muted); width:14px; text-align:center; flex-shrink:0; }
+.sb-info { flex:1; min-width:0; }
+.sb-nm { font-size:11px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sb-pts { font-family:'Exo 2',sans-serif; font-size:13px; font-weight:900; }
+.sb-speed { font-size:9px; color:var(--muted); }
+
+/* ══════════════════════════════════════
+   WINNER SCREEN
+══════════════════════════════════════ */
+#winner {
+  align-items:center; justify-content:center;
+  text-align:center; gap:16px; padding:32px 20px;
+  background:var(--bg);
 }
-.edit-q-badge{
-  padding:2px 8px;border-radius:20px;
-  background:rgba(196,127,0,.12);border:1px solid var(--gold);
-  color:var(--gold);font-size:10px;font-weight:700;
+.w-trophy {
+  width:96px; height:96px; border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),#b45309);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 40px rgba(217,119,6,.4);
+  animation:trophy-bounce 1.2s ease infinite alternate;
+  color:#fff;
 }
-[data-theme="dark"] .edit-q-badge{
-  background:rgba(245,200,66,.15);border-color:#f5c842;color:#f5c842;
+@keyframes trophy-bounce { from{transform:translateY(0) rotate(-5deg)} to{transform:translateY(-16px) rotate(5deg)} }
+.wti { font-family:'Exo 2',sans-serif; font-size:clamp(24px,7vw,56px); font-weight:900; background:linear-gradient(135deg,var(--gold),#ff9500); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.wtm { font-size:clamp(18px,4vw,36px); font-weight:900; margin-top:5px; }
+.wsc { font-size:15px; color:var(--muted); margin-top:4px; }
+.wscs { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
+.wsc-card { border-radius:var(--r-lg); padding:12px 18px; text-align:center; min-width:96px; }
+
+/* Confetti */
+.cfw { position:fixed; inset:0; pointer-events:none; z-index:100; }
+.cfp { position:absolute; border-radius:2px; animation:cff linear forwards; }
+@keyframes cff { 0%{transform:translateY(-20px) rotate(0);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+
+/* ══════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════ */
+.notif {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  padding:10px 20px; border-radius:var(--r);
+  font-weight:700; font-size:13px; z-index:500;
+  display:flex; align-items:center; gap:8px;
+  box-shadow:var(--shadow-lg); white-space:nowrap;
+  animation:notif-in .3s ease, notif-out .3s 2.3s ease forwards;
 }
+@keyframes notif-in { from{opacity:0;transform:translateX(-50%) translateY(16px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes notif-out { to{opacity:0} }
+.notif-s { background:var(--green); color:#fff; }
+.notif-e { background:var(--red); color:#fff; }
+.notif-i { background:var(--blue); color:#fff; }
 
-/* EDIT/DELETE BUTTONS IN QUESTION LIST */
-.q-actions{display:flex;gap:4px;}
-.bic-edit{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 7px;cursor:pointer;color:var(--cyan);font-size:11px;transition:all .2s;}
-.bic-edit:hover{background:rgba(0,119,204,.1);border-color:var(--cyan);}
-[data-theme="dark"] .bic-edit:hover{background:rgba(0,212,255,.1);}
+/* Footer */
+.footer { text-align:center; padding:12px; border-top:1px solid var(--border); background:var(--surface); font-size:11px; color:var(--muted); }
+.footer b { color:var(--blue); font-weight:700; }
 
-/* BUZZ TV BUTTONS */
-.bz-tv-btn{width:110px;height:110px;}
-
-/* WINNER */
-#winner{align-items:center;justify-content:center;text-align:center;gap:18px;padding:30px;}
-.wtr{font-size:80px;animation:tb 1s ease infinite alternate;}
-@keyframes tb{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-16px) rotate(5deg)}}
-.wti{font-family:'Exo 2',sans-serif;font-size:clamp(24px,7vw,58px);font-weight:900;background:linear-gradient(135deg,#c47f00,#ff9500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-[data-theme="dark"] .wti{background:linear-gradient(135deg,#f5c842,#ff9500);-webkit-background-clip:text;}
-.wtm{font-size:clamp(18px,4vw,38px);font-weight:800;margin-top:4px;}
-.wsc{font-size:15px;color:var(--muted);margin-top:4px;}
-.wscs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:9px;}
-.cfw{position:fixed;inset:0;pointer-events:none;z-index:50;}
-.cfp{position:absolute;border-radius:2px;animation:cff linear forwards;}
-@keyframes cff{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
-
-/* NOTIF */
-.notif{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);padding:9px 18px;border-radius:9px;font-weight:700;font-size:13px;z-index:400;animation:ni .3s ease,no .3s ease 2.4s forwards;white-space:nowrap;}
-@keyframes ni{from{opacity:0;transform:translateX(-50%) translateY(13px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@keyframes no{from{opacity:1}to{opacity:0}}
-.ns{background:var(--green);color:#fff;}
-[data-theme="dark"] .ns{color:#05070f;}
-.ne{background:var(--red);color:#fff;}
-.ni{background:var(--cyan);color:#fff;}
-[data-theme="dark"] .ni{color:#05070f;}
-
-/* FOOTER */
-.footer{position:relative;z-index:2;text-align:center;padding:13px;border-top:1px solid var(--border);background:var(--surface);font-size:11px;color:var(--muted);}
-.footer b{color:var(--cyan);font-weight:700;}
-
-@media(max-width:640px){
-  .fr{grid-template-columns:1fr;}
-  .fr.t{grid-template-columns:1fr 1fr;}
-  .mcqg{grid-template-columns:1fr;}
-  .bzbtn{width:100px;height:100px;}
+/* Responsive */
+@media(max-width:640px) {
+  .fr { grid-template-columns:1fr; }
+  .fr.t { grid-template-columns:1fr 1fr; }
+  .mcqg { grid-template-columns:1fr; }
+  .bzbtn { width:100px; height:100px; }
+  .bz-tv-btn { width:90px; height:90px; }
+  .content { padding:14px; }
+  .qtype-tabs { flex-wrap:wrap; }
+  .tabs .tab { font-size:11px; padding:8px 4px; }
+}
+@media(max-width:400px) {
+  .tcbtn { min-width:110px; padding:14px 16px; }
+  .bzbtn { width:85px; height:85px; }
+  .sc { min-width:95px; }
 }
 </style>
 </head>
 <body>
-<div class="bg-grid"></div>
-<div class="bg-glow"></div>
+<div class="amb"></div>
 
-<!-- ══ LANDING ══ -->
+<!-- ══════════════════════════════════════
+     LANDING
+════════════════════════════════════════ -->
 <div id="landing" class="screen active">
-  <div style="position:absolute;top:13px;left:13px;z-index:10">
-    <button class="thm" onclick="toggleTheme()">🌙</button>
+  <div style="position:absolute;top:14px;left:14px;z-index:10">
+    <button class="ico-btn" onclick="toggleTheme()" id="thm-land" title="تبديل الوضع">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
   </div>
-  <div class="logo">Faisal App</div>
-  <div class="logosub">منصة المسابقات التفاعلية</div>
-  <div id="conn-status" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
-    <span class="cdot bad" id="cdot"></span><span id="ctxt">جاري الاتصال...</span>
+
+  <div class="land-inner" style="margin:auto">
+    <div class="land-logo-wrap">
+      <div class="land-logo">Faisal App</div>
+    </div>
+    <div class="land-sub">منصة المسابقات التفاعلية</div>
+
+    <div class="land-conn">
+      <span class="cdot bad" id="cdot"></span>
+      <span id="ctxt" style="font-size:12px;color:var(--muted)">جاري الاتصال...</span>
+    </div>
+
+    <div class="land-btns">
+      <button class="land-btn land-btn-host" onclick="goTo('pin-screen')">
+        <div class="land-btn-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <span>لوحة المشرف</span>
+        <span class="land-btn-lbl">إعداد وإدارة المسابقة</span>
+      </button>
+      <button class="land-btn land-btn-team" onclick="goTo('team-view')">
+        <div class="land-btn-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <span>انضم كفريق</span>
+        <span class="land-btn-lbl">شارك في المسابقة</span>
+      </button>
+    </div>
+
+    <p class="land-hint">شارك الرابط مع فريقك — يفتحونه على أجهزتهم ويختارون فريقهم مباشرة</p>
   </div>
-  <div class="lbtns">
-    <button class="bh bhg" onclick="goTo('pin-screen')">🎙️ مشرف المسابقة</button>
-    <button class="bh bhc" onclick="goTo('team-view')">🏆 واجهة الفريق</button>
-  </div>
-  <p style="color:var(--muted);font-size:12px;text-align:center;max-width:340px;line-height:1.8">
-    أرسل الرابط للفرق ليفتحوه على أجهزتهم ويختاروا فريقهم
-  </p>
-  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv</footer>
+
+  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv: <b>Faisal Almutairi</b></footer>
 </div>
 
-<!-- ══ PIN ══ -->
+<!-- ══════════════════════════════════════
+     PIN
+════════════════════════════════════════ -->
 <div id="pin-screen" class="screen">
-  <div style="position:absolute;top:13px;left:13px;z-index:10">
-    <button class="thm" onclick="toggleTheme()">🌙</button>
+  <div style="position:absolute;top:14px;left:14px;z-index:10">
+    <button class="ico-btn" onclick="toggleTheme()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
   </div>
-  <div class="pinbx" style="margin:auto">
-    <div class="pinlogo">Faisal App</div>
-    <div class="pinsub">لوحة التحكم — طويل العمر فيصل فقط</div>
-    <div class="pinlbl">🔐 أدخل رمز الدخول</div>
-    <div class="pindots" id="pindots">
+
+  <div class="pin-card" style="margin:auto">
+    <div class="pin-logo">Faisal App</div>
+    <div class="pin-sub">لوحة التحكم — المشرف فقط</div>
+    <div class="pin-label">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-left:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      أدخل رمز الدخول
+    </div>
+    <div class="pin-dots" id="pindots">
       <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
       <div class="pd" id="pd2"></div><div class="pd" id="pd3"></div>
     </div>
-    <div class="pinkp">
-      <button class="pk" onclick="pp('1')">1</button><button class="pk" onclick="pp('2')">2</button><button class="pk" onclick="pp('3')">3</button>
-      <button class="pk" onclick="pp('4')">4</button><button class="pk" onclick="pp('5')">5</button><button class="pk" onclick="pp('6')">6</button>
-      <button class="pk" onclick="pp('7')">7</button><button class="pk" onclick="pp('8')">8</button><button class="pk" onclick="pp('9')">9</button>
-      <button class="pk del" onclick="pdel()">⌫</button><button class="pk z" onclick="pp('0')">0</button><button class="pk del" onclick="pclr()">✕</button>
+    <div class="pin-kp">
+      <button class="pk" onclick="pp('1')">1</button>
+      <button class="pk" onclick="pp('2')">2</button>
+      <button class="pk" onclick="pp('3')">3</button>
+      <button class="pk" onclick="pp('4')">4</button>
+      <button class="pk" onclick="pp('5')">5</button>
+      <button class="pk" onclick="pp('6')">6</button>
+      <button class="pk" onclick="pp('7')">7</button>
+      <button class="pk" onclick="pp('8')">8</button>
+      <button class="pk" onclick="pp('9')">9</button>
+      <button class="pk pk-del" onclick="pdel()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+      </button>
+      <button class="pk pk-zero" onclick="pp('0')">0</button>
+      <button class="pk pk-del" onclick="pclr()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <div class="pinerr" id="pinerr"></div>
-    <div style="margin-top:13px"><button class="btn bgh sm" onclick="goTo('landing')">← رجوع</button></div>
+    <div class="pin-err" id="pinerr"></div>
+    <div style="margin-top:16px">
+      <button class="btn btn-ghost btn-sm" onclick="goTo('landing')">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        رجوع
+      </button>
+    </div>
   </div>
-  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv</footer>
+  <footer class="footer" style="position:absolute;bottom:0;width:100%">Dv: <b>Faisal Almutairi</b></footer>
 </div>
 
-<!-- ══ HOST SETUP ══ -->
+<!-- ══════════════════════════════════════
+     HOST SETUP
+════════════════════════════════════════ -->
 <div id="host-setup" class="screen">
   <div class="topbar">
-    <div class="tlogo">Faisal App</div>
-    <div class="tr">
-      <span class="badge bg-gold">🎙️ طويل العمر فيصل</span>
-      <span class="cdot ok" id="hcdot" style="width:9px;height:9px"></span>
-      <button class="thm" onclick="toggleTheme()">🌙</button>
-      <button class="btn bgh sm" onclick="lockHost()">🔒</button>
-      <button class="btn bgh sm" onclick="goTo('landing')">← رجوع</button>
+    <div class="tb-brand">Faisal App</div>
+    <div class="tb-right">
+      <span class="badge b-gold">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        المشرف
+      </span>
+      <span class="cdot ok" id="hcdot"></span>
+      <button class="ico-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="lockHost()">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        قفل
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('landing')">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
     </div>
   </div>
+
   <div class="content">
     <div class="tabs">
-      <button class="tab active" id="tbn-teams"     onclick="swTab('teams')">👥 الفرق</button>
-      <button class="tab"        id="tbn-questions" onclick="swTab('questions')">❓ الأسئلة</button>
-      <button class="tab"        id="tbn-settings"  onclick="swTab('settings')">⚙️ الإعدادات</button>
+      <button class="tab active" id="tbn-teams" onclick="swTab('teams')">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        الفرق <span class="badge b-blue" id="teams-cnt" style="margin-right:2px">0</span>
+      </button>
+      <button class="tab" id="tbn-questions" onclick="swTab('questions')">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        الأسئلة <span class="badge b-blue" id="q-cnt" style="margin-right:2px">0</span>
+      </button>
+      <button class="tab" id="tbn-settings" onclick="swTab('settings')">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+        الإعدادات
+      </button>
     </div>
 
-    <!-- TEAMS TAB -->
+    <!-- ═══ TEAMS TAB ═══ -->
     <div id="tab-teams" class="tc active">
       <div class="card">
-        <div class="ct">👥 إدارة الفرق <span class="badge bg-cyan" id="teams-cnt">0</span></div>
-        <div class="tlist" id="teams-list"></div>
+        <div class="card-title">
+          <div class="ico-wrap"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          إدارة الفرق
+        </div>
+        <div id="teams-list"></div>
         <div class="addt">
-          <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px">➕ فريق جديد</div>
-          <div class="fr">
-            <div><label>اسم الفريق</label><input id="nt-name" placeholder="مثال: النسور"></div>
-            <div><label>وصف (اختياري)</label><input id="nt-desc" placeholder="وصف مختصر"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            إضافة فريق جديد
           </div>
-          <label>اختر شعار الفريق</label>
+          <div class="fr">
+            <div><label>اسم الفريق</label><input id="nt-name" placeholder="مثال: النسور" autocomplete="off"></div>
+            <div><label>وصف (اختياري)</label><input id="nt-desc" placeholder="وصف مختصر" autocomplete="off"></div>
+          </div>
+          <label>شعار الفريق</label>
           <div class="icon-picker-grid" id="emoji-picker"></div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
-            <div class="emoji-preview" id="emoji-preview" style="width:36px;height:36px;border-radius:9px;border:2px solid var(--cyan);background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;margin-bottom:14px">
+            <div id="emoji-preview" style="width:38px;height:38px;border-radius:10px;border:2px solid var(--blue);background:var(--blue-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--blue)"></div>
             <div style="font-size:11px;color:var(--muted)">الشعار المختار — اضغط على أي رمز لاختياره</div>
           </div>
-          <button class="btn bs full" style="margin-top:12px" onclick="addTeam()">✚ إضافة الفريق</button>
+          <button class="btn btn-green btn-full" onclick="addTeam()">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            إضافة الفريق
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- QUESTIONS TAB -->
+    <!-- ═══ QUESTIONS TAB ═══ -->
     <div id="tab-questions" class="tc">
-      <!-- ADD QUESTION CARD -->
+      <!-- Add/Edit Card -->
       <div class="card" id="add-q-card">
-        <div class="ct">❓ <span id="add-q-title">إضافة سؤال جديد</span>
-          <span id="edit-q-badge" style="display:none" class="badge bg-gold" style="font-size:10px">وضع التعديل</span>
+        <div class="card-title">
+          <div class="ico-wrap"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <span id="add-q-title">إضافة سؤال جديد</span>
+          <span id="edit-q-badge" style="display:none" class="badge b-gold">تعديل</span>
         </div>
-        <div class="ttabs">
-          <button class="tt on" id="tt-mcq" onclick="setQt('mcq',this)">🔘 اختيار متعدد</button>
-          <button class="tt"   id="tt-text" onclick="setQt('text',this)">✍️ إجابة كتابية</button>
-          <button class="tt"   id="tt-buzz" onclick="setQt('buzz',this)">⚡ زر سريع</button>
+
+        <div class="qtype-tabs">
+          <button class="qtype-btn on" id="tt-mcq" onclick="setQt('mcq',this)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 8 12 10 14 16 8"/></svg>
+            اختيار متعدد
+          </button>
+          <button class="qtype-btn" id="tt-text" onclick="setQt('text',this)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            إجابة كتابية
+          </button>
+          <button class="qtype-btn" id="tt-buzz" onclick="setQt('buzz',this)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+            زر سريع
+          </button>
         </div>
-        <div class="fr s"><div><label>نص السؤال</label><textarea id="nq-txt" placeholder="اكتب السؤال..."></textarea></div></div>
+
+        <div class="fr s" style="margin-bottom:12px"><div><label>نص السؤال</label><textarea id="nq-txt" placeholder="اكتب السؤال هنا..."></textarea></div></div>
         <div class="fr">
-          <div><label>النقاط الأساسية</label><input id="nq-pts" type="number" value="10" min="1" max="100"></div>
+          <div><label>النقاط</label><input id="nq-pts" type="number" value="10" min="1" max="100"></div>
           <div><label>الوقت (ثانية)</label><input id="nq-tm" type="number" value="30" min="5" max="120"></div>
         </div>
+
         <div id="tf-mcq" class="tf show">
-          <label>الخيارات (حدد الصحيح)</label>
+          <label>الخيارات — اختر الصحيح</label>
           <div class="opts">
-            <div class="optr"><label class="cr"><input type="radio" name="cr" value="0" checked>✓</label><input type="text" class="oi" placeholder="الخيار أ"></div>
-            <div class="optr"><label class="cr"><input type="radio" name="cr" value="1">✓</label><input type="text" class="oi" placeholder="الخيار ب"></div>
-            <div class="optr"><label class="cr"><input type="radio" name="cr" value="2">✓</label><input type="text" class="oi" placeholder="الخيار ج"></div>
-            <div class="optr"><label class="cr"><input type="radio" name="cr" value="3">✓</label><input type="text" class="oi" placeholder="الخيار د"></div>
+            <div class="optr"><label class="opt-radio"><input type="radio" name="cr" value="0" checked><span>أ</span></label><input type="text" class="oi" placeholder="الخيار أ"></div>
+            <div class="optr"><label class="opt-radio"><input type="radio" name="cr" value="1"><span>ب</span></label><input type="text" class="oi" placeholder="الخيار ب"></div>
+            <div class="optr"><label class="opt-radio"><input type="radio" name="cr" value="2"><span>ج</span></label><input type="text" class="oi" placeholder="الخيار ج"></div>
+            <div class="optr"><label class="opt-radio"><input type="radio" name="cr" value="3"><span>د</span></label><input type="text" class="oi" placeholder="الخيار د"></div>
           </div>
         </div>
-        <div id="tf-text" class="tf"><label>الإجابة الصحيحة</label><input id="ta" placeholder="الإجابة الصحيحة"></div>
-        <div id="tf-buzz" class="tf">
-          <p style="color:var(--muted);font-size:12px;margin-bottom:7px">⚡ أول فريق يضغط يحصل على فرصة الإجابة — صح ✅ يكسب النقاط، خطأ ❌ يخسر نقاط الخصم.</p>
-          <label>الإجابة المرجعية (للمشرف)</label>
-          <input id="ba" placeholder="الإجابة الصحيحة">
+        <div id="tf-text" class="tf">
+          <label>الإجابة الصحيحة</label>
+          <input id="ta" placeholder="الإجابة النموذجية">
         </div>
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button class="btn bs full" id="btn-save-q" onclick="saveQ()">➕ إضافة السؤال</button>
-          <button class="btn bgh sm" id="btn-cancel-edit" style="display:none" onclick="cancelEditQ()">✕ إلغاء</button>
+        <div id="tf-buzz" class="tf">
+          <div style="background:var(--blue-l);border:1px solid rgba(37,99,235,.2);border-radius:var(--r);padding:11px 14px;margin-bottom:10px;font-size:12px;color:var(--text2);display:flex;gap:8px;align-items:flex-start">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--blue)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            أول فريق يضغط يحصل على فرصة الإجابة — صحيح يكسب، خطأ يخسر نقاط الخصم
+          </div>
+          <label>الإجابة المرجعية</label>
+          <input id="ba" placeholder="الإجابة الصحيحة (للمشرف فقط)">
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn btn-green btn-full" id="btn-save-q" onclick="saveQ()">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span id="save-q-lbl">إضافة السؤال</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-cancel-edit" style="display:none" onclick="cancelEditQ()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            إلغاء
+          </button>
         </div>
       </div>
 
-      <!-- IMPORT FROM EXCEL -->
+      <!-- Import Excel -->
       <div class="card">
-        <div class="ct">📥 استيراد أسئلة من Excel
-          <button class="btn bgh sm" onclick="downloadTemplate()" style="margin-right:auto;font-size:11px">⬇️ تحميل نموذج Excel</button>
+        <div class="card-title">
+          <div class="ico-wrap"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          استيراد من Excel
+          <button class="btn btn-ghost btn-sm" onclick="downloadTemplate()" style="margin-right:auto">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            نموذج Excel
+          </button>
         </div>
-        <p style="color:var(--muted);font-size:12px;margin-bottom:10px">
-          حمّل النموذج، أدخل أسئلتك، ثم ارفع الملف هنا. الأعمدة المطلوبة: <b>نص السؤال، النوع، النقاط، الوقت، خ1، خ2، خ3، خ4، الصحيح، الإجابة</b>
-        </p>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:12px">أعمدة النموذج: <b>نص السؤال · النوع · النقاط · الوقت · خ1-4 · الصحيح · الإجابة</b></p>
         <div class="import-drop" id="import-drop"
           onclick="document.getElementById('excel-file').click()"
           ondragover="event.preventDefault();this.classList.add('drag-over')"
           ondragleave="this.classList.remove('drag-over')"
           ondrop="handleExcelDrop(event)">
-          <div style="font-size:28px;margin-bottom:6px">📊</div>
-          <div style="font-size:13px;font-weight:600;color:var(--muted)">اضغط لرفع ملف Excel أو اسحبه هنا</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px">.xlsx أو .xls أو .csv</div>
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--blue)" stroke-width="1.5" style="margin:0 auto 8px;display:block"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <div style="font-size:13px;font-weight:700;color:var(--text2)">اضغط لرفع ملف أو اسحبه هنا</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">.xlsx · .xls · .csv</div>
         </div>
         <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this)">
         <div id="import-status" style="margin-top:8px;font-size:12px"></div>
       </div>
 
-      <!-- QUESTIONS LIST -->
+      <!-- Questions List -->
       <div class="card">
-        <div class="ct">📋 الأسئلة <span class="badge bg-cyan" id="q-cnt">0</span></div>
-        <div class="qlist" id="q-list"><p style="color:var(--muted);text-align:center;padding:12px">لا توجد أسئلة بعد</p></div>
-        <div style="display:flex;gap:8px">
-          <button class="btn bp full lg" id="start-btn" onclick="startGame()" disabled>🚀 بدء المسابقة</button>
-          <button class="btn bgh sm" onclick="loadDemo()" style="white-space:nowrap">🎮 تجريبي</button>
+        <div class="card-title">
+          <div class="ico-wrap"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+          قائمة الأسئلة
+        </div>
+        <div id="q-list"><p style="color:var(--muted);text-align:center;padding:16px;font-size:13px">لا توجد أسئلة — أضف أول سؤال أعلاه</p></div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn btn-blue btn-full btn-lg" id="start-btn" onclick="startGame()" disabled>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+            بدء المسابقة
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="loadDemo()">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            تجريبي
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- SETTINGS TAB -->
+    <!-- ═══ SETTINGS TAB ═══ -->
     <div id="tab-settings" class="tc">
       <div class="card">
-        <div class="ct">⚙️ إعدادات المسابقة</div>
+        <div class="card-title">
+          <div class="ico-wrap"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg></div>
+          إعدادات المسابقة
+        </div>
         <div class="fr s"><div><label>عنوان المسابقة</label><input id="cfg-title" value="مسابقة Faisal App"></div></div>
         <div class="fr">
-          <div><label>نقاط مكافأة الإجابة السريعة (أقل من نصف الوقت)</label><input id="cfg-bonus" type="number" value="5" min="0" max="20"></div>
-          <div><label>نقاط الخصم عند الإجابة الخاطئة</label><input id="cfg-pen" type="number" value="3" min="0" max="20"></div>
+          <div><label>مكافأة السرعة (نقاط إضافية للأسرع)</label><input id="cfg-bonus" type="number" value="5" min="0" max="20"></div>
+          <div><label>خصم الخطأ (نقاط)</label><input id="cfg-pen" type="number" value="3" min="0" max="20"></div>
         </div>
-        <button class="btn bp" onclick="saveSettings()">💾 حفظ</button>
+        <button class="btn btn-blue" onclick="saveSettings()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          حفظ الإعدادات
+        </button>
       </div>
       <div class="card">
-        <div class="ct">🔐 تغيير رمز الدخول</div>
-        <p style="color:var(--muted);font-size:12px;margin-bottom:11px">الرمز الحالي لن يُعرض — أدخل الجديد مرتين للتأكيد.</p>
+        <div class="card-title">
+          <div class="ico-wrap"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+          تغيير رمز الدخول
+        </div>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:12px">الرمز الحالي لن يُعرض — أدخل الجديد مرتين للتأكيد</p>
         <div class="fr">
           <div><label>الرمز الجديد (4 أرقام)</label><input id="pin-new" type="password" maxlength="4" placeholder="••••" inputmode="numeric"></div>
           <div><label>تأكيد الرمز</label><input id="pin-cf" type="password" maxlength="4" placeholder="••••" inputmode="numeric"></div>
         </div>
-        <button class="btn bd" onclick="changePin()">🔑 تغيير الرمز</button>
-        <div class="divider"></div>
-        <button class="btn bgh sm" onclick="lockHost()">🔒 قفل اللوحة الآن</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-red" onclick="changePin()">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            تغيير الرمز
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="lockHost()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            قفل اللوحة
+          </button>
+        </div>
       </div>
     </div>
   </div>
-  <footer class="footer">Dv</footer>
+  <footer class="footer">Dv: <b>Faisal Almutairi</b></footer>
 </div>
 
-<!-- ══ GAME HOST ══ -->
+<!-- ══════════════════════════════════════
+     GAME HOST
+════════════════════════════════════════ -->
 <div id="game-host" class="screen">
   <div class="topbar">
-    <div class="tlogo">Faisal App</div>
-    <div class="tr">
-      <span id="hq-bdg" class="badge bg-cyan">س ١/١</span>
-      <span class="cdot ok" id="gcdot" style="width:9px;height:9px"></span>
-      <button class="thm" onclick="toggleTheme()">🌙</button>
+    <div class="tb-brand">Faisal App</div>
+    <div class="tb-right">
+      <span id="hq-bdg" class="badge b-blue">س ١/١</span>
+      <span class="cdot ok" id="gcdot"></span>
+      <button class="ico-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
     </div>
   </div>
+
   <div class="content" style="padding-bottom:0">
+    <!-- Scoreboard -->
     <div class="sb" id="host-sb"></div>
+
+    <!-- Question Display -->
     <div class="qdisp">
       <div class="qhdr">
         <span class="qctr" id="hq-num">السؤال ١</span>
-        <span class="qptb" id="hq-pts">🌟 ١٠ نقطة</span>
+        <span class="qptb" id="hq-pts">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          ١٠ نقطة
+        </span>
       </div>
-      <div class="prog"><div class="progf" id="h-prog"></div></div>
-      <div class="qbody" id="hq-body">اضغط "عرض السؤال" للبدء</div>
+      <div class="prog"><div class="progf" id="h-prog" style="width:0%"></div></div>
+      <div class="qbody" id="hq-body">
+        <span class="q-placeholder">اضغط "عرض السؤال" للبدء</span>
+      </div>
       <div class="tmrw" id="h-tmr" style="display:none">
-        <div class="tmr trg" id="h-tring"><span id="h-tnum">30</span></div>
+        <div class="tmr tr-g" id="h-tring"><span id="h-tnum">30</span></div>
         <div class="tmrlbl">ثانية</div>
       </div>
       <div id="hq-con"></div>
-      <!-- TEAM ANSWERS (visible to host) -->
-      <div id="host-team-answers" class="team-answers" style="display:none"></div>
+      <div id="host-team-answers" class="ta-panel" style="display:none"></div>
     </div>
-    <div id="bz-disp" style="display:none;text-align:center;margin-bottom:12px"></div>
+
+    <div id="bz-disp" style="display:none;text-align:center;margin-bottom:14px"></div>
   </div>
+
+  <!-- Host Controls -->
   <div class="hctrl">
-    <button class="btn bp" id="btn-show" onclick="showQ()">👁️ عرض السؤال</button>
+    <button class="btn btn-blue" id="btn-show" onclick="showQ()">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      عرض السؤال
+    </button>
     <div class="awwrap" id="aw-wrap"></div>
-    <button class="btn bd" id="btn-wrong" onclick="markWrong()" disabled>❌ خطأ / خصم</button>
-    <button class="btn bgh" id="btn-skip" onclick="skipQ()" style="display:none">⏭️ تخطي</button>
-    <button class="btn bgo" id="btn-next" onclick="nextQ()" style="display:none">التالي ←</button>
+    <button class="btn btn-red" id="btn-wrong" onclick="markWrong()" disabled>
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      خطأ / خصم
+    </button>
+    <button class="btn btn-ghost" id="btn-skip" onclick="skipQ()" style="display:none">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      تخطي
+    </button>
+    <button class="btn btn-gold" id="btn-next" onclick="nextQ()" style="display:none">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      التالي
+    </button>
   </div>
-  <footer class="footer">Dv</footer>
+  <footer class="footer">Dv: <b>Faisal Almutairi</b></footer>
 </div>
 
-<!-- ══ TEAM VIEW ══ -->
+<!-- ══════════════════════════════════════
+     TEAM VIEW
+════════════════════════════════════════ -->
 <div id="team-view" class="screen">
   <div class="topbar">
-    <div class="tlogo">Faisal App</div>
-    <div class="tr">
-      <span class="badge bg-cyan">🏆 الفريق</span>
-      <span class="cdot ok" id="tvcdot" style="width:9px;height:9px"></span>
-      <button class="thm" onclick="toggleTheme()">🌙</button>
-      <button class="btn bgh sm" onclick="goTo('landing')">← رجوع</button>
+    <div class="tb-brand">Faisal App</div>
+    <div class="tb-right">
+      <span class="badge b-blue">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        الفريق
+      </span>
+      <span class="cdot ok" id="tvcdot"></span>
+      <button class="ico-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('landing')">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
     </div>
   </div>
 
-  <!-- CHOOSE TEAM -->
+  <!-- Choose Team -->
   <div id="team-choose" class="content">
-    <h2 style="font-size:19px;font-weight:800;margin-bottom:4px">اختر فريقك</h2>
-    <p style="color:var(--muted);font-size:12px">ستظهر نقاطك وأسئلتك هنا</p>
+    <div class="choose-title">اختر فريقك</div>
+    <div class="choose-sub">ستظهر نقاطك وأسئلتك على هذه الشاشة</div>
     <div class="tcgrid" id="tc-grid"></div>
   </div>
 
-  <!-- TEAM DASHBOARD -->
+  <!-- Team Dashboard -->
   <div id="team-dash" style="display:none;flex:1;flex-direction:column;overflow:hidden">
-
-    <!-- HEADER -->
     <div class="tvhdr">
       <div class="tvnm" id="tv-nm">الفريق</div>
-      <div id="tv-desc" style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:3px"></div>
+      <div id="tv-desc" style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:4px"></div>
       <div class="tvsc" id="tv-sc">0</div>
       <div class="tvsclbl">نقطة</div>
-      <div style="margin-top:5px"><span class="badge bg-cyan" id="tv-stat">في انتظار السؤال...</span></div>
+      <div style="margin-top:6px"><span class="badge b-blue" id="tv-stat">في انتظار السؤال...</span></div>
     </div>
     <div class="tvstrip" id="tv-strip"></div>
 
-    <!-- LAYOUT: main + sidebar -->
     <div class="tv-layout">
-
-      <!-- SIDEBAR LEADERBOARD -->
+      <!-- Sidebar -->
       <div class="tv-sidebar">
-        <div class="sb-side-title">🏅 الترتيب</div>
+        <div class="sb-side-title">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-left:3px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          الترتيب
+        </div>
         <div id="tv-sidebar-sb"></div>
       </div>
 
-      <!-- MAIN CONTENT -->
+      <!-- Main -->
       <div class="tv-main">
-        <!-- TIMER BAR (above question) -->
         <div id="tv-timer-wrap" style="display:none">
-          <div class="tv-timer-bar-wrap">
-            <div class="tv-timer-info">
-              <span style="font-size:10px">⏱️ الوقت</span>
+          <div class="tv-timer-wrap">
+            <div class="tv-timer-top">
+              <span style="display:flex;align-items:center;gap:4px">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                الوقت
+              </span>
               <span class="tv-timer-secs" id="tv-timer-secs">30</span>
             </div>
-            <div class="tv-timer-bar-bg">
-              <div class="tv-timer-bar-fill" id="tv-timer-bar" style="width:100%;background:var(--green)"></div>
+            <div class="tv-timer-bg">
+              <div class="tv-timer-fill" id="tv-timer-bar" style="width:100%;background:var(--green)"></div>
             </div>
           </div>
         </div>
 
-        <!-- QUESTION BOX -->
-        <div class="tvqb" id="tv-qb"><span class="tvwt">⏳ في انتظار طويل العمر فيصل...</span></div>
-
-        <!-- ANSWER AREA -->
+        <div class="tvqb" id="tv-qb">
+          <span class="tvwt">في انتظار المشرف...</span>
+        </div>
         <div class="tvcnt" id="tv-cnt"></div>
       </div>
     </div>
   </div>
 
-  <footer class="footer">Dv</footer>
+  <footer class="footer">Dv: <b>Faisal Almutairi</b></footer>
 </div>
 
-<!-- ANSWER REVEAL OVERLAY -->
-<div id="answer-reveal" style="display:none" class="answer-reveal" onclick="closeAnswerReveal()">
-  <div class="answer-reveal-card" onclick="event.stopPropagation()">
-    <div class="ar-label">⏰ انتهى الوقت — الإجابة الصحيحة</div>
-    <div class="ar-answer" id="ar-answer">—</div>
-    <div class="ar-team-result" id="ar-team-result"></div>
-    <button class="btn bgh" style="margin-top:14px;width:100%" onclick="closeAnswerReveal()">حسناً ✓</button>
-  </div>
-</div>
-
-<!-- ══ WINNER ══ -->
+<!-- ══════════════════════════════════════
+     WINNER
+════════════════════════════════════════ -->
 <div id="winner" class="screen">
   <div class="cfw" id="cfw"></div>
-  <div class="wtr">🏆</div>
+  <div class="w-trophy">
+    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#fff" stroke-width="1.5"><path d="M8 21h8m-4-4v4M5 3h14v7a7 7 0 01-14 0V3z"/><path d="M5 7H3a2 2 0 000 4h2M19 7h2a2 2 0 010 4h-2"/></svg>
+  </div>
   <div class="wti" id="wti">الفائز!</div>
   <div class="wtm" id="wtm"></div>
   <div class="wsc" id="wsc"></div>
   <div class="wscs" id="wscs"></div>
-  <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;justify-content:center">
-    <button class="bh bhg" onclick="restartGame()">🔄 جديدة</button>
-    <button class="bh bhc" onclick="goTo('landing')">🏠 الرئيسية</button>
+  <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;justify-content:center">
+    <button class="btn btn-gold btn-lg" onclick="restartGame()">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      مسابقة جديدة
+    </button>
+    <button class="btn btn-ghost btn-lg" onclick="goTo('landing')">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      الرئيسية
+    </button>
   </div>
-  <footer class="footer" style="margin-top:22px;width:100%">Dv</footer>
+  <footer class="footer" style="margin-top:24px;width:100%">Dv: <b>Faisal Almutairi</b></footer>
 </div>
 
 <!-- VERDICT -->
 <div id="verdict" style="display:none" class="verdict">
   <div class="vcard" id="vcard">
-    <div class="vic" id="vic">✅</div>
+    <div class="vcard-icon" id="vic">
+      <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
     <div class="vti" id="vti">إجابة صحيحة!</div>
     <div class="vpt" id="vpt">+10 نقطة</div>
-    <button class="btn bgh" onclick="closeV()">متابعة →</button>
+    <button class="btn btn-ghost" onclick="closeV()">متابعة</button>
+  </div>
+</div>
+
+<!-- ANSWER REVEAL -->
+<div id="answer-reveal" style="display:none" class="answer-reveal" onclick="closeAnswerReveal()">
+  <div class="ar-card" onclick="event.stopPropagation()">
+    <div class="ar-label">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-left:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      انتهى الوقت — الإجابة الصحيحة
+    </div>
+    <div class="ar-answer" id="ar-answer">—</div>
+    <div class="ar-result" id="ar-team-result"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="closeAnswerReveal()">حسناً</button>
   </div>
 </div>
 
@@ -803,7 +1277,7 @@ function initFB(){
     const on=snap.val();
     document.querySelectorAll('.cdot').forEach(d=>d.className='cdot '+(on?'ok':'bad'));
     const el=document.getElementById('ctxt');
-    if(el) el.textContent=on?'✅ متصل بقاعدة البيانات':'⚠️ انقطع الاتصال...';
+    if(el) el.textContent=on?'متصل بقاعدة البيانات':'انقطع الاتصال...';
   });
   setupListeners();
   goTo('landing');
@@ -854,7 +1328,7 @@ function setupListeners(){
           const disp=document.getElementById('bz-disp');
           if(disp){
             disp.style.display='block';
-            disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">⚡ ${t.name} ضغط أولاً!</div>`;
+            disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">${t.name} ضغط أولاً!</div>`;
           }
           const q=S.questions[S.currentQ];
           if(q) renderBuzz(q,true);
@@ -980,7 +1454,7 @@ function buildEmojiPicker(){
 
 function selectEmoji(iconId){
   selectedEmoji=iconId;
-  // Update picker selection highlight without full rebuild
+  // Update picker selection highlight without btn-full rebuild
   document.querySelectorAll('#emoji-picker .team-icon-btn').forEach(b=>{
     b.classList.remove('team-icon-sel');
   });
@@ -1008,7 +1482,7 @@ function toggleTheme(){
   const h=document.documentElement;
   const d=h.getAttribute('data-theme')==='dark';
   h.setAttribute('data-theme',d?'light':'dark');
-  document.querySelectorAll('.thm').forEach(b=>b.textContent=d?'🌙':'☀️');
+  document.querySelectorAll('.thm').forEach(b=>b.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>');
   localStorage.setItem('arena-theme',d?'light':'dark');
   // Re-render only if no input is focused
   if(!document.activeElement || document.activeElement.tagName!=='INPUT'){
@@ -1020,7 +1494,7 @@ function toggleTheme(){
   const t=localStorage.getItem('arena-theme')==='dark'?'dark':'light';
   document.documentElement.setAttribute('data-theme',t);
   document.addEventListener('DOMContentLoaded',()=>{
-    document.querySelectorAll('.thm').forEach(b=>b.textContent=t==='dark'?'☀️':'🌙');
+    
     buildEmojiPicker();
   });
 })();
@@ -1038,7 +1512,7 @@ function chkPin(){
     setTimeout(()=>goTo('host-setup'),340);
   }else{
     dDots(true);
-    document.getElementById('pinerr').textContent='❌ رمز خاطئ';
+    document.getElementById('pinerr').textContent='رمز خاطئ';
     setTimeout(()=>{pinBuf='';dDots();},700);
   }
 }
@@ -1074,7 +1548,7 @@ function swTab(n){
 function addTeam(){
   const name=document.getElementById('nt-name').value.trim();
   const desc=document.getElementById('nt-desc').value.trim();
-  if(!name){showN('⚠️ أدخل اسم الفريق','e');return;}
+  if(!name){showN('أدخل اسم الفريق','e');return;}
   const emoji=selectedEmoji||'star';
   const id='t'+(tid++);
   const ci=S.teams.length%12;
@@ -1086,11 +1560,11 @@ function addTeam(){
   document.getElementById('nt-desc').value='';
   selectedEmoji='star';
   buildEmojiPicker(); // rebuild to reset selection highlight
-  showN(`✅ تم إضافة "${name}"`,'s');
+  showN(`تم إضافة "${name}"`,'s');
 }
 
 function removeTeam(id){
-  if(S.teams.length<=1){showN('⚠️ يلزم فريق واحد على الأقل','e');return;}
+  if(S.teams.length<=1){showN('يلزم فريق واحد على الأقل','e');return;}
   const t=S.teams.find(x=>x.id===id);
   if(!confirm(`حذف فريق "${t.name}"?`))return;
   gameRef.child('teams/'+id).remove();
@@ -1099,7 +1573,7 @@ function removeTeam(id){
 
 function addMember(tid){
   const ni=document.getElementById('mn-n-'+tid),ri=document.getElementById('mn-r-'+tid);
-  const name=ni.value.trim();if(!name){showN('⚠️ أدخل اسم العضو','e');return;}
+  const name=ni.value.trim();if(!name){showN('أدخل اسم العضو','e');return;}
   const team=S.teams.find(t=>t.id===tid);
   const members=[...(team.members||[]),{name,role:ri.value.trim()}];
   gameRef.child('teams/'+tid+'/members').set(members);
@@ -1180,7 +1654,7 @@ function buildTeamCard(t){
         <div class="temt">${(t.members||[]).length} عضو${t.desc?' · '+t.desc:''}</div>
       </div>
       <div style="flex:1"></div>
-      <button class="bic" style="margin-left:5px" onclick="event.stopPropagation();removeTeam('${t.id}')">🗑</button>
+      <button class="bic" style="margin-left:5px" onclick="event.stopPropagation();removeTeam('${t.id}')"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
       <span class="tear" id="ta-${t.id}">▼</span>
     </div>
     <div class="tebd" id="tb-${t.id}">
@@ -1209,14 +1683,14 @@ function buildTeamCard(t){
               <div class="mav" style="background:${c.h}22;color:${c.h}">${escH(m.name.charAt(0))}</div>
               <div class="mnm">${escH(m.name)}</div>
               ${m.role?`<div class="mrl">${escH(m.role)}</div>`:''}
-              <button class="brm" onclick="removeMember('${t.id}',${i})">✕</button>
+              <button class="brm" onclick="removeMember('${t.id}',${i})"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>`).join('')
           : '<div style="color:var(--muted);font-size:11px;margin-bottom:4px">لا يوجد أعضاء</div>'}
       </div>
       <div class="addm">
         <input type="text" id="mn-n-${t.id}" placeholder="اسم العضو" autocomplete="off">
         <input type="text" id="mn-r-${t.id}" placeholder="الدور" style="max-width:90px" autocomplete="off">
-        <button class="btn bp sm" onclick="addMember('${t.id}')">+</button>
+        <button class="btn bp btn-sm" onclick="addMember('${t.id}')">+</button>
       </div>
     </div>
   </div>`;
@@ -1262,18 +1736,18 @@ let editingQId = null; // null = add mode, string = edit mode
 
 function getFormQ(){
   const text=document.getElementById('nq-txt').value.trim();
-  if(!text){showN('⚠️ أدخل نص السؤال','e');return null;}
+  if(!text){showN('أدخل نص السؤال','e');return null;}
   const pts=parseInt(document.getElementById('nq-pts').value)||10;
   const time=parseInt(document.getElementById('nq-tm').value)||30;
   const q={text,pts,time,type:qtype};
   if(qtype==='mcq'){
     const opts=Array.from(document.querySelectorAll('.oi')).map(i=>i.value.trim()).filter(v=>v);
-    if(opts.length<2){showN('⚠️ أدخل خيارين على الأقل','e');return null;}
+    if(opts.length<2){showN('أدخل خيارين على الأقل','e');return null;}
     const ci=parseInt(document.querySelector('input[name="cr"]:checked').value);
     q.options=opts;q.correct=ci<opts.length?ci:0;
   }else if(qtype==='text'){
     const a=document.getElementById('ta').value.trim();
-    if(!a){showN('⚠️ أدخل الإجابة','e');return null;}
+    if(!a){showN('أدخل الإجابة','e');return null;}
     q.answer=a;
   }else{
     q.answer=document.getElementById('ba').value.trim();
@@ -1289,7 +1763,7 @@ function saveQ(){
     const existing=S.questions.find(x=>x.id===editingQId);
     q.order=existing?existing.order:S.questions.length;
     gameRef.child('questions/'+editingQId).set(q);
-    showN('✅ تم تحديث السؤال','s');
+    showN('تم تحديث السؤال','s');
     cancelEditQ();
   }else{
     // CREATE new
@@ -1297,7 +1771,7 @@ function saveQ(){
     const key=gameRef.child('questions').push().key;
     q.id=key;
     gameRef.child('questions/'+key).set(q);
-    showN('✅ تم إضافة السؤال','s');
+    showN('تم إضافة السؤال','s');
     clearQForm();
   }
 }
@@ -1336,8 +1810,8 @@ function editQ(id){
   // UI edit mode
   document.getElementById('add-q-title').textContent='تعديل السؤال';
   document.getElementById('edit-q-badge').style.display='inline-block';
-  document.getElementById('btn-save-q').textContent='💾 حفظ التعديلات';
-  document.getElementById('btn-save-q').className='btn bgo full';
+  document.getElementById('save-q-lbl').textContent='حفظ التعديلات';
+  document.getElementById('btn-save-q').className='btn bgo btn-full';
   document.getElementById('btn-cancel-edit').style.display='inline-block';
   document.getElementById('add-q-card').classList.add('edit-mode');
 
@@ -1350,8 +1824,8 @@ function cancelEditQ(){
   clearQForm();
   document.getElementById('add-q-title').textContent='إضافة سؤال جديد';
   document.getElementById('edit-q-badge').style.display='none';
-  document.getElementById('btn-save-q').textContent='➕ إضافة السؤال';
-  document.getElementById('btn-save-q').className='btn bs full';
+  document.getElementById('save-q-lbl').textContent='إضافة السؤال';
+  document.getElementById('btn-save-q').className='btn bs btn-full';
   document.getElementById('btn-cancel-edit').style.display='none';
   document.getElementById('add-q-card').classList.remove('edit-mode');
 }
@@ -1384,8 +1858,8 @@ function renderQs(){
       <span class="qtb ${tc[q.type]}">${tl[q.type]}</span>
       <span style="color:var(--gold);font-size:10px;font-weight:700">⭐${q.pts}</span>
       <div class="q-actions">
-        <button class="bic-edit" onclick="editQ('${q.id}')" title="تعديل">✏️</button>
-        <button class="bic" onclick="removeQ('${q.id}')" title="حذف">🗑</button>
+        <button class="bic-edit" onclick="editQ('${q.id}')" title="تعديل"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="bic" onclick="removeQ('${q.id}')" title="حذف"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
       </div>
     </div>`).join('');
 }
@@ -1414,7 +1888,7 @@ function handleExcelFile(input){
 
 function processExcelFile(file){
   const status=document.getElementById('import-status');
-  status.innerHTML='<span style="color:var(--cyan)">⏳ جارٍ معالجة الملف...</span>';
+  status.innerHTML='<span style="color:var(--cyan)"> جارٍ معالجة الملف...</span>';
   const reader=new FileReader();
   reader.onload=function(e){
     try{
@@ -1422,7 +1896,8 @@ function processExcelFile(file){
       if(file.name.toLowerCase().endsWith('.csv')){
         // CSV parse
         const text=new TextDecoder('utf-8').decode(new Uint8Array(e.target.result));
-        const lines=text.split('\n').filter(l=>l.trim());
+        const lines=text.split('
+').filter(l=>l.trim());
         const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
         rows=lines.slice(1).map(line=>{
           const vals=line.match(/(".*?"|[^,]+)(?=,|$)/g)||[];
@@ -1474,12 +1949,12 @@ function processExcelFile(file){
         imported++;
       });
 
-      let msg=`<span style="color:var(--green)">✅ تم استيراد ${imported} سؤال</span>`;
+      let msg=`<span style="color:var(--green)">تم استيراد ${imported} سؤال</span>`;
       if(errors.length) msg+=`<br><span style="color:var(--red);font-size:11px">${errors.join('<br>')}</span>`;
       status.innerHTML=msg;
-      showN(`✅ استُورد ${imported} سؤال`,'s');
+      showN(`استُورد ${imported} سؤال`,'s');
     }catch(err){
-      status.innerHTML=`<span style="color:var(--red)">❌ خطأ في قراءة الملف: ${err.message}</span>`;
+      status.innerHTML=`<span style="color:var(--red)">خطأ في قراءة الملف: ${err.message}</span>`;
     }
   };
   reader.readAsArrayBuffer(file);
@@ -1513,7 +1988,7 @@ function downloadTemplate(){
   XLSX.utils.book_append_sheet(wb,wsN,'تعليمات');
 
   XLSX.writeFile(wb,'Faisal_App_Template.xlsx');
-  showN('✅ تم تحميل نموذج Excel','s');
+  showN('تم تحميل نموذج Excel','s');
 }
 
 // ══════════════════════════════════════
@@ -1524,16 +1999,16 @@ function saveSettings(){
   S.settings.bonus=parseInt(document.getElementById('cfg-bonus').value)||0;
   S.settings.pen=parseInt(document.getElementById('cfg-pen').value)||0;
   gameRef.child('settings').set(S.settings);
-  showN('✅ تم الحفظ','s');
+  showN('تم الحفظ','s');
 }
 function changePin(){
   const np=document.getElementById('pin-new').value.trim();
   const cp=document.getElementById('pin-cf').value.trim();
-  if(!/^\d{4}$/.test(np)){showN('⚠️ الرمز 4 أرقام','e');return;}
-  if(np!==cp){showN('❌ الرمزان غير متطابقين','e');return;}
+  if(!/^\d{4}$/.test(np)){showN('الرمز يجب أن يكون 4 أرقام','e');return;}
+  if(np!==cp){showN('الرمزان غير متطابقين','e');return;}
   CPIN=np;gameRef.child('pin').set(np);
   document.getElementById('pin-new').value='';document.getElementById('pin-cf').value='';
-  showN('✅ تم تغيير الرمز','s');
+  showN('تم تغيير الرمز','s');
 }
 
 // ══════════════════════════════════════
@@ -1554,7 +2029,7 @@ function loadQ(){
   const tot=S.questions.length;
   document.getElementById('hq-bdg').textContent=`س ${S.currentQ+1}/${tot}`;
   document.getElementById('hq-num').textContent=`السؤال ${S.currentQ+1}`;
-  document.getElementById('hq-pts').textContent=`🌟 ${q.pts} نقطة`;
+  document.getElementById('hq-pts').innerHTML=`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg> ${q.pts} نقطة`;
   document.getElementById('hq-body').textContent='اضغط "عرض السؤال" للبدء';
   document.getElementById('hq-con').innerHTML='';
   document.getElementById('h-prog').style.width=((S.currentQ/tot)*100)+'%';
@@ -1594,13 +2069,13 @@ function renderHostAnswers(){
   const el=document.getElementById('host-team-answers');
   if(!el||!q)return;
   const L=['أ','ب','ج','د'];
-  el.innerHTML=`<div class="ta-title">📊 إجابات الفرق — ${q.type==='mcq'?'النقاط حسب السرعة':q.type==='buzz'?'زر سريع':'كتابي'}</div>
+  el.innerHTML=`<div class="ta-title">إجابات الفرق — ${q.type==='mcq'?'النقاط حسب السرعة':q.type==='buzz'?'زر سريع':'كتابي'}</div>
     <div class="ta-grid">
       ${S.teams.map(t=>{
         const c=getC(t.ci);
         const ans=S.teamAnswers?.[t.id];
         const sr=S.scoreResults?.[t.id];
-        let statusCls='',statusTxt='⏳ لم يجب',ansTxt='—',ptsTxt='';
+        let statusCls='',statusTxt=' لم يجب',ansTxt='—',ptsTxt='';
 
         if(ans){
           if(q.type==='mcq'){
@@ -1608,16 +2083,16 @@ function renderHostAnswers(){
             ansTxt=`${L[idx]}: ${q.options?.[idx]||''}`;
             if(idx===q.correct){
               statusCls='correct-ans';
-              statusTxt=`✅ صحيح`;
+              statusTxt=`صحيح`;
               if(sr) ptsTxt=`<div style="font-size:11px;color:var(--green);font-weight:800">+${sr.earned} نقطة</div>`;
             } else {
               statusCls='wrong-ans';
-              statusTxt='❌ خطأ';
+              statusTxt='خطأ';
               if(sr&&sr.earned<0) ptsTxt=`<div style="font-size:11px;color:var(--red);font-weight:800">${sr.earned} نقطة</div>`;
             }
           } else {
             ansTxt=ans.answer||'—';
-            statusCls='answered';statusTxt='✍️ أجاب';
+            statusCls='answered';statusTxt='أجاب';
           }
         }
         const speed=ans?.timeLeft!==undefined?`<div style="font-size:9px;color:var(--muted)">⏱ ${ans.timeLeft}ث</div>`:'';
@@ -1698,7 +2173,7 @@ function autoScoreMCQ(q){
   document.getElementById('btn-next').style.display='inline-block';
 
   const anyCorrect=Object.values(scoreResults).some(r=>r.correct);
-  if(anyCorrect) showN('✅ تم احتساب النقاط حسب السرعة','s');
+  if(anyCorrect) showN('تم احتساب النقاط حسب السرعة','s');
   else showN('لم يجب أحد بشكل صحيح','i');
 }
 
@@ -1706,7 +2181,7 @@ function renderTextQ(q,host){
   if(host){
     const html=`<div class="taw">
       <input type="text" id="h-tin" placeholder="الإجابة..." style="max-width:380px;text-align:center;font-size:15px;font-weight:600">
-      <button class="btn bp" onclick="checkText()">✔ تحقق وتسجيل</button>
+      <button class="btn btn-blue" onclick="checkText()">تحقق وتسجيل</button>
       <div id="h-tres" style="margin-top:5px"></div>
     </div>`;
     document.getElementById('hq-con').innerHTML=html;
@@ -1714,7 +2189,7 @@ function renderTextQ(q,host){
     // Team side — fixed bottom input to prevent keyboard dismiss on timer update
     const cnt=document.getElementById('tv-cnt');
     cnt.innerHTML=`<div class="tv-text-input-wrap">
-      <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center">✍️ اكتب إجابتك وأرسلها</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:center">اكتب إجابتك وأرسلها</div>
       <div style="display:flex;gap:8px;max-width:400px;margin:0 auto">
         <input type="text" id="tv-tin"
           placeholder="الإجابة..."
@@ -1722,7 +2197,7 @@ function renderTextQ(q,host){
           autocomplete="off" autocorrect="off" spellcheck="false"
           onkeydown="if(event.key==='Enter'){event.preventDefault();submitTVTxt();}"
         >
-        <button class="btn bp" onclick="submitTVTxt()" style="white-space:nowrap;flex-shrink:0">إرسال ✓</button>
+        <button class="btn btn-blue" onclick="submitTVTxt()" style="white-space:nowrap;flex-shrink:0">إرسال </button>
       </div>
       <div id="tv-sent" style="margin-top:8px;text-align:center;font-size:13px;color:var(--green);font-weight:700;min-height:20px"></div>
     </div>`;
@@ -1741,8 +2216,8 @@ function checkText(){
   const cor=(q.answer||'').trim().toLowerCase();
   const ok=ans===cor||!cor;
   document.getElementById('h-tres').innerHTML=ok
-    ?`<span class="badge bg-green">✅ صحيحة!</span>`
-    :`<span class="badge bg-red">❌ الإجابة الصحيحة: ${q.answer}</span>`;
+    ?`<span class="badge b-green">صحيحة!</span>`
+    :`<span class="badge b-red"> الإجابة الصحيحة: ${q.answer}</span>`;
   stopTimer();S.phase='answered';
   if(ok){renderAwBtns(true);sB('btn-wrong',true);}
   else{renderAwBtns(false);sB('btn-wrong',true);}
@@ -1767,7 +2242,7 @@ function renderBuzz(q,host){
         ${isUsed||(!isWinner&&locked)?'opacity:.28;':''}"
       onclick="${host?`buzzPressHost('${t.id}')`:(canPress?`tvBuzzPress('${t.id}')`:'')}
       " ${(!canPress&&!host)||isUsed?'disabled':''}>
-        <span class="bic-txt" style="font-size:${isWinner?'26':'21'}px">${isWinner?'🎯':isUsed?'✕':'⚡'}</span>
+        <span class="bz-icon" style="font-size:${isWinner?'26':'21'}px">${isWinner?'🎯':isUsed?'✕':''}</span>
         <span>${t.name}</span>
         ${isWinner?`<span style="font-size:10px;margin-top:2px">يُجيب الآن</span>`:''}
         ${isUsed?`<span style="font-size:9px;opacity:.8">أجاب مسبقاً</span>`:''}
@@ -1782,7 +2257,7 @@ function renderBuzz(q,host){
       <div style="font-size:11px;color:var(--muted);margin-bottom:7px;text-align:center">↪ تحويل السؤال إلى فريق آخر (بعد خصم ${S.settings.pen} نقطة من ${winnerTeam?.name||''})</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
         ${remainTeams.map(t=>{const c=getC(t.ci);
-          return`<button class="btn sm" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15;font-weight:700"
+          return`<button class="btn btn-sm" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15;font-weight:700"
             onclick="transferBuzz('${t.id}')">↪ ${t.name}</button>`;
         }).join('')}
       </div>
@@ -1790,22 +2265,22 @@ function renderBuzz(q,host){
 
   const html=`<div class="bzs">
     <p style="font-size:12px;color:var(--muted);margin-bottom:8px;text-align:center">
-      ${winnerTeam?`⚡ ${winnerTeam.name} يُجيب الآن — طويل العمر فيصل يقرر`:'⚡ اضغط الزر أسرع من بقية الفرق!'}
+      ${winnerTeam?`${winnerTeam.name} يُجيب الآن — طويل العمر فيصل يقرر`:'اضغط الزر أسرع من بقية الفرق!'}
     </p>
     <div class="bzbts">${btns}</div>
     ${host&&winnerTeam?`
       <div class="buzz-answer-area active" style="margin-top:11px;text-align:center">
         <div style="font-size:12px"><b>الإجابة المرجعية:</b> <span style="color:var(--cyan)">${q.answer||'—'}</span></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">✅ صح يكسب النقاط &nbsp;|&nbsp; ❌ خطأ يخسر ${S.settings.pen} نقطة</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">✅ صح يكسب النقاط &nbsp;|&nbsp; خطأ يخسر ${S.settings.pen} نقطة</div>
       </div>
       ${transferSection}`:''}
     ${!host&&winnerTeam&&S.buzzWinner!==S.selTeamId?`
       <div style="text-align:center;margin-top:10px;padding:10px;background:var(--surface2);border-radius:9px;color:var(--muted);font-size:13px">
-        🔒 الزر مقفل — <b>${winnerTeam.name}</b> يُجيب الآن
+         الزر مقفل — <b>${winnerTeam.name}</b> يُجيب الآن
       </div>`:''}
     ${!host&&S.buzzWinner===S.selTeamId?`
       <div style="text-align:center;margin-top:10px;padding:10px;background:rgba(10,138,74,.1);border-radius:9px;color:var(--green);font-size:14px;font-weight:700;border:2px solid var(--green)">
-        🎯 أنت ضغطت أولاً! أجب الآن وانتظر قرار طويل العمر فيصل
+        أنت ضغطت أولاً! أجب الآن وانتظر قرار طويل العمر فيصل
       </div>`:''}
   </div>`;
 
@@ -1823,7 +2298,7 @@ function tvBuzzPress(teamId){
     buzzWinner:teamId,
     buzzTimestamp:firebase.database.ServerValue.TIMESTAMP
   });
-  showN('⚡ ضغطت أولاً! انتظر قرار طويل العمر فيصل...','s');
+  showN('ضغطت أولاً! انتظر قرار طويل العمر فيصل...','s');
 }
 
 // Host manually awards buzz (fallback / manual)
@@ -1835,7 +2310,7 @@ function buzzPressHost(teamId){
   const t=S.teams.find(x=>x.id===teamId);
   const c=getC(t.ci);
   const disp=document.getElementById('bz-disp');
-  if(disp){ disp.style.display='block'; disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">⚡ ${t.name} — الإجابة الآن!</div>`; }
+  if(disp){ disp.style.display='block'; disp.innerHTML=`<div class="bzwon" style="border:2px solid ${c.h};color:${c.h};background:${c.h}15">${t.name} — الإجابة الآن!</div>`; }
   renderBuzz(q,true);
   renderAwBtns(true); sB('btn-wrong',true);
   document.getElementById('btn-skip').style.display='none';
@@ -1892,9 +2367,9 @@ function renderAwBtns(enabled){
   const el=document.getElementById('aw-wrap');if(!el)return;
   el.innerHTML=S.teams.map(t=>{
     const c=getC(t.ci);
-    return`<button class="btn bs" id="aw-${t.id}"
+    return`<button class="btn" id="aw-${t.id}" style="background:linear-gradient(135deg,${c.h},${c.h}cc);color:#fff;"
       style="background:linear-gradient(135deg,${c.h},${c.h}cc);color:#fff;"
-      onclick="awardPts('${t.id}')" ${enabled?'':'disabled'}>
+      onclick="awardPts('${t.id}')" ${enabled?'':'disabled'}><svg viewBox='0 0 24 24' width='14' height='14' fill='none' stroke='currentColor' stroke-width='2.5'><polyline points='20 6 9 17 4 12'/></svg>
         ✅ ${t.emoji} ${t.name}
       </button>`;
   }).join('');
@@ -1938,7 +2413,7 @@ function markWrong(){
       renderAwBtns(false); sB('btn-wrong',false);
       document.getElementById('btn-next').style.display='none';
       document.getElementById('btn-skip').style.display='inline-block';
-      showN(`❌ ${t?.name||''} خسر ${pen} نقطة — الزر متاح للباقين!`,'e');
+      showN(` ${t?.name||''} خسر ${pen} نقطة — الزر متاح للباقين!`,'e');
     } else {
       // All teams buzzed wrong — end question
       S.phase='answered';
@@ -1974,7 +2449,7 @@ function showV(ok,name,pts){
   const v=document.getElementById('verdict');
   v.style.display='flex';
   document.getElementById('vcard').className='vcard '+(ok?'cv':'wv');
-  document.getElementById('vic').textContent=ok?'🎉':'💥';
+  const vicEl=document.getElementById('vic');vicEl.innerHTML=ok?'<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>':'<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#fff" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
   document.getElementById('vti').textContent=ok?`إجابة صحيحة! ${name}`:'إجابة خاطئة!';
   document.getElementById('vpt').textContent=ok?`+${pts} نقطة`:(pts>0?`-${pts} نقطة خصم`:'لا نقاط');
 }
@@ -1991,6 +2466,7 @@ function updateSB(){
     const c=getC(t.ci);
     const pts=S.scores[t.id]||0;
     return`<div class="sc ${pts===max&&max>0?'lead':''}" style="border-color:${c.h}44;background:linear-gradient(135deg,${c.h}12,${c.h}04)">
+      ${pts===max&&max>0?`<svg class="sc-crown" viewBox="0 0 24 24" width="16" height="16" fill="${c.h}" stroke="none"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>`:''}
       <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:2px">
         ${teamIconSVG(t.emoji||'star',c.h,16)}
         <span class="scnm" style="color:${c.h}">${t.name}</span>
@@ -2024,7 +2500,7 @@ function startTimer(sec,q){
           document.getElementById('btn-next').style.display='inline-block';
         }
         gameRef.child('game').update({phase:'answered',timeLeft:0});
-        showN('⏰ انتهى الوقت!','e');
+        showN('انتهى الوقت!','e');
       }
     }
   },1000);
@@ -2089,7 +2565,7 @@ function updateTV(){
   const qb=document.getElementById('tv-qb'),cnt=document.getElementById('tv-cnt'),stat=document.getElementById('tv-stat');
   if(!qb)return;
   if(!S.qShown||S.currentQ>=S.questions.length){
-    qb.innerHTML='<span class="tvwt">⏳ في انتظار طويل العمر فيصل...</span>';
+    qb.innerHTML='<span class="tvwt"> في انتظار طويل العمر فيصل...</span>';
     if(cnt)cnt.innerHTML='';
     if(stat)stat.textContent='في انتظار السؤال...';
     hideTVTimerBar();
@@ -2117,7 +2593,7 @@ function tvPickMCQ(i){
   const ansData={optionIndex:i,timeLeft:S.timeLeft,timestamp:Date.now()};
   S.teamAnswers[S.selTeamId]=ansData;
   gameRef.child('game/teamAnswers/'+S.selTeamId).set(ansData);
-  showN('✅ تم إرسال اختيارك!','s');
+  showN('تم إرسال اختيارك!','s');
 }
 
 // Team submits text answer → sends to Firebase
@@ -2126,17 +2602,17 @@ function submitTVTxt(){
   if(S.tvAnswered){showN('✅ إجابتك أُرسلت مسبقاً','i');return;}
   const inp=document.getElementById('tv-tin');
   const txt=inp?inp.value.trim():'';
-  if(!txt){showN('⚠️ أدخل الإجابة أولاً','e');return;}
+  if(!txt){showN('أدخل الإجابة أولاً','e');return;}
   const ansData={answer:txt,timeLeft:S.tvTimeLeft,timestamp:Date.now()};
   S.teamAnswers[S.selTeamId]=ansData;
   S.tvAnswered=true;
   gameRef.child('game/teamAnswers/'+S.selTeamId).set(ansData);
   const sent=document.getElementById('tv-sent');
-  if(sent) sent.textContent='✅ تم إرسال إجابتك!';
+  if(sent) sent.textContent='تم إرسال إجابتك!';
   if(inp){ inp.disabled=true; inp.style.opacity='.65'; }
   const btn=inp?.parentElement?.querySelector('button');
-  if(btn){ btn.disabled=true; btn.textContent='✓ أُرسلت'; }
-  showN('✅ تم إرسال إجابتك!','s');
+  if(btn){ btn.disabled=true; btn.textContent=' أُرسلت'; }
+  showN('تم إرسال إجابتك!','s');
 }
 
 // ══════════════════════════════════════
@@ -2149,7 +2625,7 @@ function startTVTimer(sec, q, resume=false){
   const wrap=document.getElementById('tv-timer-wrap');
   if(wrap) wrap.style.display='block';
   updateTVTimerBar(currentSec, S.tvTotalTime);
-  // Run locally for smooth animation, synced by Firebase pushes each second
+  // Run locally for btn-smooth animation, synced by Firebase pushes each second
   S.tvTimerInt=setInterval(()=>{
     if(S.tvTimeLeft>0){
       S.tvTimeLeft--;
@@ -2215,17 +2691,17 @@ function showAnswerReveal(q){
     // MCQ auto-scored
     if(sr.correct){
       resultEl.className='ar-team-result ar-correct';
-      resultEl.innerHTML=`✅ إجابة صحيحة!<br><span style="font-size:22px;font-family:'Exo 2',sans-serif">+${sr.earned}</span> نقطة`;
+      resultEl.innerHTML=`إجابة صحيحة!<br><span style="font-size:22px;font-family:'Exo 2',sans-serif">+${sr.earned}</span> نقطة`;
     } else {
       const pen=Math.abs(sr.earned);
       resultEl.className='ar-team-result ar-wrong';
       resultEl.innerHTML=pen>0
-        ? `❌ إجابة خاطئة<br><span style="font-size:22px;font-family:'Exo 2',sans-serif">-${pen}</span> نقطة`
-        : `❌ إجابة خاطئة — لا خصم`;
+        ? ` إجابة خاطئة<br><span style="font-size:22px;font-family:'Exo 2',sans-serif">-${pen}</span> نقطة`
+        : ` إجابة خاطئة — لا خصم`;
     }
   } else if(!myAns){
     resultEl.className='ar-team-result ar-neutral';
-    resultEl.innerHTML=`⏳ لم تُجب على هذا السؤال<br><span style="font-size:18px">0 نقطة</span>`;
+    resultEl.innerHTML=` لم تُجب على هذا السؤال<br><span style="font-size:18px">0 نقطة</span>`;
   } else {
     // Text or buzz — just show what they answered
     resultEl.className='ar-team-result ar-neutral';
@@ -2265,11 +2741,11 @@ function updateSideLeaderboard(){
     let speedBadge='';
     if(ans?.timeLeft!==undefined && q){
       const pct=Math.round((ans.timeLeft/q.time)*100);
-      speedBadge=`<div class="sb-speed">⚡ ${ans.timeLeft}ث متبقية</div>`;
+      speedBadge=`<div class="sb-speed">${ans.timeLeft}ث متبقية</div>`;
     }
     const isMe=t.id===S.selTeamId;
     return`<div class="sb-side-row ${i===0&&pts>0?'top1':''}" style="${isMe?`outline:2px solid ${c.h};outline-offset:1px`:''};border-color:${i===0&&pts>0?c.h+'66':''}">
-      <div class="sb-rank" style="color:${i===0&&pts>0?'var(--gold)':'var(--muted)'}">${i===0?'👑':i+1}</div>
+      <div class="sb-rank" style="color:${i===0&&pts>0?'var(--gold)':'var(--muted)'}">${i===0?'<svg viewBox="0 0 24 24" width="12" height="12" fill="var(--gold)" stroke="none"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>':i+1}</div>
       <div class="sb-em">${t.emoji}</div>
       <div class="sb-info">
         <div class="sb-nm" style="color:${c.h}">${t.name}${isMe?' (أنت)':''}</div>
@@ -2293,13 +2769,13 @@ function renderWinner(){
   const topPts=S.scores[top.id]||0;
   const ties=sorted.filter(t=>(S.scores[t.id]||0)===topPts);
   if(ties.length>1){
-    document.getElementById('wti').textContent='🤝 تعادل!';
+    document.getElementById('wti').textContent='تعادل!';
     document.getElementById('wtm').textContent=ties.map(t=>`${t.emoji} ${t.name}`).join(' vs ');
     document.getElementById('wtm').style.color='var(--text)';
     document.getElementById('wsc').textContent=`بـ ${topPts} نقطة لكل فريق`;
   }else{
     const c=getC(top.ci);
-    document.getElementById('wti').textContent='🏆 الفائز!';
+    document.getElementById('wti').textContent='الفائز!';
     document.getElementById('wtm').textContent=`${top.emoji} ${top.name}`;
     document.getElementById('wtm').style.color=c.h;
     document.getElementById('wsc').textContent=sorted.length>1?`بفارق ${topPts-(S.scores[sorted[1].id]||0)} نقطة`:'';
@@ -2345,7 +2821,7 @@ function sB(id,en){const el=document.getElementById(id);if(el)el.disabled=!en;}
 function showN(msg,type){
   document.querySelectorAll('.notif').forEach(n=>n.remove());
   const n=document.createElement('div');
-  n.className=`notif n${type}`;n.textContent=msg;
+  n.className=`notif notif-${type==='s'?'s':type==='e'?'e':'i'}`;n.textContent=msg;
   document.body.appendChild(n);
   setTimeout(()=>n.remove(),2700);
 }
@@ -2353,7 +2829,7 @@ function showN(msg,type){
 function loadDemo(){
   if(!db){showN('⚠️ Firebase غير متصل','e');return;}
   if(!S.teams.length){
-    [['النسور','🦅'],['النمور','🐯'],['الأسود','🦁']].forEach(([name,emoji],i)=>{
+    [['النسور','eagle'],['النمور','fire'],['الأسود','crown']].forEach(([name,emoji],i)=>{
       const id='t'+(tid++);
       gameRef.child('teams/'+id).set({id,name,emoji,desc:'',members:[],ci:i,order:i});
       gameRef.child('game/scores/'+id).set(0);
@@ -2371,7 +2847,7 @@ function loadDemo(){
       q.id=key;q.order=i;gameRef.child('questions/'+key).set(q);
     });
   });
-  showN('✅ تم تحميل البيانات التجريبية','s');
+  showN('تم تحميل البيانات التجريبية','s');
 }
 
 // ══════════════════════════════════════
@@ -2379,5 +2855,7 @@ function loadDemo(){
 // ══════════════════════════════════════
 initFB();
 </script>
+</body>
+</html>
 </body>
 </html>
