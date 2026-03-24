@@ -1468,6 +1468,12 @@ textarea { resize:vertical; min-height:68px; }
 
       <div class="form-group">
         <label>اختر الفئات (يمكن اختيار أكثر من فئة)</label>
+        <div class="cat-grid" id="ai-cat-pills"></div>
+      </div>
+      <div class="form-group">
+        <label>عدد الأسئلة المطلوبة</label>
+        <input type="number" id="ai-count" class="form-input" value="5" min="3" max="20" style="max-width:120px">
+      </div>
         <div class="cat-grid" id="ai-cat-grid" style="margin-top:8px"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <input id="ai-custom-cat" class="form-input" placeholder="أضف فئة مخصصة..." style="font-size:13px">
@@ -3238,6 +3244,706 @@ function loadDemo(){
   showN('تم تحميل البيانات التجريبية','s');
 }
 
+
+// ══════════════════════════════════════
+//  QUESTION BANK — CATEGORIES
+// ══════════════════════════════════════
+const DEFAULT_CATEGORIES = [
+  {id:'islamic',   label:'إسلامي',     color:'#059669', path:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z'},
+  {id:'history',   label:'تاريخ',      color:'#d97706', path:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'},
+  {id:'science',   label:'علوم',       color:'#2563eb', path:'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3'},
+  {id:'geography', label:'جغرافيا',    color:'#7c3aed', path:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3'},
+  {id:'sports',    label:'رياضة',      color:'#dc2626', path:'M13 10V3L4 14h7v7l9-11h-7z'},
+  {id:'culture',   label:'ثقافة عامة', color:'#0891b2', path:'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253'},
+  {id:'tech',      label:'تقنية',      color:'#6366f1', path:'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2'},
+  {id:'politics',  label:'سياسة',      color:'#be185d', path:'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9'},
+  {id:'war',       label:'حروب',       color:'#b45309', path:'M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z'},
+  {id:'art',       label:'فنون',       color:'#7c3aed', path:'M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z'},
+  {id:'math',      label:'رياضيات',    color:'#0369a1', path:'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z'},
+  {id:'lang',      label:'لغة عربية',  color:'#065f46', path:'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'},
+  {id:'custom',    label:'مخصص',       color:'#64748b', path:'M12 6v6m0 0v6m0-6h6m-6 0H6'},
+];
+
+let CATEGORIES = [...DEFAULT_CATEGORIES];
+let selectedStartMode = null;
+let enableVoting = false;
+let bankQuestions = [];
+let selectedBankIds = new Set();
+let aiGeneratedQuestions = [];
+let myVotes = new Set();
+let voteSubmitted = false;
+
+// ══════════════════════════════════════
+//  LOAD CATEGORIES FROM FIREBASE
+// ══════════════════════════════════════
+function loadCategories() {
+  // Load custom categories added by super admin
+  db.ref('config/categories').on('value', snap => {
+    const extra = snap.val();
+    if (extra) {
+      const extraList = Object.values(extra);
+      CATEGORIES = [...DEFAULT_CATEGORIES, ...extraList.filter(c =>
+        !DEFAULT_CATEGORIES.find(d => d.id === c.id)
+      )];
+    }
+    populateCategoryDropdowns();
+  });
+}
+
+function populateCategoryDropdowns() {
+  // Bank filter
+  const bankCatEl = document.getElementById('bank-filter-cat');
+  if (bankCatEl) {
+    bankCatEl.innerHTML = '<option value="">كل الفئات</option>' +
+      CATEGORIES.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+  }
+  // AI category pills
+  renderAICategoryPills();
+  // Vote category buttons
+  renderVoteCategoryBtns();
+}
+
+function catIconSVG(cat, size=18) {
+  const c = CATEGORIES.find(x => x.id === cat) || CATEGORIES[0];
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${c.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${c.path}"/></svg>`;
+}
+
+// ══════════════════════════════════════
+//  START MODE FLOW
+// ══════════════════════════════════════
+function openStartFlow() {
+  // Called when start-btn clicked
+  goTo('start-mode-screen');
+  selectedStartMode = null;
+  enableVoting = false;
+  document.querySelectorAll('.start-mode-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('proceed-start-btn').disabled = true;
+  const cb = document.getElementById('enable-voting');
+  if (cb) cb.checked = false;
+}
+
+function selectStartMode(mode) {
+  selectedStartMode = mode;
+  document.querySelectorAll('.start-mode-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('proceed-start-btn').disabled = false;
+}
+
+function toggleVotingOption() {
+  enableVoting = document.getElementById('enable-voting').checked;
+}
+
+function proceedToStart() {
+  if (!selectedStartMode) return;
+  if (selectedStartMode === 'manual') {
+    if (enableVoting) {
+      openVoting();
+    } else {
+      startGame();
+    }
+  } else if (selectedStartMode === 'bank') {
+    goTo('bank-screen');
+    loadBankQuestions();
+  } else if (selectedStartMode === 'ai') {
+    goTo('ai-screen');
+  }
+}
+
+// ══════════════════════════════════════
+//  QUESTION BANK
+// ══════════════════════════════════════
+function loadBankQuestions() {
+  const uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.uid : null;
+  bankQuestions = [];
+  selectedBankIds = new Set();
+  updateBankSelectedCount();
+
+  const el = document.getElementById('bank-q-list');
+  if (el) el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)"><div class="ai-spinner" style="margin:0 auto 10px"></div>جارٍ التحميل...</div>';
+
+  // Load global bank
+  db.ref('globalBank/questions').once('value', snap => {
+    const global = snap.val() || {};
+    Object.entries(global).forEach(([id, q]) => {
+      bankQuestions.push({...q, id, _source: 'global'});
+    });
+
+    // Load private bank if tenant
+    if (uid) {
+      db.ref(`tenants/${uid}/privateBank`).once('value', snap2 => {
+        const priv = snap2.val() || {};
+        Object.entries(priv).forEach(([id, q]) => {
+          bankQuestions.push({...q, id, _source: 'private'});
+        });
+        renderBankQuestions(bankQuestions);
+      });
+    } else {
+      renderBankQuestions(bankQuestions);
+    }
+  });
+}
+
+function renderBankQuestions(list) {
+  const el = document.getElementById('bank-q-list');
+  const countEl = document.getElementById('bank-count-label');
+  if (!el) return;
+  if (countEl) countEl.textContent = list.length + ' سؤال';
+
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px;display:block"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>لا توجد أسئلة في البنك بعد</div>';
+    return;
+  }
+
+  const tl = {mcq:'اختيار',text:'كتابي',buzz:'زر'};
+  el.innerHTML = list.map(q => {
+    const cat = CATEGORIES.find(c => c.id === q.category);
+    const isSel = selectedBankIds.has(q.id);
+    return `<div class="bank-q-item ${isSel ? 'selected-q' : ''}" onclick="toggleBankQ('${q.id}')">
+      <div class="bank-q-check">
+        ${isSel ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>
+      <div style="flex:1">
+        <div class="bank-q-text">${q.text}</div>
+        <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">
+          ${cat ? `<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:${cat.color}18;color:${cat.color};font-weight:700">${cat.label}</span>` : ''}
+          <span class="qtb ${q.type==='mcq'?'qtm':q.type==='text'?'qtt':'qtbz'}">${tl[q.type]||q.type}</span>
+          ${q._source==='private'?'<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--purple-l);color:var(--purple);font-weight:700">خاص</span>':''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleBankQ(id) {
+  if (selectedBankIds.has(id)) selectedBankIds.delete(id);
+  else selectedBankIds.add(id);
+  updateBankSelectedCount();
+  // Re-render the clicked item only
+  const q = bankQuestions.find(x => x.id === id);
+  if (!q) return;
+  filterBankQuestions(); // full re-render for simplicity
+}
+
+function updateBankSelectedCount() {
+  const cnt = selectedBankIds.size;
+  const el = document.getElementById('bank-selected-count');
+  if (el) el.textContent = cnt + ' محدد';
+  const btn = document.getElementById('bank-use-btn');
+  if (btn) btn.disabled = cnt === 0;
+}
+
+function filterBankQuestions() {
+  const q = (document.getElementById('bank-search')?.value || '').toLowerCase();
+  const cat = document.getElementById('bank-filter-cat')?.value || '';
+  const type = document.getElementById('bank-filter-type')?.value || '';
+  const filtered = bankQuestions.filter(item => {
+    const mq = !q || item.text.toLowerCase().includes(q);
+    const mc = !cat || item.category === cat;
+    const mt = !type || item.type === type;
+    return mq && mc && mt;
+  });
+  renderBankQuestions(filtered);
+}
+
+function selectAllBankQ() {
+  bankQuestions.forEach(q => selectedBankIds.add(q.id));
+  updateBankSelectedCount();
+  filterBankQuestions();
+}
+function clearBankSelection() {
+  selectedBankIds.clear();
+  updateBankSelectedCount();
+  filterBankQuestions();
+}
+
+function useBankQuestions() {
+  if (!selectedBankIds.size) return;
+  const selected = bankQuestions.filter(q => selectedBankIds.has(q.id));
+  // Push selected questions to the active game session
+  const batch = {};
+  selected.forEach((q, i) => {
+    const key = gameRef.child('questions').push().key;
+    batch[key] = {...q, id: key, order: (S.questions.length + i)};
+  });
+  const updates = {};
+  Object.entries(batch).forEach(([k, v]) => { updates[`questions/${k}`] = v; });
+  gameRef.update(updates).then(() => {
+    showN(`تم إضافة ${selected.length} سؤال من البنك`, 's');
+    if (enableVoting) {
+      openVoting();
+    } else {
+      startGame();
+    }
+  });
+}
+
+// ══════════════════════════════════════
+//  AI QUESTION GENERATION
+// ══════════════════════════════════════
+let aiSelectedCats = new Set();
+
+function renderAICategoryPills() {
+  const el = document.getElementById('ai-cat-pills');
+  if (!el) return;
+  el.innerHTML = CATEGORIES.map(c => `
+    <button class="cat-pill ${aiSelectedCats.has(c.id) ? 'selected' : ''}"
+      onclick="toggleAICat('${c.id}')"
+      style="${aiSelectedCats.has(c.id) ? `background:${c.color}18;border-color:${c.color};color:${c.color}` : ''}">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="${c.path}"/></svg>
+      ${c.label}
+    </button>`).join('');
+}
+
+function toggleAICat(id) {
+  if (aiSelectedCats.has(id)) aiSelectedCats.delete(id);
+  else aiSelectedCats.add(id);
+  renderAICategoryPills();
+  const btn = document.querySelector('#ai-screen .btn-full.btn-lg');
+  if (btn) btn.disabled = aiSelectedCats.size === 0;
+}
+
+async function generateAIQuestions() {
+  if (!aiSelectedCats.size) { showN('اختر فئة واحدة على الأقل', 'e'); return; }
+  const count = parseInt(document.getElementById('ai-count')?.value) || 5;
+  const context = document.getElementById('ai-context')?.value || '';
+  const catNames = [...aiSelectedCats].map(id => CATEGORIES.find(c => c.id === id)?.label || id).join('، ');
+  const doPublish = document.getElementById('ai-publish')?.checked;
+
+  document.getElementById('ai-config-card').style.display = 'none';
+  document.getElementById('ai-loading').style.display = 'block';
+  document.getElementById('ai-preview').style.display = 'none';
+
+  const statusEl = document.getElementById('ai-status-msg');
+  const statusMsgs = ['يحلل الفئات المطلوبة...', 'يصيغ الأسئلة...', 'يتحقق من الإجابات...', 'يرتب النتائج...'];
+  let si = 0;
+  const statusInt = setInterval(() => {
+    if (statusEl) statusEl.textContent = statusMsgs[si++ % statusMsgs.length];
+  }, 1800);
+
+  try {
+    const prompt = `أنت مساعد متخصص في إنشاء أسئلة مسابقات ثقافية باللغة العربية.
+أنشئ بالضبط ${count} سؤال من الفئات التالية: ${catNames}.
+${context ? `سياق إضافي: ${context}` : ''}
+
+قواعد مهمة:
+- الأسئلة باللغة العربية الفصحى
+- أسئلة اختيار متعدد (mcq) مع 4 خيارات واضحة
+- الإجابات دقيقة وموثوقة
+- تنوع في درجة الصعوبة
+- معرّف الفئة من: ${[...aiSelectedCats].join(', ')}
+
+أجب بـ JSON فقط بهذا الشكل:
+{
+  "questions": [
+    {
+      "text": "نص السؤال",
+      "type": "mcq",
+      "options": ["خ1","خ2","خ3","خ4"],
+      "correct": 0,
+      "pts": 10,
+      "time": 30,
+      "category": "معرّف_الفئة"
+    }
+  ]
+}`;
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 3000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    clearInterval(statusInt);
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('لم يُرجع الذكاء الاصطناعي نتيجة صحيحة');
+    const parsed = JSON.parse(jsonMatch[0]);
+    aiGeneratedQuestions = parsed.questions || [];
+
+    // Save to global bank if publish enabled
+    if (doPublish && aiGeneratedQuestions.length) {
+      aiGeneratedQuestions.forEach(q => {
+        const key = db.ref('globalBank/questions').push().key;
+        db.ref('globalBank/questions/' + key).set({...q, id: key, isPublic: true});
+      });
+    }
+
+    document.getElementById('ai-loading').style.display = 'none';
+    renderAIPreview();
+    document.getElementById('ai-preview').style.display = 'block';
+
+  } catch(err) {
+    clearInterval(statusInt);
+    document.getElementById('ai-loading').style.display = 'none';
+    document.getElementById('ai-config-card').style.display = 'block';
+    showN('خطأ في التوليد: ' + err.message, 'e');
+    console.error(err);
+  }
+}
+
+function renderAIPreview() {
+  const el = document.getElementById('ai-q-list');
+  const cnt = document.getElementById('ai-q-count');
+  if (!el) return;
+  if (cnt) cnt.textContent = aiGeneratedQuestions.length;
+  const L = ['أ','ب','ج','د'];
+  el.innerHTML = aiGeneratedQuestions.map((q, i) => {
+    const cat = CATEGORIES.find(c => c.id === q.category);
+    return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+        <div class="qn">${i+1}</div>
+        <div style="flex:1;font-size:13px;font-weight:700">${q.text}</div>
+        ${cat ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${cat.color}18;color:${cat.color};font-weight:700;flex-shrink:0">${cat.label}</span>` : ''}
+      </div>
+      ${q.options ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+        ${q.options.map((o, j) => `<div style="font-size:12px;padding:5px 9px;border-radius:7px;border:1px solid ${j===q.correct?'var(--green)':'var(--border)'};background:${j===q.correct?'var(--green-l)':'var(--surface)'};color:${j===q.correct?'var(--green)':'var(--text2)'}"><b>${L[j]}</b> ${o}</div>`).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function regenerateAI() {
+  document.getElementById('ai-config-card').style.display = 'block';
+  document.getElementById('ai-preview').style.display = 'none';
+  aiGeneratedQuestions = [];
+}
+
+function useAIQuestions() {
+  if (!aiGeneratedQuestions.length) return;
+  const batch = {};
+  aiGeneratedQuestions.forEach((q, i) => {
+    const key = gameRef.child('questions').push().key;
+    batch[key] = {...q, id: key, order: (S.questions.length + i)};
+  });
+  const updates = {};
+  Object.entries(batch).forEach(([k, v]) => { updates[`questions/${k}`] = v; });
+  gameRef.update(updates).then(() => {
+    showN(`تم إضافة ${aiGeneratedQuestions.length} سؤال`, 's');
+    if (enableVoting) openVoting();
+    else startGame();
+  });
+}
+
+// ══════════════════════════════════════
+//  VOTING SYSTEM
+// ══════════════════════════════════════
+function renderVoteCategoryBtns() {
+  const el = document.getElementById('vote-cat-btns');
+  if (!el) return;
+  el.innerHTML = CATEGORIES.map(c => `
+    <div class="vote-cat-btn ${myVotes.has(c.id) ? 'voted' : ''}" id="vcat-${c.id}" onclick="toggleVote('${c.id}')">
+      <div class="vote-cat-icon" style="background:${c.color}18">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${c.color}" stroke-width="2"><path d="${c.path}"/></svg>
+      </div>
+      <div class="vote-cat-name">${c.label}</div>
+      <div class="vote-cat-votes" id="vote-count-${c.id}">0 صوت</div>
+      <div class="vote-bar-wrap"><div class="vote-bar-fill" id="vote-bar-${c.id}" style="width:0%"></div></div>
+    </div>`).join('');
+}
+
+function toggleVote(catId) {
+  if (voteSubmitted) return;
+  if (myVotes.has(catId)) myVotes.delete(catId);
+  else myVotes.add(catId);
+  // Update UI
+  document.querySelectorAll('.vote-cat-btn').forEach(b => b.classList.remove('voted'));
+  myVotes.forEach(id => {
+    const el = document.getElementById('vcat-' + id);
+    if (el) el.classList.add('voted');
+  });
+  const summaryEl = document.getElementById('my-votes-summary');
+  const cntEl = document.getElementById('my-vote-count');
+  if (cntEl) cntEl.textContent = myVotes.size;
+  if (summaryEl) {
+    if (myVotes.size) {
+      summaryEl.textContent = [...myVotes].map(id => CATEGORIES.find(c=>c.id===id)?.label||id).join(' · ');
+    } else {
+      summaryEl.textContent = 'لم تصوّت بعد';
+    }
+  }
+}
+
+function submitVote() {
+  if (!myVotes.size) { showN('اختر فئة واحدة على الأقل للتصويت', 'e'); return; }
+  if (!S.selTeamId) { showN('اختر فريقك أولاً', 'e'); return; }
+  const voteData = {};
+  myVotes.forEach(catId => { voteData[catId] = true; });
+  gameRef.child('votes/' + S.selTeamId).set(voteData).then(() => {
+    voteSubmitted = true;
+    document.getElementById('submit-vote-btn').disabled = true;
+    document.getElementById('submit-vote-btn').textContent = 'تم إرسال تصويتك';
+    showN('تم إرسال تصويتك', 's');
+  });
+}
+
+function openVoting() {
+  // Host opens voting
+  gameRef.child('game/phase').set('voting');
+  gameRef.child('votes').remove();
+  goTo('vote-screen');
+  showVoteResults();
+  showN('فُتح التصويت — انتظر تصويت الفرق', 'i');
+}
+
+function showVoteResults() {
+  document.getElementById('vote-waiting').style.display = 'none';
+  document.getElementById('vote-results-panel').style.display = 'block';
+  // Listen to votes in real time
+  gameRef.child('votes').on('value', snap => {
+    const votes = snap.val() || {};
+    updateVoteResults(votes);
+  });
+}
+
+function updateVoteResults(votes) {
+  const counts = {};
+  Object.values(votes).forEach(teamVotes => {
+    Object.keys(teamVotes).forEach(catId => {
+      counts[catId] = (counts[catId] || 0) + 1;
+    });
+  });
+  const total = Object.values(counts).reduce((s, v) => s + v, 0);
+  const totalVoters = Object.keys(votes).length;
+
+  // Update total badge
+  const totalEl = document.getElementById('vote-total-count');
+  if (totalEl) totalEl.textContent = totalVoters + ' فريق صوّت';
+
+  // Render results
+  const el = document.getElementById('vote-results-list');
+  if (!el) return;
+  const sorted = CATEGORIES
+    .map(c => ({...c, votes: counts[c.id] || 0}))
+    .sort((a, b) => b.votes - a.votes)
+    .filter(c => c.votes > 0);
+
+  if (!sorted.length) {
+    el.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px">لم يصوّت أحد بعد</p>';
+    return;
+  }
+  el.innerHTML = sorted.map(c => {
+    const pct = total > 0 ? Math.round(c.votes/total*100) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="${c.color}" stroke-width="2"><path d="${c.path}"/></svg>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:700">${c.label}</span>
+          <span style="font-size:12px;color:var(--muted)">${c.votes} صوت (${pct}%)</span>
+        </div>
+        <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;background:${c.color};border-radius:3px;width:${pct}%;transition:width .5s"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function applyVotesAndStart() {
+  // Get current votes and pick questions proportionally
+  const snap = await gameRef.child('votes').once('value');
+  const votes = snap.val() || {};
+  const counts = {};
+  Object.values(votes).forEach(tv => {
+    Object.keys(tv).forEach(cid => { counts[cid] = (counts[cid] || 0) + 1; });
+  });
+  const total = Object.values(counts).reduce((s, v) => s + v, 0);
+  if (!total) { startGame(); return; }
+
+  // We need to fill up to cfg questions proportionally
+  const targetCount = Math.max(10, S.questions.length || 10);
+
+  // Load global bank for proportional selection
+  const bankSnap = await db.ref('globalBank/questions').once('value');
+  const allQ = Object.values(bankSnap.val() || {});
+
+  if (!allQ.length) {
+    showN('البنك فارغ — سيتم بدء المسابقة بالأسئلة الحالية', 'i');
+    startGame(); return;
+  }
+
+  const selected = [];
+  Object.entries(counts).forEach(([catId, catVotes]) => {
+    const proportion = catVotes / total;
+    const quota = Math.round(proportion * targetCount);
+    const catQs = allQ.filter(q => q.category === catId);
+    // Shuffle
+    const shuffled = catQs.sort(() => Math.random() - .5).slice(0, quota);
+    selected.push(...shuffled);
+  });
+
+  if (!selected.length) { startGame(); return; }
+
+  // Push selected questions
+  const updates = {};
+  selected.forEach((q, i) => {
+    const key = gameRef.child('questions').push().key;
+    updates[`questions/${key}`] = {...q, id: key, order: i};
+  });
+  await gameRef.update(updates);
+  showN(`انتُقيت ${selected.length} أسئلة بناءً على التصويت`, 's');
+  closeVoting();
+  startGame();
+}
+
+function closeVoting() {
+  gameRef.child('game/phase').set('idle');
+  gameRef.child('votes').off();
+}
+
+// ══════════════════════════════════════
+//  TEAM SIDE — VOTE SCREEN
+// ══════════════════════════════════════
+function showVoteScreen() {
+  voteSubmitted = false;
+  myVotes.clear();
+  renderVoteCategoryBtns();
+  document.getElementById('vote-waiting').style.display = 'none';
+  document.getElementById('vote-open').style.display = 'block';
+  document.getElementById('vote-results-panel').style.display = 'none';
+  document.getElementById('submit-vote-btn').disabled = false;
+  document.getElementById('submit-vote-btn').textContent = 'إرسال تصويتي';
+  goTo('vote-screen');
+}
+
+// Listen for voting phase on team side
+function watchVotingPhase() {
+  gameRef.child('game/phase').on('value', snap => {
+    const phase = snap.val();
+    const active = document.querySelector('.screen.active')?.id;
+    if (phase === 'voting' && active === 'team-view' && S.selTeamId) {
+      showVoteScreen();
+    }
+    if (phase === 'idle' && active === 'vote-screen') {
+      goTo('team-view');
+      showN('انتهى التصويت', 'i');
+    }
+  });
+}
+
+// ══════════════════════════════════════
+//  PUBLISH TOGGLE — save question to bank
+// ══════════════════════════════════════
+function injectPublishToggle() {
+  // Add publish toggle to add-q-card if not exists
+  const card = document.getElementById('add-q-card');
+  if (!card || document.getElementById('q-publish-toggle')) return;
+  const toggle = document.createElement('div');
+  toggle.className = 'publish-toggle';
+  toggle.id = 'q-publish-toggle';
+  toggle.style.marginTop = '10px';
+  toggle.innerHTML = `
+    <div>
+      <div style="font-size:13px;font-weight:700">إضافة للبنك العام</div>
+      <div style="font-size:11px;color:var(--muted)">يظهر للعملاء الآخرين عند البحث في البنك</div>
+    </div>
+    <label class="toggle-sw">
+      <input type="checkbox" id="q-is-public">
+      <span class="toggle-sl"></span>
+    </label>`;
+  const saveBtn = document.getElementById('btn-save-q');
+  if (saveBtn) saveBtn.parentNode.insertBefore(toggle, saveBtn);
+}
+
+// ══════════════════════════════════════
+//  CATEGORY SELECT FOR QUESTION FORM
+// ══════════════════════════════════════
+function injectCategorySelect() {
+  const card = document.getElementById('add-q-card');
+  if (!card || document.getElementById('q-category')) return;
+  const div = document.createElement('div');
+  div.className = 'form-group';
+  div.style.marginBottom = '12px';
+  div.innerHTML = `
+    <label>الفئة (للبنك العام)</label>
+    <select id="q-category" class="form-input">
+      <option value="">— بدون فئة (خاص) —</option>
+      ${CATEGORIES.filter(c => c.id !== 'custom').map(c =>
+        `<option value="${c.id}">${c.label}</option>`
+      ).join('')}
+    </select>`;
+  // Insert before first form-group
+  const firstFG = card.querySelector('.fr.s');
+  if (firstFG) firstFG.parentNode.insertBefore(div, firstFG);
+}
+
+// ══════════════════════════════════════
+//  OVERRIDE saveQ TO ALSO SAVE TO BANK
+// ══════════════════════════════════════
+const _origSaveQ = saveQ;
+function saveQ() {
+  _origSaveQ();
+  // After saving, also save to public/private bank
+  setTimeout(() => {
+    const text = document.getElementById('nq-txt')?.value;
+    if (!text) return; // already cleared = save happened
+    // If save happened, we need to catch post-save state
+    // Actually, saveQ clears the form, so we hook differently
+  }, 50);
+}
+
+// Patch addQ to also push to bank
+const _origGetFormQ = typeof getFormQ !== 'undefined' ? getFormQ : null;
+
+// ══════════════════════════════════════
+//  OVERRIDE startGame BUTTON
+// ══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  injectPublishToggle();
+  injectCategorySelect();
+  loadCategories();
+  watchVotingPhase();
+
+  // Override start button to show mode selection
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) startBtn.onclick = openStartFlow;
+});
+
+// Also save to bank when question is saved
+const origGameRefSet = gameRef; // reference captured after initFB
+
+function saveQWithBank() {
+  const text = document.getElementById('nq-txt')?.value.trim();
+  if (!text) { showN('أدخل نص السؤال', 'e'); return; }
+  const pts = parseInt(document.getElementById('nq-pts')?.value) || 10;
+  const time = parseInt(document.getElementById('nq-tm')?.value) || 30;
+  const category = document.getElementById('q-category')?.value || '';
+  const isPublic = document.getElementById('q-is-public')?.checked || false;
+
+  // Build q object (reuse existing saveQ logic by calling it)
+  // We intercept after the fact via Firebase listener
+
+  // Call original saveQ
+  if (typeof _origSaveQ === 'function') {
+    // But we need q data — rebuild manually for bank save
+    const qtype_local = typeof qtype !== 'undefined' ? qtype : 'mcq';
+    const q = { text, pts, time, type: qtype_local, category };
+
+    if (qtype_local === 'mcq') {
+      const opts = Array.from(document.querySelectorAll('.oi')).map(i => i.value.trim()).filter(v => v);
+      if (opts.length < 2) { showN('أدخل خيارين على الأقل', 'e'); return; }
+      const ci = parseInt(document.querySelector('input[name="cr"]:checked')?.value) || 0;
+      q.options = opts; q.correct = ci < opts.length ? ci : 0;
+    } else if (qtype_local === 'text') {
+      const a = document.getElementById('ta')?.value.trim();
+      if (!a) { showN('أدخل الإجابة', 'e'); return; }
+      q.answer = a;
+    } else {
+      q.answer = document.getElementById('ba')?.value.trim() || '';
+    }
+
+    if (isPublic && category) {
+      const key = db.ref('globalBank/questions').push().key;
+      db.ref('globalBank/questions/' + key).set({...q, id: key, isPublic: true});
+    }
+  }
+}
 
 // ══════════════════════════════════════
 //  BOOT
