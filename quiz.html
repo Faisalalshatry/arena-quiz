@@ -1189,7 +1189,51 @@ textarea { resize:vertical; min-height:68px; }
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       التالي
     </button>
+
+    <!-- Game management buttons -->
+    <div style="display:flex;gap:6px;margin-right:auto;padding-right:6px;border-right:1px solid var(--border)">
+      <button class="btn btn-ghost btn-sm" id="btn-pause" onclick="togglePause()" title="إيقاف مؤقت">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="confirmEndGame()" title="إنهاء المسابقة" style="color:var(--gold)">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="confirmCancelGame()" title="إلغاء المسابقة" style="color:var(--red)">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </button>
+    </div>
   </div>
+
+  <!-- Pause overlay -->
+  <div id="pause-overlay" style="display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+    <div style="background:var(--surface);border-radius:var(--r-xl);padding:40px;text-align:center;max-width:340px;width:90%;box-shadow:var(--shadow-lg)">
+      <div style="width:60px;height:60px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--blue)">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </div>
+      <div style="font-size:20px;font-weight:900;margin-bottom:6px">المسابقة متوقفة</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:22px">اضغط متابعة عند الاستعداد</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-blue btn-lg" onclick="togglePause()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></svg>
+          متابعة
+        </button>
+        <button class="btn btn-ghost" onclick="confirmCancelGame()">إلغاء المسابقة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <div id="confirm-dialog" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);align-items:center;justify-content:center">
+    <div style="background:var(--surface);border-radius:var(--r-xl);padding:28px;max-width:360px;width:90%;box-shadow:var(--shadow-lg)">
+      <div style="font-size:17px;font-weight:800;margin-bottom:8px" id="confirm-title">تأكيد</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px" id="confirm-msg">هل أنت متأكد؟</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeConfirm()">لا، تراجع</button>
+        <button class="btn btn-red" id="confirm-ok-btn" onclick="executeConfirm()">نعم، تأكيد</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer">Dv: <b>Faisal Almutairi</b></footer>
 </div>
 
@@ -3559,13 +3603,19 @@ ${context ? `سياق إضافي: ${context}` : ''}
 
     clearInterval(statusInt);
 
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    const text = data.content?.find(b => b.type === 'text')?.text || '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('لم يُرجع الذكاء الاصطناعي نتيجة صحيحة');
-    const parsed = JSON.parse(jsonMatch[0]);
-    aiGeneratedQuestions = parsed.questions || [];
+    if (!resp.ok) {
+      // CORS blocked — fallback to local generation
+      console.warn('API blocked, using local fallback');
+      aiGeneratedQuestions = generateLocalQuestions([...aiSelectedCats], count);
+      if (!aiGeneratedQuestions.length) throw new Error('تعذّر التوليد — تأكد من الاتصال بالإنترنت');
+    } else {
+      const data = await resp.json();
+      const text = data.content?.find(b => b.type === 'text')?.text || '';
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('لم يُرجع الذكاء الاصطناعي نتيجة صحيحة');
+      const parsed = JSON.parse(jsonMatch[0]);
+      aiGeneratedQuestions = parsed.questions || [];
+    }
 
     // Save to global bank if publish enabled
     if (doPublish && aiGeneratedQuestions.length) {
@@ -3899,6 +3949,7 @@ document.addEventListener('DOMContentLoaded', () => {
   injectCategorySelect();
   loadCategories();
   watchVotingPhase();
+  watchPauseState();
 
   // Override start button to show mode selection
   const startBtn = document.getElementById('start-btn');
@@ -3943,6 +3994,176 @@ function saveQWithBank() {
       db.ref('globalBank/questions/' + key).set({...q, id: key, isPublic: true});
     }
   }
+}
+
+// ══════════════════════════════════════
+//  LOCAL QUESTION FALLBACK (when API unavailable)
+// ══════════════════════════════════════
+const LOCAL_QUESTIONS = {
+  islamic: [
+    {text:'كم عدد أركان الإسلام؟',options:['٣','٤','٥','٦'],correct:2,answer:'٥'},
+    {text:'ما هو أول مسجد بُني في الإسلام؟',options:['المسجد الحرام','مسجد قباء','المسجد النبوي','المسجد الأقصى'],correct:1,answer:'مسجد قباء'},
+    {text:'في أي شهر نزل القرآن الكريم؟',options:['رجب','شعبان','رمضان','محرم'],correct:2,answer:'رمضان'},
+    {text:'كم عدد سور القرآن الكريم؟',options:['١١٢','١١٣','١١٤','١١٥'],correct:2,answer:'١١٤'},
+    {text:'ما عدد الصلوات المفروضة في اليوم؟',options:['٣','٤','٥','٦'],correct:2,answer:'٥'},
+  ],
+  history: [
+    {text:'متى فُتحت مكة المكرمة؟',options:['٦ هـ','٧ هـ','٨ هـ','٩ هـ'],correct:2,answer:'٨ هـ'},
+    {text:'من هو مؤسس الدولة السعودية الأولى؟',options:['الملك عبدالعزيز','محمد بن سعود','الملك فيصل','الملك سعود'],correct:1,answer:'محمد بن سعود'},
+    {text:'في أي عام وحّد الملك عبدالعزيز المملكة؟',options:['١٩٢٨','١٩٣٠','١٩٣٢','١٩٣٤'],correct:2,answer:'١٩٣٢'},
+    {text:'ما اسم المعركة التي انتصر فيها المسلمون في بدر؟',options:['غزوة أحد','غزوة بدر','غزوة الخندق','فتح مكة'],correct:1,answer:'غزوة بدر'},
+    {text:'من هو أول خليفة في الإسلام؟',options:['عمر بن الخطاب','علي بن أبي طالب','أبو بكر الصديق','عثمان بن عفان'],correct:2,answer:'أبو بكر الصديق'},
+  ],
+  science: [
+    {text:'ما هو رمز عنصر الذهب في الجدول الدوري؟',options:['Go','Gd','Au','Ag'],correct:2,answer:'Au'},
+    {text:'كم يبلغ سرعة الضوء تقريباً؟',options:['٣٠٠ ألف كم/ث','١٥٠ ألف كم/ث','٦٠٠ ألف كم/ث','٩٠٠ ألف كم/ث'],correct:0,answer:'٣٠٠ ألف كم/ث'},
+    {text:'ما هو الجهاز الذي يضخ الدم في جسم الإنسان؟',options:['الرئة','الكبد','الكلية','القلب'],correct:3,answer:'القلب'},
+    {text:'ما هي أكبر خلية في جسم الإنسان؟',options:['خلية الدم','البويضة','خلية عصبية','خلية عضلية'],correct:1,answer:'البويضة'},
+    {text:'كم عدد عظام جسم الإنسان البالغ؟',options:['١٦٦','٢٠٦','٢٤٦','٣٠٦'],correct:1,answer:'٢٠٦'},
+  ],
+  geography: [
+    {text:'ما هي عاصمة المملكة العربية السعودية؟',options:['جدة','الدمام','الرياض','مكة'],correct:2,answer:'الرياض'},
+    {text:'ما هو أطول نهر في العالم؟',options:['نهر الأمازون','نهر النيل','نهر الكونغو','نهر المسيسيبي'],correct:1,answer:'نهر النيل'},
+    {text:'كم عدد دول العالم تقريباً؟',options:['١٥٦','١٧٦','١٩٥','٢١٠'],correct:2,answer:'١٩٥'},
+    {text:'ما هي أكبر قارة في العالم؟',options:['أفريقيا','أمريكا','أوروبا','آسيا'],correct:3,answer:'آسيا'},
+    {text:'أين يقع برج إيفل؟',options:['لندن','برلين','باريس','روما'],correct:2,answer:'باريس'},
+  ],
+  sports: [
+    {text:'كم عدد لاعبي كرة القدم في كل فريق؟',options:['٩','١٠','١١','١٢'],correct:2,answer:'١١'},
+    {text:'كم دقيقة يستغرق مباراة كرة القدم؟',options:['٦٠','٧٥','٩٠','١٢٠'],correct:2,answer:'٩٠'},
+    {text:'في أي دولة أقيمت كأس العالم ٢٠٢٢؟',options:['الإمارات','السعودية','قطر','البحرين'],correct:2,answer:'قطر'},
+    {text:'ما اسم الكأس التي تحصل عليها الفرق الفائزة بدوري أبطال أوروبا؟',options:['كأس الملك','الكأس الذهبية','كأس السوبر','كأس هنري ديلوناي'],correct:3,answer:'كأس هنري ديلوناي'},
+    {text:'كم عدد حلقات شعار الأولمبياد؟',options:['٤','٥','٦','٧'],correct:1,answer:'٥'},
+  ],
+  tech: [
+    {text:'ما معنى اختصار CPU؟',options:['وحدة طباعة مركزية','وحدة معالجة مركزية','وحدة برمجة مركزية','وحدة حماية مركزية'],correct:1,answer:'وحدة معالجة مركزية'},
+    {text:'من هو مؤسس شركة Apple؟',options:['بيل غيتس','ستيف جوبز','إيلون ماسك','مارك زوكربيرغ'],correct:1,answer:'ستيف جوبز'},
+    {text:'ما هي لغة البرمجة المستخدمة في تطوير مواقع الويب الأساسية؟',options:['Python','Java','HTML','C++'],correct:2,answer:'HTML'},
+    {text:'ما معنى اختصار WiFi؟',options:['Wireless Fidelity','Wide Frequency','Web Interface','Wireless Fiber'],correct:0,answer:'Wireless Fidelity'},
+    {text:'في أي عام تأسست شركة Google؟',options:['١٩٩٥','١٩٩٦','١٩٩٨','٢٠٠٠'],correct:2,answer:'١٩٩٨'},
+  ],
+  culture: [
+    {text:'ما هو الكتاب الأكثر مبيعاً في التاريخ؟',options:['هاري بوتر','القرآن الكريم','الكتاب المقدس','ألف ليلة وليلة'],correct:2,answer:'الكتاب المقدس'},
+    {text:'من كتب رواية "ألف شمس مشرقة"؟',options:['نجيب محفوظ','خالد حسيني','طه حسين','غابرييل ماركيز'],correct:1,answer:'خالد حسيني'},
+    {text:'ما هي أقدم حضارة في التاريخ؟',options:['الفرعونية','السومرية','الرومانية','الإغريقية'],correct:1,answer:'السومرية'},
+    {text:'من رسم لوحة الموناليزا؟',options:['مايكل أنجلو','رفائيل','ليوناردو دافنشي','بيكاسو'],correct:2,answer:'ليوناردو دافنشي'},
+    {text:'ما هي اللغة الأكثر تحدثاً في العالم؟',options:['الإنجليزية','الإسبانية','الصينية الماندرين','العربية'],correct:2,answer:'الصينية الماندرين'},
+  ],
+};
+
+function generateLocalQuestions(catIds, count) {
+  const result = [];
+  const countPerCat = Math.ceil(count / catIds.length);
+  catIds.forEach(catId => {
+    const pool = LOCAL_QUESTIONS[catId] || LOCAL_QUESTIONS.culture;
+    const shuffled = [...pool].sort(() => Math.random() - .5);
+    shuffled.slice(0, countPerCat).forEach(q => {
+      result.push({
+        text: q.text,
+        type: 'mcq',
+        options: q.options,
+        correct: q.correct,
+        pts: 10,
+        time: 30,
+        category: catId
+      });
+    });
+  });
+  return result.sort(() => Math.random() - .5).slice(0, count);
+}
+
+// ══════════════════════════════════════
+//  GAME CONTROLS — PAUSE / CANCEL / END
+// ══════════════════════════════════════
+let isPaused = false;
+let confirmAction = null;
+
+function togglePause() {
+  isPaused = !isPaused;
+  const overlay = document.getElementById('pause-overlay');
+  const btn = document.getElementById('btn-pause');
+  if (overlay) overlay.style.display = isPaused ? 'flex' : 'none';
+
+  if (isPaused) {
+    stopTimer();
+    gameRef.child('game/paused').set(true);
+    if (btn) btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></svg>`;
+    showN('المسابقة متوقفة مؤقتاً', 'i');
+  } else {
+    gameRef.child('game/paused').set(false);
+    if (btn) btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+    // Resume timer if question was shown
+    if (S.qShown && S.timeLeft > 0) {
+      const q = S.questions[S.currentQ];
+      if (q) startTimer(S.timeLeft, q);
+    }
+    showN('المسابقة استُؤنفت', 's');
+  }
+}
+
+function confirmEndGame() {
+  showConfirm(
+    'إنهاء المسابقة',
+    'سيتم إنهاء المسابقة وعرض النتائج النهائية. هل أنت متأكد؟',
+    () => { if (isPaused) togglePause(); endGame(); },
+    'إنهاء وعرض النتائج'
+  );
+}
+
+function confirmCancelGame() {
+  showConfirm(
+    'إلغاء المسابقة',
+    'سيتم إلغاء المسابقة بالكامل وحذف جميع النقاط. هل أنت متأكد؟',
+    () => {
+      if (isPaused) {
+        isPaused = false;
+        document.getElementById('pause-overlay').style.display = 'none';
+      }
+      stopTimer();
+      gameRef.child('game').update({phase:'idle', paused:false});
+      gameRef.child('game/scores').remove();
+      goTo('host-setup');
+      showN('تم إلغاء المسابقة', 'i');
+    },
+    'إلغاء المسابقة',
+    true
+  );
+}
+
+function showConfirm(title, msg, action, okLabel='تأكيد', isDanger=false) {
+  confirmAction = action;
+  const dialog = document.getElementById('confirm-dialog');
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  const okBtn = document.getElementById('confirm-ok-btn');
+  okBtn.textContent = okLabel;
+  okBtn.className = 'btn ' + (isDanger ? 'btn-red' : 'btn-gold');
+  dialog.style.display = 'flex';
+}
+
+function closeConfirm() {
+  document.getElementById('confirm-dialog').style.display = 'none';
+  confirmAction = null;
+}
+
+function executeConfirm() {
+  closeConfirm();
+  if (typeof confirmAction === 'function') confirmAction();
+}
+
+// Listen for paused state on team side
+function watchPauseState() {
+  gameRef.child('game/paused').on('value', snap => {
+    const paused = snap.val();
+    const activeScreen = document.querySelector('.screen.active')?.id;
+    if (activeScreen === 'team-view') {
+      const tvStat = document.getElementById('tv-stat');
+      if (paused) {
+        if (tvStat) tvStat.textContent = 'المسابقة متوقفة مؤقتاً...';
+        stopTVTimer();
+      }
+    }
+  });
 }
 
 // ══════════════════════════════════════
