@@ -737,6 +737,73 @@ textarea { resize:vertical; min-height:68px; }
   .bzbtn { width:85px; height:85px; }
   .sc { min-width:95px; }
 }
+
+/* ══════════════════════════════════════
+   QUESTION BANK & AI GENERATION
+══════════════════════════════════════ */
+.start-mode-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px; }
+@media(max-width:560px) { .start-mode-grid { grid-template-columns:1fr; } }
+.start-mode-card {
+  border:2px solid var(--border); border-radius:var(--r-xl);
+  padding:20px 16px; text-align:center; cursor:pointer;
+  transition:all .25s; background:var(--surface);
+}
+.start-mode-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+.start-mode-card.selected { border-color:var(--blue); background:var(--blue-l); }
+.start-mode-icon { width:52px; height:52px; border-radius:14px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; }
+.start-mode-title { font-size:15px; font-weight:800; margin-bottom:5px; }
+.start-mode-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+
+.cat-grid { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.cat-pill {
+  padding:6px 14px; border-radius:20px; border:1.5px solid var(--border);
+  background:var(--surface2); cursor:pointer; font-size:12px; font-weight:700;
+  color:var(--text2); transition:all .2s; user-select:none;
+  display:flex; align-items:center; gap:5px;
+}
+.cat-pill:hover { border-color:var(--blue); color:var(--blue); }
+.cat-pill.selected { background:var(--blue-l); border-color:var(--blue); color:var(--blue); }
+
+.vote-cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-bottom:20px; }
+.vote-cat-btn {
+  border:2px solid var(--border); border-radius:var(--r-lg);
+  padding:14px 12px; text-align:center; cursor:pointer;
+  background:var(--surface); transition:all .2s; position:relative;
+}
+.vote-cat-btn:hover { border-color:var(--blue); transform:translateY(-2px); }
+.vote-cat-btn.voted { border-color:var(--blue); background:var(--blue-l); }
+.vote-cat-icon { width:36px; height:36px; border-radius:10px; margin:0 auto 8px; display:flex; align-items:center; justify-content:center; }
+.vote-cat-name { font-size:13px; font-weight:700; }
+.vote-cat-votes { font-size:11px; color:var(--muted); margin-top:3px; }
+.vote-bar-wrap { height:4px; background:var(--border); border-radius:2px; margin-top:6px; overflow:hidden; }
+.vote-bar-fill { height:100%; background:var(--blue); border-radius:2px; transition:width .5s; }
+
+.ai-loading { text-align:center; padding:32px; }
+.ai-spinner { width:48px; height:48px; border:3px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 14px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+.bank-q-item {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--r); padding:11px 14px; margin-bottom:7px;
+  display:flex; align-items:flex-start; gap:10px; cursor:pointer; transition:all .2s;
+}
+.bank-q-item:hover { border-color:var(--blue); }
+.bank-q-item.selected-q { border-color:var(--green); background:var(--green-l); }
+.bank-q-check { width:20px; height:20px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.bank-q-item.selected-q .bank-q-check { background:var(--green); border-color:var(--green); }
+.bank-q-text { flex:1; font-size:12px; font-weight:600; color:var(--text2); }
+
+.publish-toggle { display:flex; align-items:center; justify-content:space-between; background:var(--surface2); border:1px solid var(--border); border-radius:var(--r); padding:12px 14px; margin-top:10px; }
+.toggle-sw { position:relative; width:40px; height:22px; flex-shrink:0; }
+.toggle-sw input { opacity:0; width:0; height:0; }
+.toggle-sl { position:absolute; cursor:pointer; inset:0; background:var(--border); border-radius:11px; transition:.3s; }
+.toggle-sl:before { content:''; position:absolute; width:16px; height:16px; border-radius:50%; background:#fff; bottom:3px; right:3px; transition:.3s; }
+.toggle-sw input:checked + .toggle-sl { background:var(--blue); }
+.toggle-sw input:checked + .toggle-sl:before { transform:translateX(-18px); }
+
+/* Question Bank Screen */
+#bank-screen, #vote-screen, #ai-screen { background:var(--bg); }
+.bank-header { background:var(--surface); border-bottom:1px solid var(--border); padding:16px 20px; position:sticky; top:60px; z-index:99; }
 </style>
 </head>
 <body>
@@ -1253,6 +1320,311 @@ textarea { resize:vertical; min-height:68px; }
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     START MODE SELECTOR
+════════════════════════════════════════ -->
+<div id="start-mode-screen" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">Faisal App</div>
+    <div class="tb-right">
+      <button class="ico-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('host-setup')">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        رجوع
+      </button>
+    </div>
+  </div>
+  <div class="content">
+    <h2 style="font-size:20px;font-weight:900;margin-bottom:6px">كيف تريد أسئلة مسابقتك؟</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:22px">اختر الطريقة المناسبة لك</p>
+
+    <div class="start-mode-grid">
+      <div class="start-mode-card" onclick="selectStartMode('manual')">
+        <div class="start-mode-icon" style="background:var(--blue-l);color:var(--blue)">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div class="start-mode-title">يدوي</div>
+        <div class="start-mode-desc">أسئلتك المضافة مسبقاً جاهزة للاستخدام</div>
+      </div>
+      <div class="start-mode-card" onclick="selectStartMode('bank')">
+        <div class="start-mode-icon" style="background:var(--gold-l);color:var(--gold)">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        </div>
+        <div class="start-mode-title">من البنك العام</div>
+        <div class="start-mode-desc">اختر من آلاف الأسئلة المصنّفة</div>
+      </div>
+      <div class="start-mode-card" onclick="selectStartMode('ai')">
+        <div class="start-mode-icon" style="background:var(--purple-l);color:var(--purple)">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 010 2h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 010-2h1a7 7 0 017-7h1V5.73A2 2 0 0110 4a2 2 0 012-2z"/><path d="M7 14h0M12 12h0M17 14h0" stroke-width="3" stroke-linecap="round"/></svg>
+        </div>
+        <div class="start-mode-title">ذكاء اصطناعي</div>
+        <div class="start-mode-desc">يولّد أسئلة جديدة فورياً حسب الفئة</div>
+      </div>
+    </div>
+
+    <!-- Voting option -->
+    <div class="card">
+      <div class="card-title">
+        <div class="ico-wrap" style="background:rgba(217,119,6,.1);color:var(--gold)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+        </div>
+        تصويت المتسابقين على الفئات
+        <label class="toggle-sw" style="margin-right:auto">
+          <input type="checkbox" id="enable-voting" onchange="toggleVotingOption()">
+          <span class="toggle-sl"></span>
+        </label>
+      </div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7">
+        عند تفعيله، يصوّت المتسابقون على الفئات التي يريدونها قبل بدء المسابقة — الأسئلة تُنتقى نسبة وتناسب حسب الأصوات
+      </p>
+    </div>
+
+    <button class="btn btn-blue btn-full btn-lg" id="proceed-start-btn" onclick="proceedToStart()" disabled>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      متابعة
+    </button>
+  </div>
+  <footer class="footer">Dv: <b>Faisal Almutairi</b></footer>
+</div>
+
+<!-- ══════════════════════════════════════
+     BANK BROWSER SCREEN
+════════════════════════════════════════ -->
+<div id="bank-screen" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">البنك العام</div>
+    <div class="tb-right">
+      <span class="badge b-blue" id="bank-selected-count">0 محدد</span>
+      <button class="ico-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('start-mode-screen')">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="bank-header">
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="position:relative;flex:1;min-width:160px">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="bank-search" class="form-input" placeholder="بحث في الأسئلة..." style="padding-right:32px;font-size:13px" oninput="filterBankQuestions()">
+      </div>
+      <select id="bank-filter-cat" class="form-input" style="max-width:150px;font-size:13px" onchange="filterBankQuestions()">
+        <option value="">كل الفئات</option>
+      </select>
+      <select id="bank-filter-type" class="form-input" style="max-width:130px;font-size:13px" onchange="filterBankQuestions()">
+        <option value="">كل الأنواع</option>
+        <option value="mcq">اختيار متعدد</option>
+        <option value="text">كتابي</option>
+        <option value="buzz">زر سريع</option>
+      </select>
+    </div>
+    <div class="cat-grid" id="bank-cat-pills" style="margin:0"></div>
+  </div>
+
+  <div class="content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span id="bank-count-label" style="font-size:12px;color:var(--muted)">جارٍ التحميل...</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="selectAllBankQ()">تحديد الكل</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearBankSelection()">إلغاء الكل</button>
+      </div>
+    </div>
+    <div id="bank-q-list"></div>
+    <button class="btn btn-green btn-full btn-lg" id="bank-use-btn" onclick="useBankQuestions()" style="margin-top:12px" disabled>
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      استخدم الأسئلة المحددة وابدأ
+    </button>
+  </div>
+  <footer class="footer">Dv: <b>Faisal Almutairi</b></footer>
+</div>
+
+<!-- ══════════════════════════════════════
+     AI GENERATION SCREEN
+════════════════════════════════════════ -->
+<div id="ai-screen" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">توليد بالذكاء الاصطناعي</div>
+    <div class="tb-right">
+      <button class="ico-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('start-mode-screen')">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="card" id="ai-config-card">
+      <div class="card-title">
+        <div class="ico-wrap" style="background:var(--purple-l);color:var(--purple)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 010 2h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 010-2h1a7 7 0 017-7h1V5.73A2 2 0 0110 4a2 2 0 012-2z"/></svg>
+        </div>
+        إعداد التوليد
+      </div>
+
+      <div class="form-group">
+        <label>اختر الفئات (يمكن اختيار أكثر من فئة)</label>
+        <div class="cat-grid" id="ai-cat-grid" style="margin-top:8px"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="ai-custom-cat" class="form-input" placeholder="أضف فئة مخصصة..." style="font-size:13px">
+          <button class="btn btn-ghost btn-sm" onclick="addAICustomCat()">إضافة</button>
+        </div>
+      </div>
+
+      <div class="fr">
+        <div class="form-group">
+          <label>عدد الأسئلة</label>
+          <select id="ai-count" class="form-input">
+            <option value="5">5 أسئلة</option>
+            <option value="10" selected>10 أسئلة</option>
+            <option value="15">15 سؤال</option>
+            <option value="20">20 سؤال</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>نوع الأسئلة</label>
+          <select id="ai-type" class="form-input">
+            <option value="mixed">مختلطة</option>
+            <option value="mcq">اختيار متعدد فقط</option>
+            <option value="text">كتابية فقط</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>مستوى الصعوبة</label>
+        <div style="display:flex;gap:8px">
+          <button class="cat-pill selected" id="diff-easy" onclick="setDiff('easy',this)">سهل</button>
+          <button class="cat-pill" id="diff-med" onclick="setDiff('medium',this)">متوسط</button>
+          <button class="cat-pill" id="diff-hard" onclick="setDiff('hard',this)">صعب</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>سياق إضافي (اختياري)</label>
+        <textarea id="ai-context" class="form-input" placeholder="مثال: أسئلة متعلقة بالتاريخ الإسلامي في الأندلس..." style="min-height:52px;resize:none"></textarea>
+      </div>
+
+      <div class="publish-toggle">
+        <div>
+          <div style="font-size:13px;font-weight:700">إضافة للبنك العام</div>
+          <div style="font-size:11px;color:var(--muted)">تساعد بقية المستخدمين عند اختيار الفئة</div>
+        </div>
+        <label class="toggle-sw">
+          <input type="checkbox" id="ai-publish">
+          <span class="toggle-sl"></span>
+        </label>
+      </div>
+
+      <button class="btn btn-full btn-lg" style="background:linear-gradient(135deg,var(--purple),#5b21b6);color:#fff;margin-top:14px" onclick="generateAIQuestions()">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10"/></svg>
+        توليد الأسئلة الآن
+      </button>
+    </div>
+
+    <!-- Loading state -->
+    <div id="ai-loading" style="display:none" class="card">
+      <div class="ai-loading">
+        <div class="ai-spinner"></div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">جارٍ توليد الأسئلة...</div>
+        <div class="ai-status" id="ai-status-msg">يعمل الذكاء الاصطناعي على صياغة أسئلة مميزة</div>
+      </div>
+    </div>
+
+    <!-- Preview generated questions -->
+    <div id="ai-preview" style="display:none" class="card">
+      <div class="card-title">
+        <div class="ico-wrap" style="background:var(--green-l);color:var(--green)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        الأسئلة المولّدة
+        <span class="badge b-green" id="ai-q-count" style="margin-right:auto">0</span>
+      </div>
+      <div id="ai-q-list"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-green btn-full" onclick="useAIQuestions()">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          استخدم هذه الأسئلة وابدأ
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="regenerateAI()">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          توليد جديد
+        </button>
+      </div>
+    </div>
+  </div>
+  <footer class="footer">Dv: <b>Faisal Almutairi</b></footer>
+</div>
+
+<!-- ══════════════════════════════════════
+     VOTING SCREEN (for participants)
+════════════════════════════════════════ -->
+<div id="vote-screen" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">Faisal App</div>
+    <div class="tb-right">
+      <span class="badge b-gold">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>
+        التصويت
+      </span>
+      <button class="ico-btn" onclick="toggleTheme()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="content" style="max-width:660px">
+    <!-- Waiting for voting to open -->
+    <div id="vote-waiting" style="text-align:center;padding:40px 20px">
+      <div style="width:60px;height:60px;border-radius:50%;background:var(--gold-l);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--gold)">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>
+      </div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:6px">في انتظار فتح التصويت</div>
+      <div style="font-size:13px;color:var(--muted)">سيقوم المشرف بفتح التصويت قريباً</div>
+    </div>
+
+    <!-- Voting open for participants -->
+    <div id="vote-open" style="display:none">
+      <h2 style="font-size:20px;font-weight:900;margin-bottom:5px">صوّت على الفئات</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">اختر الفئات التي تريد الأسئلة منها — يمكنك اختيار أكثر من فئة</p>
+      <div class="vote-cat-grid" id="vote-cat-btns"></div>
+      <div class="card" style="margin-top:4px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">أصواتك <span class="badge b-blue" id="my-vote-count">0</span></div>
+        <div id="my-votes-summary" style="font-size:12px;color:var(--muted)">لم تصوّت بعد</div>
+      </div>
+      <button class="btn btn-blue btn-full btn-lg" id="submit-vote-btn" onclick="submitVote()" style="margin-top:12px">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>
+        إرسال تصويتي
+      </button>
+    </div>
+
+    <!-- Vote results (host controls) -->
+    <div id="vote-results-panel" style="display:none">
+      <div class="card">
+        <div class="card-title">
+          <div class="ico-wrap" style="background:var(--gold-l);color:var(--gold)">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          نتائج التصويت
+          <span class="badge b-blue" id="vote-total-count">0 صوت</span>
+        </div>
+        <div id="vote-results-list"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-green btn-full btn-lg" id="apply-votes-btn" onclick="applyVotesAndStart()">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+          تطبيق النتائج وبدء المسابقة
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="closeVoting()">إغلاق التصويت</button>
+      </div>
+    </div>
+  </div>
+  <footer class="footer">Dv: <b>Faisal Almutairi</b></footer>
+</div>
+
 <script>
 // ══════════════════════════════════════
 //  FIREBASE
@@ -1270,17 +1642,34 @@ const FB={
 };
 
 function initFB(){
-  if(!firebase.apps.length) firebase.initializeApp(FB);
-  db=firebase.database();
-  gameRef=db.ref('arena');
-  db.ref('.info/connected').on('value',snap=>{
-    const on=snap.val();
-    document.querySelectorAll('.cdot').forEach(d=>d.className='cdot '+(on?'ok':'bad'));
+  try {
+    if(!firebase.apps.length) firebase.initializeApp(FB);
+    db=firebase.database();
+    gameRef=db.ref('arena');
+
+    // Connection timeout — if no response in 8 seconds show error
+    let connResolved=false;
+    setTimeout(()=>{
+      if(!connResolved){
+        const el=document.getElementById('ctxt');
+        if(el) el.textContent='تعذّر الاتصال — تحقق من الإنترنت';
+      }
+    },8000);
+
+    db.ref('.info/connected').on('value',snap=>{
+      connResolved=true;
+      const on=snap.val();
+      document.querySelectorAll('.cdot').forEach(d=>d.className='cdot '+(on?'ok':'bad'));
+      const el=document.getElementById('ctxt');
+      if(el) el.textContent=on?'متصل بقاعدة البيانات':'انقطع الاتصال...';
+    });
+    setupListeners();
+    goTo('landing');
+  } catch(e) {
+    console.error('Firebase init error:', e);
     const el=document.getElementById('ctxt');
-    if(el) el.textContent=on?'متصل بقاعدة البيانات':'انقطع الاتصال...';
-  });
-  setupListeners();
-  goTo('landing');
+    if(el) el.textContent='خطأ في الاتصال: '+e.message;
+  }
 }
 
 // ══════════════════════════════════════
@@ -2853,6 +3242,700 @@ function loadDemo(){
 // ══════════════════════════════════════
 //  BOOT
 // ══════════════════════════════════════
+// ══════════════════════════════════════
+//  QUESTION BANK & CATEGORIES
+// ══════════════════════════════════════
+const DEFAULT_CATEGORIES = [
+  {id:'islamic',   label:'إسلامي',    color:'#059669', icon:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z'},
+  {id:'history',   label:'تاريخ',     color:'#d97706', icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'},
+  {id:'science',   label:'علوم',      color:'#2563eb', icon:'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3M6.343 6.343l-.707-.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'},
+  {id:'geography', label:'جغرافيا',   color:'#7c3aed', icon:'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064'},
+  {id:'sports',    label:'رياضة',     color:'#dc2626', icon:'M3 12a9 9 0 1018 0A9 9 0 003 12zm0 0l4.5 4.5m9-9L12 12m0 0l-4.5 4.5M12 12l4.5-4.5'},
+  {id:'culture',   label:'ثقافة',     color:'#db2777', icon:'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13'},
+  {id:'tech',      label:'تقنية',     color:'#0891b2', icon:'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18'},
+  {id:'language',  label:'لغة عربية', color:'#65a30d', icon:'M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129'},
+  {id:'quran',     label:'قرآن',      color:'#047857', icon:'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13'},
+  {id:'general',   label:'معلومات عامة', color:'#6366f1', icon:'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'},
+  {id:'politics',  label:'سياسة',     color:'#4b5563', icon:'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9'},
+  {id:'economy',   label:'اقتصاد',    color:'#b45309', icon:'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1'},
+];
+
+let CATEGORIES = [...DEFAULT_CATEGORIES];
+let bankQuestions = [];
+let bankSelectedIds = new Set();
+let aiGeneratedQuestions = [];
+let currentStartMode = 'manual';
+let aiDifficulty = 'easy';
+let myVotes = new Set();
+let votingEnabled = false;
+
+// Load categories from Firebase (Super Admin can add more)
+function loadCategories() {
+  db.ref('config/categories').once('value', snap => {
+    if (snap.val()) {
+      const extra = Object.values(snap.val());
+      CATEGORIES = [...DEFAULT_CATEGORIES, ...extra.filter(c => !DEFAULT_CATEGORIES.find(d => d.id === c.id))];
+    }
+    buildAllCatUIs();
+  });
+}
+
+function buildAllCatUIs() {
+  buildAICatGrid();
+  buildBankCatPills();
+  buildVoteCatBtns();
+}
+
+function catIconSVG(cat, size=18) {
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${cat.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${cat.icon}"/></svg>`;
+}
+
+// ══════════════════════════════════════
+//  START MODE SELECTOR
+// ══════════════════════════════════════
+function openStartModeSelector() {
+  loadCategories();
+  loadBankQuestions();
+  goTo('start-mode-screen');
+}
+
+function selectStartMode(mode) {
+  currentStartMode = mode;
+  document.querySelectorAll('.start-mode-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('proceed-start-btn').disabled = false;
+}
+
+function toggleVotingOption() {
+  votingEnabled = document.getElementById('enable-voting').checked;
+}
+
+function proceedToStart() {
+  if (currentStartMode === 'manual') {
+    if (votingEnabled) {
+      openVotingForHost();
+    } else {
+      startGame();
+    }
+  } else if (currentStartMode === 'bank') {
+    goTo('bank-screen');
+  } else if (currentStartMode === 'ai') {
+    goTo('ai-screen');
+  }
+}
+
+// Override start button to go to mode selector
+function openStartFlow() {
+  if (S.teams.length < 2) { showN('يلزم فريقان على الأقل','e'); return; }
+  openStartModeSelector();
+}
+
+// ══════════════════════════════════════
+//  QUESTION BANK
+// ══════════════════════════════════════
+function loadBankQuestions() {
+  db.ref('public_questions').orderByChild('approved').equalTo(true).once('value', snap => {
+    bankQuestions = snap.val() ? Object.entries(snap.val()).map(([id,q]) => ({id,...q})) : [];
+    renderBankQuestions(bankQuestions);
+    updateBankCatFilter();
+    document.getElementById('bank-count-label').textContent = bankQuestions.length + ' سؤال في البنك';
+  });
+}
+
+function buildBankCatPills() {
+  const el = document.getElementById('bank-cat-pills');
+  if (!el) return;
+  el.innerHTML = CATEGORIES.map(c => `
+    <button class="cat-pill" onclick="toggleBankCat('${c.id}',this)" data-cat="${c.id}">
+      ${catIconSVG(c, 13)} ${c.label}
+    </button>`).join('');
+}
+
+function toggleBankCat(catId, btn) {
+  btn.classList.toggle('selected');
+  filterBankQuestions();
+}
+
+function updateBankCatFilter() {
+  const sel = document.getElementById('bank-filter-cat');
+  if (!sel) return;
+  const cats = [...new Set(bankQuestions.map(q => q.category).filter(Boolean))];
+  sel.innerHTML = '<option value="">كل الفئات</option>' +
+    cats.map(c => {
+      const cat = CATEGORIES.find(x => x.id === c);
+      return `<option value="${c}">${cat?.label || c}</option>`;
+    }).join('');
+}
+
+function filterBankQuestions() {
+  const search = (document.getElementById('bank-search')?.value || '').toLowerCase();
+  const catFilter = document.getElementById('bank-filter-cat')?.value || '';
+  const typeFilter = document.getElementById('bank-filter-type')?.value || '';
+  const selectedCats = [...document.querySelectorAll('#bank-cat-pills .cat-pill.selected')].map(b => b.dataset.cat);
+
+  let filtered = bankQuestions.filter(q => {
+    const matchSearch = !search || q.text.toLowerCase().includes(search);
+    const matchCat = !catFilter || q.category === catFilter;
+    const matchType = !typeFilter || q.type === typeFilter;
+    const matchSelCat = selectedCats.length === 0 || selectedCats.includes(q.category);
+    return matchSearch && matchCat && matchType && matchSelCat;
+  });
+
+  renderBankQuestions(filtered);
+}
+
+function renderBankQuestions(list) {
+  const el = document.getElementById('bank-q-list');
+  if (!el) return;
+  const typeLabel = {mcq:'اختيار',text:'كتابي',buzz:'زر'};
+  const typeClass = {mcq:'b-purple',text:'b-green',buzz:'b-gold'};
+
+  if (!list.length) {
+    el.innerHTML = '<p style="text-align:center;color:var(--muted);padding:20px;font-size:13px">لا توجد أسئلة تطابق البحث</p>';
+    return;
+  }
+
+  el.innerHTML = list.map(q => {
+    const cat = CATEGORIES.find(c => c.id === q.category);
+    const isSel = bankSelectedIds.has(q.id);
+    return `<div class="bank-q-item ${isSel ? 'selected-q' : ''}" onclick="toggleBankQ('${q.id}',this)">
+      <div class="bank-q-check">
+        ${isSel ? `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+      </div>
+      <div>
+        <div class="bank-q-text">${q.text}</div>
+        <div class="bank-q-meta">
+          <span class="badge ${typeClass[q.type] || 'b-blue'}">${typeLabel[q.type] || q.type}</span>
+          ${cat ? `<span class="badge" style="background:${cat.color}15;color:${cat.color}">${cat.label}</span>` : ''}
+          ${q.votes ? `<span style="font-size:10px;color:var(--muted)">${q.votes} تصويت</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateBankSelCount();
+}
+
+function toggleBankQ(id, el) {
+  if (bankSelectedIds.has(id)) {
+    bankSelectedIds.delete(id);
+    el.classList.remove('selected-q');
+    el.querySelector('.bank-q-check').innerHTML = '';
+  } else {
+    bankSelectedIds.add(id);
+    el.classList.add('selected-q');
+    el.querySelector('.bank-q-check').innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+  }
+  updateBankSelCount();
+}
+
+function selectAllBankQ() {
+  document.querySelectorAll('.bank-q-item').forEach(el => {
+    const id = el.onclick.toString().match(/'([^']+)'/)?.[1];
+    if (id) bankSelectedIds.add(id);
+    el.classList.add('selected-q');
+    const ch = el.querySelector('.bank-q-check');
+    if (ch) ch.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+  });
+  updateBankSelCount();
+}
+
+function clearBankSelection() {
+  bankSelectedIds.clear();
+  document.querySelectorAll('.bank-q-item').forEach(el => {
+    el.classList.remove('selected-q');
+    const ch = el.querySelector('.bank-q-check');
+    if (ch) ch.innerHTML = '';
+  });
+  updateBankSelCount();
+}
+
+function updateBankSelCount() {
+  const n = bankSelectedIds.size;
+  document.getElementById('bank-selected-count').textContent = n + ' محدد';
+  const btn = document.getElementById('bank-use-btn');
+  if (btn) btn.disabled = n === 0;
+}
+
+async function useBankQuestions() {
+  const selected = bankQuestions.filter(q => bankSelectedIds.has(q.id));
+  if (!selected.length) return;
+
+  // Clear existing questions and load selected
+  await gameRef.child('questions').remove();
+  for (let i = 0; i < selected.length; i++) {
+    const q = {...selected[i], order: i};
+    delete q.votes; delete q.usedCount; delete q.approved;
+    const key = gameRef.child('questions').push().key;
+    q.id = key;
+    await gameRef.child('questions/' + key).set(q);
+    // Increment usedCount
+    db.ref('public_questions/' + selected[i].id + '/usedCount').transaction(c => (c || 0) + 1);
+  }
+
+  showN(`تم تحميل ${selected.length} سؤال من البنك`, 's');
+
+  if (votingEnabled) {
+    openVotingForHost();
+  } else {
+    goTo('host-setup');
+    swTab('questions');
+    setTimeout(startGame, 300);
+  }
+}
+
+// ══════════════════════════════════════
+//  AI QUESTION GENERATION
+// ══════════════════════════════════════
+let aiSelectedCats = new Set();
+
+function buildAICatGrid() {
+  const el = document.getElementById('ai-cat-grid');
+  if (!el) return;
+  el.innerHTML = CATEGORIES.map(c => `
+    <button class="cat-pill" onclick="toggleAICat('${c.id}',this)">
+      ${catIconSVG(c, 13)} ${c.label}
+    </button>`).join('');
+}
+
+function toggleAICat(id, btn) {
+  if (aiSelectedCats.has(id)) {
+    aiSelectedCats.delete(id);
+    btn.classList.remove('selected');
+  } else {
+    aiSelectedCats.add(id);
+    btn.classList.add('selected');
+  }
+}
+
+function addAICustomCat() {
+  const inp = document.getElementById('ai-custom-cat');
+  const val = inp?.value.trim();
+  if (!val) return;
+  const id = 'custom_' + Date.now();
+  CATEGORIES.push({id, label:val, color:'#6366f1', icon:'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'});
+  aiSelectedCats.add(id);
+  buildAICatGrid();
+  // Re-select all previously selected
+  document.querySelectorAll('#ai-cat-grid .cat-pill').forEach(btn => {
+    const catId = btn.onclick.toString().match(/'([^']+)'/)?.[1];
+    if (catId && aiSelectedCats.has(catId)) btn.classList.add('selected');
+  });
+  inp.value = '';
+}
+
+function setDiff(level, btn) {
+  aiDifficulty = level;
+  document.querySelectorAll('[id^="diff-"]').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+async function generateAIQuestions() {
+  if (aiSelectedCats.size === 0) { showN('اختر فئة واحدة على الأقل', 'e'); return; }
+
+  const count = parseInt(document.getElementById('ai-count').value) || 10;
+  const type = document.getElementById('ai-type').value;
+  const context = document.getElementById('ai-context')?.value?.trim() || '';
+  const catNames = [...aiSelectedCats].map(id => CATEGORIES.find(c => c.id === id)?.label || id).join('، ');
+
+  document.getElementById('ai-config-card').style.display = 'none';
+  document.getElementById('ai-loading').style.display = 'block';
+  document.getElementById('ai-preview').style.display = 'none';
+
+  const typeInstruction = type === 'mcq'
+    ? 'اختيار متعدد فقط (4 خيارات)'
+    : type === 'text'
+    ? 'إجابة كتابية فقط'
+    : 'مزيج من اختيار متعدد وإجابة كتابية';
+
+  const diffMap = {easy:'سهل ومناسب لعامة الناس', medium:'متوسط الصعوبة', hard:'صعب يتطلب معرفة متعمقة'};
+
+  const prompt = `أنت مساعد لإنشاء أسئلة مسابقة باللغة العربية.
+
+أنشئ ${count} سؤال مسابقة تفاعلية في الفئات التالية: ${catNames}.
+نوع الأسئلة: ${typeInstruction}.
+مستوى الصعوبة: ${diffMap[aiDifficulty]}.
+${context ? 'سياق إضافي: ' + context : ''}
+
+أعد الأسئلة بصيغة JSON فقط بدون أي نص إضافي:
+{
+  "questions": [
+    {
+      "text": "نص السؤال",
+      "type": "mcq" أو "text",
+      "pts": 10,
+      "time": 30,
+      "category": "معرف الفئة",
+      "options": ["خ1","خ2","خ3","خ4"],  // للاختيار المتعدد فقط
+      "correct": 0,  // رقم الخيار الصحيح (0-3) للاختيار المتعدد
+      "answer": "الإجابة"  // للكتابي فقط
+    }
+  ]
+}
+
+معرّفات الفئات: ${CATEGORIES.map(c => c.id + '=' + c.label).join(', ')}
+تأكد أن الأسئلة صحيحة ومتنوعة وشيّقة.`;
+
+  try {
+    document.getElementById('ai-status-msg').textContent = 'يصوغ الذكاء الاصطناعي الأسئلة...';
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{role:'user', content: prompt}]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+
+    // Parse JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('لم يتم إرجاع JSON صحيح');
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    aiGeneratedQuestions = parsed.questions || [];
+
+    if (!aiGeneratedQuestions.length) throw new Error('لا توجد أسئلة في الرد');
+
+    showAIPreview(aiGeneratedQuestions);
+
+    // Optionally publish to bank
+    if (document.getElementById('ai-publish')?.checked) {
+      publishToBank(aiGeneratedQuestions);
+    }
+
+  } catch(err) {
+    document.getElementById('ai-loading').style.display = 'none';
+    document.getElementById('ai-config-card').style.display = 'block';
+    showN('خطأ في التوليد: ' + err.message, 'e');
+  }
+}
+
+function showAIPreview(questions) {
+  document.getElementById('ai-loading').style.display = 'none';
+  document.getElementById('ai-preview').style.display = 'block';
+  document.getElementById('ai-q-count').textContent = questions.length;
+
+  const typeLabel = {mcq:'اختيار',text:'كتابي',buzz:'زر'};
+  const typeClass = {mcq:'b-purple',text:'b-green',buzz:'b-gold'};
+
+  document.getElementById('ai-q-list').innerHTML = questions.map((q, i) => {
+    const cat = CATEGORIES.find(c => c.id === q.category);
+    return `<div class="bank-q-item selected-q" style="cursor:default">
+      <div class="bank-q-check">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <div class="bank-q-text">${i+1}. ${q.text}</div>
+        ${q.type === 'mcq' && q.options ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${q.options.map((o,j) => `${['أ','ب','ج','د'][j]}. ${o}`).join(' | ')}</div>` : ''}
+        ${q.answer ? `<div style="font-size:11px;color:var(--green);margin-top:2px">الإجابة: ${q.answer}</div>` : ''}
+        <div class="bank-q-meta">
+          <span class="badge ${typeClass[q.type]||'b-blue'}">${typeLabel[q.type]||q.type}</span>
+          ${cat ? `<span class="badge" style="background:${cat.color}15;color:${cat.color}">${cat.label}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function useAIQuestions() {
+  await gameRef.child('questions').remove();
+  for (let i = 0; i < aiGeneratedQuestions.length; i++) {
+    const q = {
+      ...aiGeneratedQuestions[i],
+      order: i,
+      pts: aiGeneratedQuestions[i].pts || 10,
+      time: aiGeneratedQuestions[i].time || 30
+    };
+    const key = gameRef.child('questions').push().key;
+    q.id = key;
+    await gameRef.child('questions/' + key).set(q);
+  }
+  showN(`تم تحميل ${aiGeneratedQuestions.length} سؤال`, 's');
+  if (votingEnabled) openVotingForHost();
+  else { goTo('host-setup'); swTab('questions'); setTimeout(startGame, 300); }
+}
+
+function regenerateAI() {
+  document.getElementById('ai-preview').style.display = 'none';
+  document.getElementById('ai-config-card').style.display = 'block';
+}
+
+function publishToBank(questions) {
+  questions.forEach(q => {
+    const ref = db.ref('public_questions').push();
+    ref.set({
+      ...q,
+      approved: false, // Awaits Super Admin approval
+      votes: 0,
+      usedCount: 0,
+      addedBy: gameRef.key || 'user',
+      addedAt: Date.now()
+    });
+  });
+}
+
+// ══════════════════════════════════════
+//  SAVE QUESTIONS TO PUBLIC BANK
+// ══════════════════════════════════════
+// Hook into saveQ to offer publishing
+const _origSaveQ = window.saveQ;
+
+// Add publish toggle to question form
+function injectPublishToggle() {
+  const card = document.getElementById('add-q-card');
+  if (!card || document.getElementById('publish-toggle-wrap')) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'publish-toggle-wrap';
+  wrap.className = 'publish-toggle';
+  wrap.style.marginTop = '10px';
+  wrap.innerHTML = `
+    <div>
+      <div style="font-size:13px;font-weight:700">إضافة للبنك العام</div>
+      <div style="font-size:11px;color:var(--muted)">يساعد المستخدمين الآخرين (يظهر بعد مراجعة)</div>
+    </div>
+    <label class="toggle-sw">
+      <input type="checkbox" id="q-publish-toggle">
+      <span class="toggle-sl"></span>
+    </label>`;
+  const actions = card.querySelector('[id="btn-save-q"]')?.parentElement;
+  if (actions) actions.before(wrap);
+}
+
+// Override saveQ to also publish if requested
+const origSaveQFn = window.saveQ;
+// We'll patch after load:
+
+// ══════════════════════════════════════
+//  VOTING SYSTEM
+// ══════════════════════════════════════
+function buildVoteCatBtns() {
+  const el = document.getElementById('vote-cat-btns');
+  if (!el) return;
+  el.innerHTML = CATEGORIES.map(c => `
+    <div class="vote-cat-btn" onclick="toggleMyVote('${c.id}',this)">
+      <div class="vote-cat-icon" style="background:${c.color}18;color:${c.color}">
+        ${catIconSVG(c, 20)}
+      </div>
+      <div class="vote-cat-name">${c.label}</div>
+      <div class="vote-cat-votes" id="vote-count-${c.id}">0 صوت</div>
+      <div class="vote-bar-wrap"><div class="vote-bar-fill" id="vote-bar-${c.id}" style="width:0%"></div></div>
+    </div>`).join('');
+}
+
+function toggleMyVote(catId, btn) {
+  const MAX_VOTES = 3; // Each participant can vote for up to 3 categories
+  if (myVotes.has(catId)) {
+    myVotes.delete(catId);
+    btn.classList.remove('voted');
+  } else {
+    if (myVotes.size >= MAX_VOTES) {
+      showN(`يمكنك اختيار ${MAX_VOTES} فئات كحد أقصى`, 'e');
+      return;
+    }
+    myVotes.add(catId);
+    btn.classList.add('voted');
+  }
+  updateMyVoteSummary();
+}
+
+function updateMyVoteSummary() {
+  const count = document.getElementById('my-vote-count');
+  const summary = document.getElementById('my-votes-summary');
+  if (count) count.textContent = myVotes.size;
+  if (summary) {
+    if (myVotes.size === 0) { summary.textContent = 'لم تصوّت بعد'; return; }
+    const names = [...myVotes].map(id => CATEGORIES.find(c => c.id === id)?.label || id);
+    summary.textContent = 'اخترت: ' + names.join('، ');
+  }
+}
+
+function submitVote() {
+  if (!myVotes.size) { showN('اختر فئة واحدة على الأقل', 'e'); return; }
+  const teamId = S.selTeamId || ('anon_' + Math.random().toString(36).slice(2,8));
+  const voteData = {};
+  myVotes.forEach(catId => { voteData[catId] = true; });
+  gameRef.child('votes/' + teamId).set(voteData).then(() => {
+    showN('تم إرسال تصويتك!', 's');
+    document.getElementById('submit-vote-btn').disabled = true;
+    document.getElementById('submit-vote-btn').textContent = 'تم التصويت';
+  });
+}
+
+// Host opens voting
+function openVotingForHost() {
+  gameRef.child('game').update({phase:'voting', votingOpen:true});
+  loadCategories();
+  buildVoteResultsPanel();
+  goTo('vote-screen');
+  document.getElementById('vote-waiting').style.display = 'none';
+  document.getElementById('vote-open').style.display = 'none';
+  document.getElementById('vote-results-panel').style.display = 'block';
+  // Listen to votes
+  gameRef.child('votes').on('value', snap => {
+    updateVoteResults(snap.val() || {});
+  });
+}
+
+function buildVoteResultsPanel() {
+  // Results are live-updated by the listener
+}
+
+function updateVoteResults(votesData) {
+  const counts = {};
+  Object.values(votesData).forEach(teamVotes => {
+    Object.keys(teamVotes).forEach(catId => {
+      counts[catId] = (counts[catId] || 0) + 1;
+    });
+  });
+  const totalVoters = Object.keys(votesData).length;
+  document.getElementById('vote-total-count').textContent = totalVoters + ' مشارك صوّت';
+
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+  const el = document.getElementById('vote-results-list');
+  if (!el) return;
+
+  el.innerHTML = sorted.map(([catId, votes], i) => {
+    const cat = CATEGORIES.find(c => c.id === catId);
+    const pct = totalVoters > 0 ? Math.round(votes/totalVoters*100) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;color:var(--muted);width:18px">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px">
+          ${catIconSVG(cat||{color:'#6366f1',icon:'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}, 14)}
+          ${cat?.label || catId}
+        </div>
+        <div style="height:5px;background:var(--border);border-radius:3px;margin-top:5px;overflow:hidden">
+          <div style="height:100%;background:${cat?.color||'var(--blue)'};width:${pct}%;border-radius:3px;transition:width .5s"></div>
+        </div>
+      </div>
+      <div style="font-family:'Exo 2',sans-serif;font-size:14px;font-weight:900;color:var(--blue)">${pct}%</div>
+      <div style="font-size:11px;color:var(--muted)">${votes} صوت</div>
+    </div>`;
+  }).join('') || '<p style="color:var(--muted);text-align:center;padding:16px">لا توجد أصوات بعد</p>';
+}
+
+async function applyVotesAndStart() {
+  // Read votes and select questions proportionally
+  const snap = await gameRef.child('votes').once('value');
+  const votesData = snap.val() || {};
+
+  const counts = {};
+  Object.values(votesData).forEach(tv => {
+    Object.keys(tv).forEach(catId => { counts[catId] = (counts[catId] || 0) + 1; });
+  });
+
+  const totalVotes = Object.values(counts).reduce((s,v) => s+v, 0);
+  if (!totalVotes) { startGame(); return; }
+
+  // Load questions from bank for voted categories
+  const bankSnap = await db.ref('public_questions').orderByChild('approved').equalTo(true).once('value');
+  const allBankQ = bankSnap.val() ? Object.entries(bankSnap.val()).map(([id,q])=>({id,...q})) : [];
+
+  const targetTotal = 15;
+  const selected = [];
+
+  Object.entries(counts)
+    .sort((a,b) => b[1]-a[1])
+    .forEach(([catId, votes]) => {
+      const proportion = votes / totalVotes;
+      const targetCount = Math.max(1, Math.round(proportion * targetTotal));
+      const catQ = allBankQ.filter(q => q.category === catId);
+      // Shuffle and take needed count
+      const shuffled = catQ.sort(() => Math.random() - 0.5).slice(0, targetCount);
+      selected.push(...shuffled);
+    });
+
+  if (selected.length === 0) {
+    showN('لا توجد أسئلة في البنك للفئات المختارة', 'e');
+    return;
+  }
+
+  // Load selected questions
+  await gameRef.child('questions').remove();
+  for (let i = 0; i < selected.length; i++) {
+    const q = {...selected[i], order: i};
+    delete q.votes; delete q.usedCount; delete q.approved;
+    const key = gameRef.child('questions').push().key;
+    q.id = key;
+    await gameRef.child('questions/' + key).set(q);
+  }
+
+  // Close voting
+  await gameRef.child('game').update({votingOpen: false, phase:'idle'});
+  gameRef.child('votes').remove();
+
+  showN(`تم تحميل ${selected.length} سؤال حسب نتائج التصويت`, 's');
+  goTo('host-setup');
+  swTab('questions');
+  setTimeout(startGame, 400);
+}
+
+function closeVoting() {
+  gameRef.child('game').update({votingOpen:false});
+  goTo('host-setup');
+}
+
+// Listen for voting state on team side
+function setupVoteListener() {
+  gameRef.child('game/votingOpen').on('value', snap => {
+    if (!snap.val()) return;
+    const active = document.querySelector('.screen.active')?.id;
+    if (active === 'team-view' && S.selTeamId) {
+      // Show vote screen to participants
+      loadCategories();
+      buildVoteCatBtns();
+      goTo('vote-screen');
+      document.getElementById('vote-waiting').style.display = 'none';
+      document.getElementById('vote-open').style.display = 'block';
+      document.getElementById('vote-results-panel').style.display = 'none';
+      // Live vote counts
+      gameRef.child('votes').on('value', vSnap => {
+        updateLiveVoteCounts(vSnap.val() || {});
+      });
+    }
+  });
+}
+
+function updateLiveVoteCounts(votesData) {
+  const counts = {};
+  Object.values(votesData).forEach(tv => {
+    Object.keys(tv).forEach(catId => { counts[catId] = (counts[catId] || 0) + 1; });
+  });
+  const total = Object.values(counts).reduce((s,v) => s+v, 0);
+  CATEGORIES.forEach(c => {
+    const votes = counts[c.id] || 0;
+    const pct = total > 0 ? Math.round(votes/total*100) : 0;
+    const countEl = document.getElementById('vote-count-' + c.id);
+    const barEl = document.getElementById('vote-bar-' + c.id);
+    if (countEl) countEl.textContent = votes + ' صوت';
+    if (barEl) barEl.style.width = pct + '%';
+  });
+}
+
+// ══════════════════════════════════════
+//  PATCH EXISTING FUNCTIONS
+// ══════════════════════════════════════
+
+// Override start button behavior
+const _origStartGame = startGame;
+// Replace start-btn onclick
+document.addEventListener('DOMContentLoaded', () => {
+  injectPublishToggle();
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) startBtn.onclick = openStartFlow;
+
+  // Watch for voting on team view
+  setupVoteListener();
+});
+
+// Patch goTo to init categories when needed
+const _origGoTo = goTo;
+
 initFB();
 </script>
 </body>
