@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#06050f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Faisal Arena 2 — التنافس الحقيقي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Exo+2:wght@700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#06050f;--bg2:#0c0b1e;--s:#111028;--s2:#1a1838;
+  --b:#2a2850;--b2:#3d3a70;
+  --neon:#7c3aed;--neon2:#a855f7;--gold:#f59e0b;--gold2:#fbbf24;
+  --green:#10b981;--red:#ef4444;--blue:#3b82f6;--orange:#f97316;
+  --text:#f8f8ff;--text2:#c4c3e0;--muted:#6b6b9a;
+  --r:12px;--rl:18px;--rxl:24px;
+  --gn:0 0 24px rgba(124,58,237,.4);--gg:0 0 24px rgba(245,158,11,.35);
+  --sh:0 4px 30px rgba(0,0,0,.7);
+}
+[data-theme=light]{
+  --bg:#f5f3ff;--bg2:#ede9fe;--s:#fff;--s2:#f0ebff;
+  --b:#ddd6fe;--b2:#c4b5fd;
+  --neon:#6d28d9;--neon2:#7c3aed;--gold:#c47f00;
+  --text:#1e1b4b;--text2:#3730a3;--muted:#6b7280;
+  --sh:0 4px 20px rgba(109,40,217,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+.bg-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 30% 20%,rgba(124,58,237,.08),transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(245,158,11,.06),transparent 60%)}
+.bg-dots{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(rgba(124,58,237,.12) 1px,transparent 1px);background-size:28px 28px}
+[data-theme=light] .bg-dots{background-image:radial-gradient(rgba(109,40,217,.08) 1px,transparent 1px)}
+.scr{display:none;position:relative;z-index:1;min-height:100vh;min-height:100dvh;flex-direction:column}
+.scr.on{display:flex}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:54px;
+  background:rgba(6,5,15,.88);border-bottom:1px solid var(--b);backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:100}
+[data-theme=light] .bar{background:rgba(245,243,255,.92);border-bottom-color:var(--b)}
+.bar-brand{font-family:'Exo 2',sans-serif;font-size:17px;font-weight:900;
+  background:linear-gradient(135deg,var(--neon2),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.bar-r{display:flex;align-items:center;gap:7px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 18px;border:none;border-radius:var(--r);
+  font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .18s;white-space:nowrap;position:relative;overflow:hidden}
+.btn:active{transform:scale(.95)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.b-p{background:linear-gradient(135deg,var(--neon),#5b21b6);color:#fff;box-shadow:var(--gn)}
+.b-g{background:linear-gradient(135deg,var(--gold),#d97706);color:#000;box-shadow:var(--gg)}
+.b-gr{background:linear-gradient(135deg,var(--green),#059669);color:#fff}
+.b-r{background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff}
+.b-b{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:#fff}
+.b-gh{background:transparent;border:1.5px solid var(--b2);color:var(--text2)}
+.b-gh:hover{border-color:var(--neon2);color:var(--neon2)}
+.b-sm{padding:5px 12px;font-size:12px;border-radius:8px}
+.b-lg{padding:13px 28px;font-size:15px;border-radius:var(--rl)}
+.b-xl{padding:16px 36px;font-size:17px;font-weight:900;border-radius:var(--rl)}
+.b-fw{width:100%}
+.ico{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--b2);
+  background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .18s;color:var(--text2)}
+.ico:hover{border-color:var(--neon2);color:var(--neon2)}
+.inp{width:100%;background:var(--s2);border:1.5px solid var(--b2);border-radius:var(--r);
+  padding:11px 14px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;transition:border .2s}
+.inp:focus{outline:none;border-color:var(--neon2);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+.inp::placeholder{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bn{background:rgba(168,85,247,.12);color:var(--neon2);border:1px solid rgba(168,85,247,.3)}
+.bg2{background:rgba(245,158,11,.1);color:var(--gold);border:1px solid rgba(245,158,11,.3)}
+.br2{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.bgr{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+/* Animations */
+@keyframes logo-glow{from{filter:drop-shadow(0 0 20px rgba(124,58,237,.3))}to{filter:drop-shadow(0 0 45px rgba(124,58,237,.6))}}
+@keyframes slide-up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop-in{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes wd-a{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1.2);opacity:1}}
+@keyframes sr-pulse{from{opacity:1}to{opacity:.4}}
+@keyframes cff{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@keyframes dng{from{box-shadow:0 0 8px rgba(239,68,68,.3)}to{box-shadow:0 0 18px rgba(239,68,68,.6)}}
+@keyframes tr-pulse{from{transform:scale(1)}to{transform:scale(1.1)}}
+@keyframes bq-slide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes trophy-bounce{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-14px) rotate(5deg)}}
+/* HOME */
+#home{align-items:center;justify-content:center;padding:28px 20px 90px}
+.hw{max-width:440px;width:100%;display:flex;flex-direction:column;align-items:center}
+.logo{font-family:'Exo 2',sans-serif;font-size:clamp(48px,13vw,86px);font-weight:900;letter-spacing:-3px;line-height:1;text-align:center;
+  background:linear-gradient(135deg,var(--neon2),var(--gold) 55%,var(--neon2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:logo-glow 3s ease-in-out infinite alternate}
+.tagline{font-size:12px;letter-spacing:5px;text-transform:uppercase;color:var(--muted);margin-top:4px;margin-bottom:18px;text-align:center}
+.live-strip{display:flex;gap:20px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+.ls-v{font-family:'Exo 2',sans-serif;font-size:22px;font-weight:900;color:var(--neon2);text-align:center}
+.ls-l{font-size:10px;color:var(--muted);text-align:center;margin-top:1px}
+.srs{width:100%;margin-bottom:18px}
+.srs-ttl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.srs-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.srs-list::-webkit-scrollbar{display:none}
+.sr-chip{flex-shrink:0;background:var(--s);border:1.5px solid var(--b);border-radius:var(--r);padding:10px 14px;cursor:pointer;transition:all .2s;min-width:130px}
+.sr-chip:hover{border-color:var(--neon2);transform:translateY(-2px)}
+.src-name{font-size:13px;font-weight:800;margin-bottom:3px}
+.src-meta{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.sr-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:sr-pulse 1.5s infinite alternate}
+.hbtns{width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.hbtn{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--rl);
+  border:1.5px solid var(--b2);background:var(--s);cursor:pointer;transition:all .22s;font-family:'Tajawal',sans-serif;text-align:right;width:100%}
+.hbtn:hover{transform:translateX(-3px)}
+.hbtn.hc:hover{border-color:var(--neon2);box-shadow:var(--gn)}
+.hbtn.hj:hover{border-color:var(--gold);box-shadow:var(--gg)}
+.hbtn.hr:hover{border-color:var(--green);box-shadow:0 0 20px rgba(16,185,129,.2)}
+.hbtn.hs:hover{border-color:var(--blue)}
+.hbi{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hbt{font-size:15px;font-weight:800;color:var(--text);margin-bottom:2px}
+.hbd{font-size:11px;color:var(--muted)}
+.hba{margin-right:auto;color:var(--muted)}
+/* NAME / JOIN */
+#name-entry,#join-scr{align-items:center;justify-content:center;padding:24px}
+.nc{background:var(--s);border:1px solid var(--b);border-radius:var(--rxl);padding:32px 26px;width:100%;max-width:390px;animation:slide-up .35s ease}
+.nh{font-size:20px;font-weight:900;text-align:center;margin-bottom:4px}
+.ns2{font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px}
+.avg{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px}
+.avb{width:44px;height:44px;border-radius:50%;border:2px solid var(--b2);background:var(--s2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s}
+.avb:hover{transform:scale(1.12);border-color:var(--neon2)}
+.avb.pk{border-color:var(--gold2);box-shadow:0 0 12px rgba(245,158,11,.3);background:rgba(245,158,11,.08)}
+/* CREATE */
+#create-scr{flex-direction:column}
+.feat-card{background:var(--s);border:2px solid var(--neon2);border-radius:var(--rl);padding:13px;cursor:pointer;text-align:center;transition:all .2s}
+.feat-card.off{opacity:.4;border-color:var(--b)}
+/* SYSTEM ROOMS */
+#sys-rooms{flex-direction:column}
+.src-card{background:var(--s);border:1.5px solid var(--b);border-left:4px solid var(--neon2);border-right:none;border-radius:var(--rl);padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.src-card:hover{border-color:var(--neon2);transform:translateX(-3px);box-shadow:var(--gn)}
+[dir=rtl] .src-card{border-right:4px solid var(--neon2);border-left:none}
+.src-name{font-size:15px;font-weight:800;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+.src-meta2{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.src-pbar{margin-top:10px;height:4px;background:var(--b);border-radius:2px;overflow:hidden}
+.src-fill{height:100%;background:linear-gradient(90deg,var(--neon2),var(--gold));border-radius:2px;transition:width .5s}
+/* LOBBY */
+#lobby{flex-direction:column}
+.lhero{text-align:center;padding:24px 16px 14px}
+.lcode-l{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.lcode{font-family:'Exo 2',sans-serif;font-size:clamp(36px,9vw,64px);font-weight:900;letter-spacing:8px;
+  background:linear-gradient(135deg,var(--neon2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lshare{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.pw{display:flex;flex-wrap:wrap;gap:9px;padding:14px 16px;justify-content:center}
+.pc{background:var(--s);border:1.5px solid var(--b);border-radius:var(--rl);padding:12px 14px;text-align:center;min-width:90px;transition:all .3s;animation:pop-in .4s cubic-bezier(.175,.885,.32,1.275)}
+.pc.hpc{border-color:var(--gold)}.pc.spc{border-color:var(--blue);opacity:.8}
+.pav{width:40px;height:40px;border-radius:50%;margin:0 auto 7px;display:flex;align-items:center;justify-content:center}
+.pn{font-size:12px;font-weight:700}.pl{font-size:9px;margin-top:2px}
+.lcfg{padding:0 16px 14px}
+.cfgr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--b);font-size:13px}
+.cfgr:last-child{border:none}.cfgk{color:var(--muted)}.cfgv{font-weight:700}
+.cdb-w{padding:0 16px 10px}
+.cdb-t{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
+.cdb-b{height:5px;background:var(--b);border-radius:3px;overflow:hidden}
+.cdb-f{height:100%;background:linear-gradient(90deg,var(--gold),var(--red));border-radius:3px;transition:width 1s linear}
+/* PICK CAT */
+#pick-cat{align-items:center;justify-content:center;padding:24px}
+.pick-w{max-width:500px;width:100%;animation:slide-up .3s ease}
+.pick-hero{text-align:center;margin-bottom:24px}
+.pick-av{width:64px;height:64px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(124,58,237,.4);border:2px solid var(--neon2)}
+.pick-name{font-size:18px;font-weight:900;margin-bottom:4px}
+.pick-sub{font-size:13px;color:var(--muted)}
+.cpg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.cpb{border:2px solid var(--b2);border-radius:var(--rl);padding:18px 10px;background:var(--s);cursor:pointer;transition:all .22s;text-align:center}
+.cpb:hover{transform:translateY(-4px);box-shadow:var(--gn)}
+.cpbi{width:42px;height:42px;border-radius:12px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center}
+.cpbn{font-size:13px;font-weight:800}.cpbp{font-size:10px;color:var(--muted);margin-top:3px}
+.watch-ov{text-align:center;padding:32px 20px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+.watch-nm{font-size:20px;font-weight:900;color:var(--text)}
+.wd-row{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.wd{width:8px;height:8px;border-radius:50%;background:var(--neon2);animation:wd-a 1.4s ease-in-out infinite}
+.wd:nth-child(2){animation-delay:.2s}.wd:nth-child(3){animation-delay:.4s}
+/* BET */
+#bet-scr{align-items:center;justify-content:center;padding:24px}
+.bet-w{max-width:420px;width:100%;animation:slide-up .3s ease}
+.bet-bal{font-family:'Exo 2',sans-serif;font-size:36px;font-weight:900;text-align:center;color:var(--gold);margin-bottom:18px}
+.bet-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.bet-o{border:2px solid var(--b2);border-radius:var(--rl);padding:16px;text-align:center;cursor:pointer;transition:all .2s;background:var(--s)}
+.bet-o:hover{border-color:var(--gold);background:rgba(245,158,11,.05)}
+.bet-o.pk{border-color:var(--gold);background:rgba(245,158,11,.1);box-shadow:var(--gg)}
+.bet-pct{font-family:'Exo 2',sans-serif;font-size:22px;font-weight:900;color:var(--gold)}
+.bet-pts{font-size:11px;color:var(--muted);margin-top:3px}
+.bet-cust{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+/* GAME */
+#game-scr{flex-direction:column}
+.gtop{padding:10px 14px;display:flex;align-items:center;gap:10px;background:var(--bg2);border-bottom:1px solid var(--b)}
+.gqn{font-family:'Exo 2',sans-serif;font-size:12px;font-weight:900;color:var(--muted)}
+.gpw{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--gold);font-size:11px;font-weight:700}
+.danger-b{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;background:linear-gradient(135deg,rgba(239,68,68,.2),rgba(249,115,22,.2));border:1px solid var(--red);color:var(--red);animation:dng .6s ease-in-out infinite alternate}
+.lives-r{display:flex;gap:4px;align-items:center;margin-right:auto}
+.lhrt{font-size:16px;transition:all .3s}
+.lhrt.lost{color:var(--muted);filter:grayscale(1)}
+.qprog{height:3px;background:var(--b)}.qpf{height:100%;background:linear-gradient(90deg,var(--neon2),var(--gold));transition:width .4s}
+.tr{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Exo 2',sans-serif;font-size:19px;font-weight:900;position:relative;flex-shrink:0}
+.tr::before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--bg2);z-index:0}
+.tr span{position:relative;z-index:1}
+.tr-ok{background:conic-gradient(var(--green) var(--p,360deg),var(--b) 0);color:var(--green)}
+.tr-wn{background:conic-gradient(var(--gold) var(--p,180deg),var(--b) 0);color:var(--gold)}
+.tr-bd{background:conic-gradient(var(--red) var(--p,72deg),var(--b) 0);color:var(--red);animation:tr-pulse .5s infinite alternate}
+.qa{flex:1;display:flex;flex-direction:column;padding:16px;overflow-y:auto}
+.qcs{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;background:var(--s2);border-radius:var(--r);border:1px solid var(--b)}
+.qcn{font-size:12px;font-weight:700}
+.qt{font-size:clamp(15px,3.5vw,21px);font-weight:800;line-height:1.5;text-align:center;padding:12px 6px;min-height:72px;display:flex;align-items:center;justify-content:center}
+.q-bet-l{text-align:center;font-size:12px;color:var(--gold);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px;justify-content:center}
+.q-ans-l{text-align:center;font-size:12px;color:var(--green);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px;justify-content:center}
+.og{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.opt{padding:13px 14px;border-radius:var(--rl);border:2px solid var(--b2);background:var(--s);cursor:pointer;transition:all .2s;text-align:right;display:flex;align-items:center;gap:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:600;color:var(--text)}
+.opt:hover:not(:disabled){border-color:var(--neon2);transform:translateY(-2px);box-shadow:var(--gn)}
+.opt:disabled{cursor:default}
+.opt.sel{border-color:var(--neon2);background:rgba(124,58,237,.1)}
+.opt.ok{border-color:var(--green);background:rgba(16,185,129,.1);color:var(--green)}
+.opt.no{border-color:var(--red);background:rgba(239,68,68,.08);color:var(--red);opacity:.7}
+.ol{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;background:var(--s2);border:1px solid var(--b2)}
+.opt.ok .ol{background:var(--green);color:#fff;border-color:var(--green)}
+.opt.no .ol{background:var(--red);color:#fff;border-color:var(--red)}
+.tf-w{display:grid;grid-template-columns:1fr 1fr;gap:12px;grid-column:1/-1}
+.tf-b{padding:20px;border-radius:var(--rl);border:2px solid var(--b2);background:var(--s);font-family:'Tajawal',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all .2s;text-align:center;color:var(--text)}
+.tf-b:hover:not(:disabled){transform:translateY(-3px)}
+.tft:hover:not(:disabled){border-color:var(--green);color:var(--green);background:rgba(16,185,129,.06)}
+.tff:hover:not(:disabled){border-color:var(--red);color:var(--red);background:rgba(239,68,68,.06)}
+.tf-b.st{border-color:var(--green)!important;background:rgba(16,185,129,.1)!important;color:var(--green)!important}
+.tf-b.sf{border-color:var(--red)!important;background:rgba(239,68,68,.08)!important;color:var(--red)!important}
+.tf-b.ok{border-color:var(--green)!important;background:rgba(16,185,129,.15)!important;color:var(--green)!important}
+.tf-b.no{border-color:var(--red)!important;background:rgba(239,68,68,.08)!important;opacity:.7}
+.fi-w{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:10px}
+.fi-i{width:100%;max-width:360px;text-align:center;font-family:'Tajawal',sans-serif;font-size:18px;font-weight:700;border-radius:var(--rl);padding:14px}
+.sb{display:flex;gap:7px;overflow-x:auto;padding:9px 14px;background:var(--bg2);border-top:1px solid var(--b);scrollbar-width:none}
+.sb::-webkit-scrollbar{display:none}
+.sc-c{display:flex;align-items:center;gap:6px;flex-shrink:0;background:var(--s);border:1.5px solid var(--b);border-radius:20px;padding:5px 11px;transition:all .3s}
+.sc-c.me{border-color:var(--neon2);background:rgba(124,58,237,.08)}.sc-c.lead{border-color:var(--gold)}
+.scn{font-size:11px;font-weight:700;max-width:75px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
+.scp{font-family:'Exo 2',sans-serif;font-size:14px;font-weight:900;color:var(--neon2)}
+.scp.lc{color:var(--gold)}
+/* BETWEEN ROUNDS */
+#btw-rnd{flex-direction:column}
+.br-hdr{padding:20px 16px 10px;text-align:center}
+.br-ttl{font-size:18px;font-weight:900;margin-bottom:4px}
+.br-sub{font-size:12px;color:var(--muted)}
+.br-rows{padding:0 16px 20px}
+.br-row{display:flex;align-items:center;gap:12px;background:var(--s);border:1.5px solid var(--b);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;animation:bq-slide .4s ease both}
+.br-row.me{border-color:var(--neon2);background:rgba(124,58,237,.05)}.br-row.t1{border-color:var(--gold)}
+.br-rk{font-family:'Exo 2',sans-serif;font-size:15px;font-weight:900;width:22px;text-align:center}
+.br-nm{flex:1;font-size:13px;font-weight:700}
+.br-pt{font-family:'Exo 2',sans-serif;font-size:17px;font-weight:900;color:var(--neon2)}
+.brd{font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px}
+.bdp{background:rgba(16,185,129,.15);color:var(--green)}.bd0{background:rgba(100,100,150,.1);color:var(--muted)}
+/* RESULTS */
+#results{align-items:center;text-align:center;padding:28px 20px 40px;overflow-y:auto}
+.cfw{position:fixed;inset:0;pointer-events:none;z-index:50}
+.cfp{position:absolute;border-radius:2px;animation:cff linear forwards}
+.tw{width:90px;height:90px;border-radius:50%;margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--gold),#d97706);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 40px rgba(245,158,11,.45);animation:trophy-bounce 1.5s ease-in-out infinite alternate;color:#000}
+.rw-l{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.rw-n{font-family:'Exo 2',sans-serif;font-size:clamp(26px,7vw,50px);font-weight:900;
+  background:linear-gradient(135deg,var(--gold),#ff9500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.rw-p{font-size:14px;color:var(--muted);margin-bottom:22px}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-bottom:22px}
+.pod{text-align:center}
+.pod-b{border-radius:var(--r) var(--r) 0 0;display:flex;align-items:center;justify-content:center}
+.p1 .pod-b{width:88px;height:88px;background:linear-gradient(180deg,var(--gold),#d97706)}
+.p2 .pod-b{width:74px;height:64px;background:linear-gradient(180deg,#9e9e9e,#616161)}
+.p3 .pod-b{width:68px;height:50px;background:linear-gradient(180deg,#cd7f32,#8b4513)}
+.pod-n{font-family:'Exo 2',sans-serif;font-size:20px;font-weight:900;color:#000}
+.pod-nm{font-size:11px;font-weight:700;color:var(--text2);margin-top:5px;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pod-p{font-family:'Exo 2',sans-serif;font-size:12px;color:var(--muted)}
+.lb-list{width:100%;max-width:400px;margin:0 auto 22px}
+.lb-row{display:flex;align-items:center;gap:11px;background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:10px 14px;margin-bottom:6px}
+.lb-row.me{border-color:var(--neon2);background:rgba(124,58,237,.05)}
+.lb-rk{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;width:20px;text-align:center}
+.lb-nm{flex:1;font-size:13px;font-weight:700}
+.lb-pt{font-family:'Exo 2',sans-serif;font-size:15px;font-weight:900;color:var(--neon2)}
+/* NOTIF */
+.notif{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:var(--r);font-weight:700;font-size:13px;z-index:500;display:flex;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6);white-space:nowrap;animation:ni .3s ease,no .3s 2.3s forwards}
+@keyframes ni{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes no{to{opacity:0}}
+.ns{background:var(--green);color:#fff}.ne{background:var(--red);color:#fff}.ni2{background:var(--neon2);color:#fff}
+/* QR modal */
+.qr-back{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:400;display:flex;align-items:flex-end;justify-content:center;padding:20px;animation:fade-in .2s}
+.qr-box{background:var(--s);border-radius:var(--rxl);padding:24px;width:100%;max-width:390px;animation:slide-up .3s ease}
+.qr-cvw{background:#fff;padding:14px;border-radius:var(--r);display:inline-block;margin:14px 0}
+.pub-tog{position:relative;width:54px;height:27px;border-radius:14px;border:none;cursor:pointer;transition:all .3s}
+.pub-knob{position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:all .3s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+@media(max-width:480px){.og{grid-template-columns:1fr}.cpg{grid-template-columns:1fr 1fr}.bet-opts{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="bg-dots"></div>
+
+<!-- HOME -->
+<div id="home" class="scr on">
+  <div style="position:absolute;top:14px;left:14px;z-index:10;display:flex;gap:8px">
+    <button class="ico" onclick="toggleTheme()" id="thm-btn">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </div>
+  <div class="hw" style="margin:auto">
+    <div class="logo">ARENA</div>
+    <div class="tagline">الموسم الثاني · الدور · المراهنة · الحياة</div>
+    <div class="live-strip">
+      <div class="ls-item"><div class="ls-v" id="hs-online">—</div><div class="ls-l">متصل الآن</div></div>
+      <div class="ls-item"><div class="ls-v" id="hs-rooms">—</div><div class="ls-l">غرفة نشطة</div></div>
+      <div class="ls-item"><div class="ls-v" id="hs-games">—</div><div class="ls-l">جولة لُعبت</div></div>
+    </div>
+    <div class="srs">
+      <div class="srs-ttl">الغرف المفتوحة الآن</div>
+      <div class="srs-list" id="sys-preview"></div>
+    </div>
+    <div class="hbtns">
+      <button class="hbtn hc" onclick="gotoName('create')">
+        <div class="hbi" style="background:rgba(124,58,237,.12)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--neon2)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <div><div class="hbt">أنشئ غرفة</div><div class="hbd">أنت المضيف — تحكم بالإعدادات</div></div>
+        <div class="hba"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      </button>
+      <button class="hbtn hj" onclick="gotoName('join')">
+        <div class="hbi" style="background:rgba(245,158,11,.1)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+        <div><div class="hbt">انضم بكود</div><div class="hbd">لديك كود الغرفة</div></div>
+        <div class="hba"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      </button>
+      <button class="hbtn hr" onclick="goS('sys-rooms')">
+        <div class="hbi" style="background:rgba(16,185,129,.1)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--green)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+        <div><div class="hbt">الغرف المفتوحة</div><div class="hbd">تلقائية وعامة — انضم الآن</div></div>
+        <div class="hba"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      </button>
+      <button class="hbtn hs" onclick="gotoName('spectate')">
+        <div class="hbi" style="background:rgba(59,130,246,.1)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div><div class="hbt">مشاهدة</div><div class="hbd">شاهد بدون مشاركة</div></div>
+        <div class="hba"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- NAME ENTRY -->
+<div id="name-entry" class="scr">
+  <div class="nc" style="margin:auto">
+    <div class="nh">من أنت؟</div>
+    <div class="ns2">اختر أيقونة واسماً للدخول</div>
+    <div class="avg" id="av-grid"></div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;letter-spacing:1px">اسمك في اللعبة</label>
+      <input id="p-name" class="inp" placeholder="أدخل اسمك..." maxlength="18" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')confirmName()">
+    </div>
+    <button class="btn b-p b-fw b-lg" onclick="confirmName()">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      متابعة
+    </button>
+    <button class="btn b-gh b-fw" style="margin-top:9px" onclick="goS('home')">رجوع</button>
+  </div>
+</div>
+
+<!-- JOIN BY CODE -->
+<div id="join-scr" class="scr">
+  <div class="nc" style="margin:auto">
+    <div class="nh">انضم لغرفة</div>
+    <div class="ns2">أدخل كود الغرفة المكوّن من ٦ أحرف</div>
+    <input id="join-code" class="inp" style="font-family:'Exo 2',sans-serif;font-size:28px;font-weight:900;text-align:center;letter-spacing:6px;text-transform:uppercase;margin-bottom:6px" placeholder="ABC123" maxlength="6" autocorrect="off" spellcheck="false" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')doJoin()">
+    <div id="join-err" style="font-size:12px;color:var(--red);text-align:center;min-height:18px;margin-bottom:8px"></div>
+    <button class="btn b-g b-fw b-lg" onclick="doJoin()">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/></svg>
+      انضم الآن
+    </button>
+    <button class="btn b-gh b-fw" style="margin-top:9px" onclick="goS('home')">رجوع</button>
+  </div>
+</div>
+
+<!-- CREATE ROOM -->
+<div id="create-scr" class="scr">
+  <div class="bar">
+    <button class="ico" onclick="goS('home')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <span class="bar-brand" style="font-size:16px">إنشاء غرفة</span>
+    <div style="width:34px"></div>
+  </div>
+  <div style="flex:1;padding:18px;max-width:560px;margin:0 auto;width:100%;overflow-y:auto">
+    <div style="display:flex;align-items:center;gap:10px;background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:12px 14px;margin-bottom:16px">
+      <div id="cr-av" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"></div>
+      <div><div style="font-size:13px;font-weight:700" id="cr-name">—</div><div style="font-size:10px;color:var(--muted)">المضيف</div></div>
+      <span class="badge bg2" style="margin-right:auto">مضيف</span>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+        الفئات <span class="badge bn" id="cat-cnt" style="font-size:10px">0</span>
+      </div>
+      <div id="cat-grid-cr" style="display:flex;flex-wrap:wrap;gap:7px"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:13px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:7px">عدد الأسئلة</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="cr-qcount" min="5" max="20" value="10" style="-webkit-appearance:none;flex:1;height:4px;border-radius:2px;background:var(--b2);outline:none" oninput="document.getElementById('cr-qv').textContent=this.value">
+          <span id="cr-qv" style="font-family:'Exo 2',sans-serif;font-size:17px;font-weight:900;color:var(--neon2);min-width:28px;text-align:center">10</span>
+        </div>
+      </div>
+      <div style="background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:13px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:7px">وقت السؤال (ث)</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="cr-qtime" min="10" max="60" step="5" value="30" style="-webkit-appearance:none;flex:1;height:4px;border-radius:2px;background:var(--b2);outline:none" oninput="document.getElementById('cr-tv').textContent=this.value">
+          <span id="cr-tv" style="font-family:'Exo 2',sans-serif;font-size:17px;font-weight:900;color:var(--neon2);min-width:28px;text-align:center">30</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:13px;margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:7px">الحد الأقصى للاعبين</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="range" id="cr-maxp" min="2" max="20" value="8" style="-webkit-appearance:none;flex:1;height:4px;border-radius:2px;background:var(--b2);outline:none" oninput="document.getElementById('cr-mv').textContent=this.value">
+        <span id="cr-mv" style="font-family:'Exo 2',sans-serif;font-size:17px;font-weight:900;color:var(--neon2);min-width:28px;text-align:center">8</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div id="f-bet" class="feat-card" onclick="toggleF('bet')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--neon2)" stroke-width="2" style="display:block;margin:0 auto 5px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+        <div style="font-size:12px;font-weight:700">المراهنة</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">راهن على إجابتك</div>
+        <div id="f-bet-d" style="width:7px;height:7px;border-radius:50%;background:var(--neon2);margin:6px auto 0;box-shadow:0 0 6px var(--neon2)"></div>
+      </div>
+      <div id="f-dng" class="feat-card" style="border-color:var(--red)" onclick="toggleF('dng')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--red)" stroke-width="2" style="display:block;margin:0 auto 5px"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <div style="font-size:12px;font-weight:700">الخطر ×٢</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">سؤال مزدوج النقاط</div>
+        <div id="f-dng-d" style="width:7px;height:7px;border-radius:50%;background:var(--red);margin:6px auto 0;box-shadow:0 0 6px var(--red)"></div>
+      </div>
+      <div id="f-lv" class="feat-card" style="border-color:var(--red)" onclick="toggleF('lv')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="var(--red)" stroke="none" style="display:block;margin:0 auto 5px"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        <div style="font-size:12px;font-weight:700">الحياة</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">٣ حيوات للاعب</div>
+        <div id="f-lv-d" style="width:7px;height:7px;border-radius:50%;background:var(--red);margin:6px auto 0;box-shadow:0 0 6px var(--red)"></div>
+      </div>
+      <div style="background:var(--s);border:1.5px solid var(--b);border-radius:var(--rl);padding:13px;text-align:center">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--blue)" stroke-width="2" style="display:block;margin:0 auto 5px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <div style="font-size:12px;font-weight:700">المشاهدون</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">دائماً مفعّل</div>
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--blue);margin:6px auto 0"></div>
+      </div>
+    </div>
+    <div id="pub-card" style="background:var(--s);border:2px solid var(--green);border-radius:var(--rl);padding:14px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">غرفة عامة</div>
+          <div style="font-size:10px;color:var(--muted)">تظهر في قائمة الغرف العامة</div>
+        </div>
+        <button class="pub-tog" id="pub-btn" onclick="togglePub()" style="background:var(--green);box-shadow:0 0 10px rgba(16,185,129,.3)">
+          <span class="pub-knob" id="pub-knob"></span>
+        </button>
+      </div>
+      <div id="pub-lbl" style="font-size:11px;font-weight:700;margin-top:8px;padding:5px 9px;border-radius:7px;background:rgba(16,185,129,.1);color:var(--green)">الغرفة عامة — تظهر للجميع</div>
+    </div>
+    <button class="btn b-p b-fw b-xl" id="cr-btn" onclick="doCreate()" disabled>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      إنشاء الغرفة
+    </button>
+  </div>
+</div>
+
+<!-- SYSTEM ROOMS LIST -->
+<div id="sys-rooms" class="scr">
+  <div class="bar">
+    <button class="ico" onclick="goS('home')"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <span class="bar-brand">الغرف المفتوحة</span>
+    <span class="badge bn" id="sys-cnt">0</span>
+  </div>
+  <div style="flex:1;padding:16px;max-width:600px;margin:0 auto;width:100%;overflow-y:auto">
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;background:var(--s2);border-radius:var(--r);padding:3px;margin-bottom:14px">
+      <button id="tab-sys" onclick="switchRoomsTab('sys')" style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Tajawal';font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--neon2);color:#fff">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px"><path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18"/></svg>
+        تلقائية
+      </button>
+      <button id="tab-pub" onclick="switchRoomsTab('pub')" style="flex:1;padding:8px;border:none;border-radius:9px;font-family:'Tajawal';font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted)">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:4px"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        عامة
+      </button>
+    </div>
+    <div id="sys-list"></div>
+    <div id="pub-list" style="display:none"></div>
+  </div>
+</div>
+
+<!-- LOBBY -->
+<div id="lobby" class="scr">
+  <div class="bar">
+    <div class="bar-brand" id="lb-brand">الانتظار</div>
+    <div class="bar-r">
+      <span class="badge bgr" id="lb-badge"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>في الانتظار</span>
+      <button class="ico" onclick="leaveRoom()" title="مغادرة"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--red)" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+    </div>
+  </div>
+  <div class="lhero">
+    <div class="lcode-l">كود الغرفة</div>
+    <div class="lcode" id="lb-code">——</div>
+    <div class="lshare">
+      <button class="btn b-gh b-sm" onclick="shareRoom()"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>مشاركة</button>
+      <button class="btn b-gh b-sm" onclick="copyLink()"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>نسخ</button>
+      <button class="btn b-gh b-sm" onclick="showQR()"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/></svg>QR</button>
+    </div>
+  </div>
+  <div id="lb-cdb-w" style="display:none;padding:0 16px 6px">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:var(--r)">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--green)" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span style="font-size:12px;font-weight:700;color:var(--green)" id="lb-auto-msg">اكتمل العدد — سيبدأ تلقائياً...</span>
+    </div>
+  </div>
+  <div class="pw" id="lb-players"></div>
+  <div class="lcfg" id="lb-cfg"></div>
+  <div id="lb-host-area" style="display:none;padding:0 16px 20px">
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px" id="lb-wmsg">في انتظار اللاعبين...</div>
+    <button class="btn b-g b-fw b-xl" id="start-btn" onclick="hostStart()" disabled>
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+      ابدأ المسابقة
+    </button>
+  </div>
+  <div id="lb-guest-area" style="display:none;padding:0 16px 20px;text-align:center">
+    <div style="display:flex;justify-content:center;gap:5px;margin-bottom:10px"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
+    <div style="font-size:13px;color:var(--muted)">في انتظار المضيف لبدء المسابقة...</div>
+  </div>
+</div>
+
+<!-- PICK CATEGORY -->
+<div id="pick-cat" class="scr">
+  <div class="pick-w" style="margin:auto">
+    <div class="pick-hero">
+      <div class="pick-av" id="pick-av" style="background:rgba(124,58,237,.2)"></div>
+      <div class="pick-name" id="pick-nm">دورك!</div>
+      <div class="pick-sub" id="pick-sub">اختر فئة السؤال القادم</div>
+    </div>
+    <div class="cpg" id="cpg"></div>
+    <div id="watch-state" style="display:none" class="watch-ov">
+      <div class="pick-av" id="watch-av" style="margin:0 auto 10px;background:rgba(245,158,11,.15)"></div>
+      <div class="watch-nm" id="watch-nm">—</div>
+      <div style="font-size:13px;margin-top:4px">يختار الفئة الآن...</div>
+      <div class="wd-row"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BETTING -->
+<div id="bet-scr" class="scr">
+  <div class="bet-w" style="margin:auto">
+    <div style="text-align:center;margin-bottom:12px">
+      <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:5px">فئة السؤال</div>
+      <div id="bet-cat" class="badge bn" style="font-size:13px;padding:5px 16px"></div>
+    </div>
+    <div style="font-size:22px;font-weight:900;text-align:center;margin-bottom:4px">راهن على إجابتك</div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px">كلما راهنت أكثر — كسبت أو خسرت أكثر</div>
+    <div class="bet-bal"><span id="bet-pts">0</span><span style="font-size:16px;color:var(--muted);margin-right:4px">نقطة</span></div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px">اختر نسبة المراهنة</div>
+    <div class="bet-opts">
+      <div class="bet-o" onclick="selectBet(.25)">
+        <div class="bet-pct">25%</div><div class="bet-pts" id="b25">—</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px">آمن</div>
+      </div>
+      <div class="bet-o" onclick="selectBet(.5)">
+        <div class="bet-pct">50%</div><div class="bet-pts" id="b50">—</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px">متوسط</div>
+      </div>
+      <div class="bet-o" onclick="selectBet(.75)">
+        <div class="bet-pct">75%</div><div class="bet-pts" id="b75">—</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px">جريء</div>
+      </div>
+      <div class="bet-o" onclick="selectBet(1)">
+        <div class="bet-pct" style="color:var(--red)">كل شيء</div><div class="bet-pts" id="b100">—</div>
+        <div style="font-size:9px;color:var(--red);margin-top:3px">خطر!</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:6px">أو أدخل مبلغاً مخصصاً</div>
+    <div class="bet-cust">
+      <button class="btn b-gh b-sm" onclick="adjBet(-10)">−١٠</button>
+      <input type="number" id="bet-inp" class="inp" min="0" style="text-align:center;font-family:'Exo 2';font-size:20px;font-weight:900" oninput="onCustBet()" placeholder="0">
+      <button class="btn b-gh b-sm" onclick="adjBet(10)">+١٠</button>
+    </div>
+    <button class="btn b-p b-fw b-lg" id="bet-ok" onclick="confirmBet()" disabled>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      تأكيد المراهنة
+    </button>
+    <div style="text-align:center;font-size:13px;color:var(--muted);margin-top:8px">تبقّى <span id="bet-t" style="font-family:'Exo 2';font-size:18px;font-weight:900;color:var(--red)">15</span> ثانية</div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game-scr" class="scr">
+  <div class="gtop">
+    <span class="gqn" id="gqn">١/١٠</span>
+    <span id="dng-badge" style="display:none" class="danger-b"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>×٢ خطر!</span>
+    <span class="gpw" id="g-pts"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>١٠ نقطة</span>
+    <div class="lives-r" id="lives-r"></div>
+    <div class="tr tr-ok" id="g-tr"><span id="g-trn">30</span></div>
+  </div>
+  <div class="qprog"><div class="qpf" id="g-pf" style="width:0%"></div></div>
+  <div class="qa">
+    <div id="gq-wait" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center">
+      <div style="display:flex;gap:5px"><div class="wd"></div><div class="wd"></div><div class="wd"></div></div>
+      <div style="font-size:14px;color:var(--muted)">في انتظار السؤال...</div>
+    </div>
+    <div id="gq-active" style="display:none">
+      <div class="qcs" id="qcs"></div>
+      <div class="qt" id="gqt"></div>
+      <div id="gq-bl" class="q-bet-l" style="display:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>راهنت بـ <span id="gq-ba">0</span> نقطة</div>
+      <div id="gq-al" class="q-ans-l" style="display:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>تم إرسال إجابتك</div>
+      <div class="og" id="gq-opts"></div>
+    </div>
+    <div id="gq-rev" style="display:none;text-align:center;padding:16px">
+      <div style="font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">الإجابة الصحيحة</div>
+      <div style="font-size:22px;font-weight:900;color:var(--green);margin-bottom:6px" id="gq-ca">—</div>
+      <div id="gq-res" style="font-size:15px;font-weight:800;padding:10px 20px;border-radius:var(--r);display:inline-block;margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="sb" id="g-sb"></div>
+</div>
+
+<!-- BETWEEN ROUNDS -->
+<div id="btw-rnd" class="scr">
+  <div class="bar">
+    <div class="bar-brand">الترتيب</div>
+    <span class="badge bn" id="br-nl">السؤال التالي...</span>
+  </div>
+  <div class="br-hdr">
+    <div class="br-ttl" id="br-ttl">بعد السؤال</div>
+    <div class="br-sub" id="br-sub">الانتقال خلال ٣ ثوانٍ</div>
+  </div>
+  <div class="br-rows" id="br-rows"></div>
+</div>
+
+<!-- RESULTS -->
+<div id="results" class="scr">
+  <div class="cfw" id="cfw"></div>
+  <div class="tw"><svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 21h8m-4-4v4M5 3h14v7a7 7 0 01-14 0V3z"/><path d="M5 7H3a2 2 0 000 4h2M19 7h2a2 2 0 010 4h-2"/></svg></div>
+  <div class="rw-l">الفائز</div>
+  <div class="rw-n" id="res-nm">—</div>
+  <div class="rw-p" id="res-pt">—</div>
+  <div class="podium" id="res-pod"></div>
+  <div class="lb-list" id="res-lb"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">
+    <button class="btn b-g b-lg" onclick="playAgain()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>مرة أخرى</button>
+    <button class="btn b-gh b-lg" onclick="goS('home')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>الرئيسية</button>
+  </div>
+</div>
+
+<script>
+// PART 1: Firebase + State + Categories + QBANK + Avatars
+firebase.initializeApp({
+  apiKey:"AIzaSyC2SEYoUINYbYim4Vi0qE3jd1-FHI9aoVM",
+  authDomain:"faisal-3fd18.firebaseapp.com",
+  databaseURL:"https://faisal-3fd18-default-rtdb.firebaseio.com",
+  projectId:"faisal-3fd18"
+});
+const db=firebase.database();
+const roomsRef=db.ref('arena2_rooms');
+const statsRef=db.ref('arena2_stats');
+
+const G={
+  pid:null,pname:'',pav:'bolt',
+  roomCode:null,roomRef:null,gameRef:null,
+  isHost:false,isSpec:false,
+  pendingAction:null,pendingCode:null,
+  questions:[],currentQ:-1,
+  myScore:1000,myLives:3,myBet:0,
+  answered:false,
+  timeLeft:0,totalTime:30,
+  timerInt:null,betInt:null,cdInt:null,
+  features:{betting:true,danger:true,lives:true},
+  listeners:[],
+  turnOrder:[],turnIdx:0,isMyTurn:false,
+  selectedCats:new Set(),
+  roomIsPublic:true,
+};
+
+const CATS=[
+  {id:'islamic',  l:'إسلامي',   c:'#10b981',p:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z'},
+  {id:'history',  l:'تاريخ',    c:'#f59e0b',p:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'},
+  {id:'science',  l:'علوم',     c:'#3b82f6',p:'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3'},
+  {id:'geography',l:'جغرافيا', c:'#a855f7',p:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3'},
+  {id:'sports',   l:'رياضة',   c:'#ef4444',p:'M13 10V3L4 14h7v7l9-11h-7z'},
+  {id:'culture',  l:'ثقافة',   c:'#06b6d4',p:'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13'},
+  {id:'tech',     l:'تقنية',   c:'#8b5cf6',p:'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18'},
+  {id:'math',     l:'رياضيات', c:'#84cc16',p:'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01'},
+  {id:'war',      l:'حروب',    c:'#f97316',p:'M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5z'},
+  {id:'politics', l:'سياسة',   c:'#ec4899',p:'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z'},
+];
+const catById=id=>CATS.find(c=>c.id===id)||CATS[5];
+const catSVG=(id,s=16)=>{const c=catById(id);return`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="${c.c}" stroke-width="2"><path d="${c.p}"/></svg>`;};
+
+const QB={
+  islamic:[
+    {t:'كم عدد أركان الإسلام؟',ty:'mcq',o:['٣','٤','٥','٦'],c:2},
+    {t:'ما الركن الأول من أركان الإسلام؟',ty:'mcq',o:['الصلاة','الصيام','شهادة لا إله إلا الله','الزكاة'],c:2},
+    {t:'كم عدد أركان الإيمان؟',ty:'mcq',o:['٤','٥','٦','٧'],c:2},
+    {t:'كم عدد سور القرآن الكريم؟',ty:'mcq',o:['١١٢','١١٣','١١٤','١١٥'],c:2},
+    {t:'ما أول سورة نزلت؟',ty:'mcq',o:['الفاتحة','البقرة','العلق','المدثر'],c:2},
+    {t:'ما أطول سورة في القرآن؟',ty:'mcq',o:['آل عمران','النساء','البقرة','المائدة'],c:2},
+    {t:'ما أقصر سورة في القرآن؟',ty:'mcq',o:['الإخلاص','الفلق','الناس','الكوثر'],c:3},
+    {t:'في أي شهر نزل القرآن الكريم؟',ty:'mcq',o:['رجب','شعبان','رمضان','محرم'],c:2},
+    {t:'كم عدد الصلوات المفروضة يومياً؟',ty:'mcq',o:['٣','٤','٥','٦'],c:2},
+    {t:'كم عدد ركعات الفجر؟',ty:'mcq',o:['ركعة','ركعتان','ثلاث','أربع'],c:1},
+    {t:'كم عدد ركعات الظهر؟',ty:'mcq',o:['٢','٣','٤','٥'],c:2},
+    {t:'في أي مدينة وُلد النبي ﷺ؟',ty:'mcq',o:['المدينة','مكة المكرمة','الطائف','جدة'],c:1},
+    {t:'كم كان عمر النبي ﷺ عند البعثة؟',ty:'mcq',o:['٣٥','٤٠','٤٥','٥٠'],c:1},
+    {t:'ما اسم أبي النبي ﷺ؟',ty:'mcq',o:['عبدالله','عبدالمطلب','أبو طالب','الزبير'],c:0},
+    {t:'ما اسم أم النبي ﷺ؟',ty:'mcq',o:['فاطمة','خديجة','آمنة','سمية'],c:2},
+    {t:'كم سنة نزل الوحي؟',ty:'mcq',o:['١٥','٢٠','٢٣','٢٥'],c:2},
+    {t:'إلى أي مدينة كانت الهجرة؟',ty:'mcq',o:['مكة','المدينة المنورة','الطائف','الحبشة'],c:1},
+    {t:'الزكاة واجبة على من يملك النصاب',ty:'tf',a:true},
+    {t:'صيام رمضان فُرض في السنة الثانية من الهجرة',ty:'tf',a:true},
+    {t:'الحج واجب مرة واحدة في العمر لمن استطاع',ty:'tf',a:true},
+    {t:'إنما الأعمال ____',ty:'fill',a:'بالنيات'},
+    {t:'سورة الإخلاص تعدل ثلث ____',ty:'fill',a:'القرآن'},
+  ],
+  history:[
+    {t:'في أي عام وقعت غزوة بدر؟',ty:'mcq',o:['١ هـ','٢ هـ','٣ هـ','٤ هـ'],c:1},
+    {t:'في أي عام فُتحت مكة المكرمة؟',ty:'mcq',o:['٦ هـ','٧ هـ','٨ هـ','٩ هـ'],c:2},
+    {t:'من هو أول الخلفاء الراشدين؟',ty:'mcq',o:['عمر','علي','أبو بكر','عثمان'],c:2},
+    {t:'من قاد فتح مصر؟',ty:'mcq',o:['عمر','خالد','عمرو بن العاص','سعد'],c:2},
+    {t:'من فتح بلاد الشام؟',ty:'mcq',o:['عمرو','خالد بن الوليد','أبو عبيدة','معاوية'],c:1},
+    {t:'من مؤسس الدولة السعودية الأولى؟',ty:'mcq',o:['الملك عبدالعزيز','الإمام محمد بن سعود','الملك فيصل','الإمام تركي'],c:1},
+    {t:'في أي عام توحّدت المملكة السعودية؟',ty:'mcq',o:['١٩٢٨','١٩٣٠','١٩٣٢','١٩٣٤'],c:2},
+    {t:'في أي عام انتهت الحرب العالمية الثانية؟',ty:'mcq',o:['١٩٤٣','١٩٤٤','١٩٤٥','١٩٤٧'],c:2},
+    {t:'في أي عام اندلعت الحرب العالمية الأولى؟',ty:'mcq',o:['١٩١٢','١٩١٤','١٩١٦','١٩١٨'],c:1},
+    {t:'غزوة أُحد كانت في السنة الثالثة من الهجرة',ty:'tf',a:true},
+    {t:'عاصمة الخلافة العباسية كانت دمشق',ty:'tf',a:false},
+    {t:'عاصمة الخلافة العباسية هي ____',ty:'fill',a:'بغداد'},
+  ],
+  science:[
+    {t:'ما رمز الذهب في الجدول الدوري؟',ty:'mcq',o:['Go','Gd','Au','Ag'],c:2},
+    {t:'سرعة الضوء في الفراغ تقريباً؟',ty:'mcq',o:['٣٠٠,٠٠٠ كم/ث','١٥٠,٠٠٠','٦٠٠,٠٠٠','٩٠,٠٠٠'],c:0},
+    {t:'ما الجهاز الذي يضخ الدم؟',ty:'mcq',o:['الرئة','الكبد','الكلية','القلب'],c:3},
+    {t:'كم عدد عظام الإنسان البالغ؟',ty:'mcq',o:['١٦٦','٢٠٦','٢٤٦','٣٠٦'],c:1},
+    {t:'ما أكبر كوكب في المجموعة الشمسية؟',ty:'mcq',o:['زحل','المريخ','المشتري','أورانوس'],c:2},
+    {t:'الصيغة الكيميائية للماء؟',ty:'mcq',o:['CO2','H2O2','H2O','NaCl'],c:2},
+    {t:'الغاز الأكثر وفرة في الغلاف الجوي؟',ty:'mcq',o:['أكسجين','CO2','نيتروجين','أرغون'],c:2},
+    {t:'الماء يتجمد عند درجة صفر مئوية',ty:'tf',a:true},
+    {t:'الشمس كوكب في المجموعة الشمسية',ty:'tf',a:false},
+    {t:'الصيغة الكيميائية للملح الطعام ____',ty:'fill',a:'NaCl'},
+  ],
+  geography:[
+    {t:'ما عاصمة المملكة العربية السعودية؟',ty:'mcq',o:['جدة','الدمام','الرياض','مكة'],c:2},
+    {t:'ما أطول نهر في العالم؟',ty:'mcq',o:['الأمازون','النيل','الكونغو','المسيسيبي'],c:1},
+    {t:'ما أكبر قارة مساحةً؟',ty:'mcq',o:['أفريقيا','أمريكا','أوروبا','آسيا'],c:3},
+    {t:'ما أعلى جبل في العالم؟',ty:'mcq',o:['K2','إيفرست','كيليمنجارو','مونت بلان'],c:1},
+    {t:'ما أكبر محيط في العالم؟',ty:'mcq',o:['الأطلسي','الهادئ','الهندي','المتجمد'],c:1},
+    {t:'المملكة العربية السعودية أكبر دول شبه الجزيرة',ty:'tf',a:true},
+    {t:'عاصمة فرنسا ____',ty:'fill',a:'باريس'},
+    {t:'أطول نهر في العالم نهر ____',ty:'fill',a:'النيل'},
+  ],
+  sports:[
+    {t:'كم عدد لاعبي فريق كرة القدم؟',ty:'mcq',o:['٩','١٠','١١','١٢'],c:2},
+    {t:'كم دقيقة وقت المباراة الأصلي؟',ty:'mcq',o:['٦٠','٧٥','٩٠','١٢٠'],c:2},
+    {t:'أين أُقيم كأس العالم ٢٠٢٢؟',ty:'mcq',o:['الإمارات','السعودية','قطر','البحرين'],c:2},
+    {t:'كم عدد حلقات الأولمبياد؟',ty:'mcq',o:['٤','٥','٦','٧'],c:1},
+    {t:'كأس العالم يُقام كل أربع سنوات',ty:'tf',a:true},
+    {t:'عدد لاعبي كرة اليد ____',ty:'fill',a:'٧'},
+  ],
+  culture:[
+    {t:'من رسم الموناليزا؟',ty:'mcq',o:['مايكل أنجلو','رفائيل','ليوناردو دافنشي','بيكاسو'],c:2},
+    {t:'ما أقدم حضارة موثّقة؟',ty:'mcq',o:['الفرعونية','السومرية','الرومانية','الإغريقية'],c:1},
+    {t:'اللغة الأكثر تحدثاً بين المتحدثين الأصليين؟',ty:'mcq',o:['الإنجليزية','الإسبانية','الماندرين','العربية'],c:2},
+    {t:'نجيب محفوظ أول أديب عربي يحصل على نوبل',ty:'tf',a:true},
+    {t:'رسام سقف كنيسة سيستينا ____',ty:'fill',a:'مايكل أنجلو'},
+  ],
+  tech:[
+    {t:'ما معنى CPU؟',ty:'mcq',o:['Central Processing Unit','Core Power Unit','Central Program Unit','Computing Process Unit'],c:0},
+    {t:'من المؤسس المشارك لشركة Apple؟',ty:'mcq',o:['بيل غيتس','ستيف جوبز','إيلون ماسك','مارك زوكربيرغ'],c:1},
+    {t:'في أي عام تأسست Google؟',ty:'mcq',o:['١٩٩٥','١٩٩٦','١٩٩٨','٢٠٠٠'],c:2},
+    {t:'كم بت في البايت؟',ty:'mcq',o:['٤','٨','١٦','٣٢'],c:1},
+    {t:'HTML هي لغة برمجة',ty:'tf',a:false},
+    {t:'الإنترنت والويب شيء واحد',ty:'tf',a:false},
+    {t:'منفذ HTTP الافتراضي ____',ty:'fill',a:'80'},
+  ],
+  math:[
+    {t:'كم يساوي ٢ أس ١٠؟',ty:'mcq',o:['٥١٢','٨٩٦','١٠٢٤','٢٠٤٨'],c:2},
+    {t:'الجذر التربيعي لـ ١٤٤؟',ty:'mcq',o:['١٠','١١','١٢','١٣'],c:2},
+    {t:'قيمة π بمنزلتين عشريتين؟',ty:'mcq',o:['٣.١٠','٣.١٢','٣.١٤','٣.١٦'],c:2},
+    {t:'مجموع زوايا المثلث؟',ty:'mcq',o:['٩٠°','١٢٠°','١٨٠°','٣٦٠°'],c:2},
+    {t:'ناتج ١٥ × ١٥؟',ty:'mcq',o:['٢٠٥','٢٢٥','٢٤٥','٢٦٥'],c:1},
+    {t:'العدد ٠ عدد زوجي',ty:'tf',a:true},
+    {t:'العدد ١ عدد أولي',ty:'tf',a:false},
+    {t:'مجموع زوايا المربع = ____ درجة',ty:'fill',a:'٣٦٠'},
+  ],
+  war:[
+    {t:'في أي عام اندلعت الحرب العالمية الأولى؟',ty:'mcq',o:['١٩١٢','١٩١٤','١٩١٦','١٩١٨'],c:1},
+    {t:'في أي عام انتهت الحرب العالمية الثانية؟',ty:'mcq',o:['١٩٤٣','١٩٤٤','١٩٤٥','١٩٤٧'],c:2},
+    {t:'هجوم اليابان الذي أدخل أمريكا الحرب؟',ty:'mcq',o:['هيروشيما','بيرل هاربر','نورماندي','ميدواي'],c:1},
+    {t:'الاسم الرمزي لإنزال نورماندي؟',ty:'mcq',o:['أوفرلورد','باربروسا','البرق','طوفان'],c:0},
+    {t:'الحرب العالمية الأولى بدأت عام ١٩١٤',ty:'tf',a:true},
+    {t:'ألمانيا ألقت القنبلة الذرية على هيروشيما',ty:'tf',a:false},
+  ],
+  politics:[
+    {t:'كم دولة عضو في الأمم المتحدة؟',ty:'mcq',o:['١٦٠','١٧٥','١٨٠','١٩٣'],c:3},
+    {t:'أين مقر الأمم المتحدة؟',ty:'mcq',o:['لندن','باريس','نيويورك','جنيف'],c:2},
+    {t:'نظام الحكم في المملكة السعودية؟',ty:'mcq',o:['جمهوري','ملكي إسلامي','ديمقراطي','فيدرالي'],c:1},
+    {t:'مجلس الأمن يضم ٥ أعضاء دائمين',ty:'tf',a:true},
+  ],
+};
+
+function bQ(raw,catId){
+  return{text:raw.t,type:raw.ty||'mcq',options:raw.o||null,correct:raw.c!==undefined?raw.c:null,
+    answer:raw.a!==undefined?raw.a:null,category:catId,pts:10,
+    time:raw.ty==='fill'?40:raw.ty==='tf'?20:30};
+}
+function pickQ(catId){const p=QB[catId]||QB.culture;return bQ(p[Math.floor(Math.random()*p.length)],catId);}
+function pickQs(cats,n){let p=[];cats.forEach(id=>(QB[id]||[]).forEach(q=>p.push(bQ(q,id))));p.sort(()=>Math.random()-.5);return p.slice(0,n);}
+
+const AVS=[
+  {id:'bolt',c:'#3b82f6',p:'M13 2L3 14h9l-1 8 10-12h-9l1-8z'},
+  {id:'star',c:'#f59e0b',p:'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z'},
+  {id:'crown',c:'#a855f7',p:'M2 4l3 12h14l3-12-6 7-4-7-4 7z'},
+  {id:'shield',c:'#ef4444',p:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'},
+  {id:'fire',c:'#f97316',p:'M17.66 11.2c-.23-.3-.51-.56-.77-.82-.67-.6-1.43-1.03-2.07-1.66C13.33 7.26 13 4.85 13.95 3c-1 .23-1.89.8-2.64 1.57-.73.82-1.17 1.9-1.17 2.95 0 .26-.02.52-.03.78-.07.2-.26.35-.46.34-.31-.02-.56-.28-.52-.61.03-.3.05-.62.05-.9 0-1.18.26-2.35.88-3.37-.4.43-.7.9-.93 1.42-.65 1.45-.79 3.08-.47 4.64.12.62.32 1.22.56 1.79-1.7-1.05-2.2-3.63-.68-5.14C7.44 6.71 5.43 9.11 5 11.6c-.26.8-.33 1.58-.16 2.38.08.28.24.54.38.78.26.34.57.63.89.87.68.5 1.49.78 2.31.91 1.01.16 1.91.47 2.71.84 1.01.46 1.78 1.08 2.08 2.25.26.98-.09 2-.78 2.77.5.03 1.1-.22 1.65-.62 1.22-.89 2.31-2.27 2.35-3.84.02-.91-.26-1.79-.72-2.56l-.06-.1c-.2-.29-.45-.55-.71-.78.48.36.92.82 1.2 1.32.26.48.42.99.52 1.52 1.11-1.71 1.1-3.98.13-5.54z'},
+  {id:'diamond',c:'#10b981',p:'M12 2l10 10-10 10L2 12z'},
+  {id:'rocket',c:'#8b5cf6',p:'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09zM12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z'},
+  {id:'target',c:'#06b6d4',p:'M22 12h-4m-2 0a6 6 0 11-12 0 6 6 0 0112 0z'},
+];
+const avSVG=(id,s=20,col=null)=>{const a=AVS.find(x=>x.id===id)||AVS[0];return`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="${col||a.c}" stroke="none"><path d="${a.p}"/></svg>`;};
+
+const SYS_TEMPLATES=[
+  {name:'الكنز الإسلامي',cats:['islamic'],color:'#10b981',maxP:10,qCount:12},
+  {name:'أبطال التاريخ',cats:['history','war'],color:'#f59e0b',maxP:8,qCount:10},
+  {name:'عقول العلوم',cats:['science','math'],color:'#3b82f6',maxP:10,qCount:10},
+  {name:'جولة المتنوعة',cats:['culture','geography','sports'],color:'#a855f7',maxP:12,qCount:12},
+  {name:'ساحة التقنية',cats:['tech'],color:'#8b5cf6',maxP:8,qCount:10},
+  {name:'الملعب الكبير',cats:['sports','culture'],color:'#ef4444',maxP:16,qCount:12},
+];
+
+
+// ══ THEME ══
+let isDark=true;
+function toggleTheme(){
+  isDark=!isDark;
+  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
+  localStorage.setItem('a2t',isDark?'dark':'light');
+  const b=document.getElementById('thm-btn');
+  if(b) b.innerHTML=isDark
+    ?'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+    :'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+}
+(()=>{const t=localStorage.getItem('a2t')||'dark';isDark=t==='dark';document.documentElement.setAttribute('data-theme',t);})();
+
+// ══ NAV ══
+function goS(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id)?.classList.add('on');window.scrollTo(0,0);}
+function showN(m,t='s'){document.querySelectorAll('.notif').forEach(n=>n.remove());const n=document.createElement('div');n.className='notif n'+t[0];n.textContent=m;document.body.appendChild(n);setTimeout(()=>n.remove(),2800);}
+function addL(r){G.listeners.push(r);}
+function cleanL(){if(G.roomRef)G.roomRef.off();if(G.gameRef)G.gameRef.off();clearInterval(G.timerInt);clearInterval(G.betInt);clearInterval(G.cdInt);G.listeners=[];}
+
+// ══ AVATAR ══
+function renderAvGrid(){
+  const el=document.getElementById('av-grid');if(!el)return;
+  el.innerHTML=AVS.map(a=>`<button class="avb ${G.pav===a.id?'pk':''}" onclick="pickAv('${a.id}')">${avSVG(a.id,20)}</button>`).join('');
+}
+function pickAv(id){G.pav=id;renderAvGrid();}
+
+// ══ NAME ENTRY ══
+function gotoName(action){
+  G.pendingAction=action;goS('name-entry');renderAvGrid();
+  document.getElementById('p-name').value=G.pname||'';
+  setTimeout(()=>document.getElementById('p-name').focus(),300);
+}
+function confirmName(){
+  const n=document.getElementById('p-name').value.trim();
+  if(!n){showN('أدخل اسمك أولاً','e');return;}
+  G.pname=n;
+  if(!G.pid) G.pid=db.ref().push().key;
+  if(G.pendingAction==='create') openCreate();
+  else if(G.pendingAction==='join') goS('join-scr');
+  else if(G.pendingAction==='spectate'){G.isSpec=true;goS('join-scr');}
+  else if(G.pendingAction==='public-join') doJoin(G.pendingCode);
+}
+
+// ══ CREATE ══
+function openCreate(){
+  goS('create-scr');
+  const av=document.getElementById('cr-av');if(av) av.innerHTML=avSVG(G.pav,26);
+  document.getElementById('cr-name').textContent=G.pname;
+  renderCreateCats();initPub();
+}
+function renderCreateCats(){
+  const el=document.getElementById('cat-grid-cr');if(!el)return;
+  el.innerHTML=CATS.map(c=>`
+    <button onclick="toggleC('${c.id}')" style="padding:6px 12px;border-radius:20px;border:1.5px solid ${G.selectedCats.has(c.id)?c.c:'var(--b2)'};
+      background:${G.selectedCats.has(c.id)?c.c+'18':'var(--s2)'};color:${G.selectedCats.has(c.id)?c.c:'var(--text2)'};
+      font-family:'Tajawal';font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;
+      display:flex;align-items:center;gap:5px;position:relative">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="${G.selectedCats.has(c.id)?c.c:'currentColor'}" stroke-width="2"><path d="${c.p}"/></svg>
+      ${c.l}
+      ${G.selectedCats.has(c.id)?`<span style="width:6px;height:6px;border-radius:50%;background:${c.c};position:absolute;top:3px;left:3px;box-shadow:0 0 4px ${c.c}"></span>`:''}
+    </button>`).join('');
+  document.getElementById('cat-cnt').textContent=G.selectedCats.size;
+  document.getElementById('cr-btn').disabled=G.selectedCats.size===0;
+}
+function toggleC(id){if(G.selectedCats.has(id))G.selectedCats.delete(id);else G.selectedCats.add(id);renderCreateCats();}
+
+const FS={bet:true,dng:true,lv:true};
+function toggleF(f){
+  FS[f]=!FS[f];
+  const card=document.getElementById('f-'+f);
+  const dot=document.getElementById('f-'+f+'-d');
+  const colors={bet:'var(--neon2)',dng:'var(--red)',lv:'var(--red)'};
+  if(card){card.style.opacity=FS[f]?'1':'0.4';card.style.borderColor=FS[f]?colors[f]:'var(--b)';}
+  if(dot) dot.style.background=FS[f]?colors[f]:'var(--muted)';
+}
+
+let roomIsPublic=true;
+function togglePub(){
+  roomIsPublic=!roomIsPublic;
+  const btn=document.getElementById('pub-btn'),knob=document.getElementById('pub-knob'),lbl=document.getElementById('pub-lbl'),card=document.getElementById('pub-card');
+  btn.style.background=roomIsPublic?'var(--green)':'var(--b2)';
+  btn.style.boxShadow=roomIsPublic?'0 0 10px rgba(16,185,129,.3)':'none';
+  knob.style.right=roomIsPublic?'3px':'auto';knob.style.left=roomIsPublic?'auto':'3px';
+  lbl.style.background=roomIsPublic?'rgba(16,185,129,.1)':'rgba(100,100,150,.1)';
+  lbl.style.color=roomIsPublic?'var(--green)':'var(--muted)';
+  lbl.textContent=roomIsPublic?'الغرفة عامة — تظهر للجميع':'الغرفة خاصة — بالكود فقط';
+  card.style.borderColor=roomIsPublic?'var(--green)':'var(--b)';
+}
+function initPub(){
+  roomIsPublic=true;
+  document.getElementById('pub-btn').style.background='var(--green)';
+  document.getElementById('pub-knob').style.right='3px';document.getElementById('pub-knob').style.left='auto';
+  document.getElementById('pub-lbl').style.background='rgba(16,185,129,.1)';
+  document.getElementById('pub-lbl').style.color='var(--green)';
+  document.getElementById('pub-lbl').textContent='الغرفة عامة — تظهر للجميع';
+  document.getElementById('pub-card').style.borderColor='var(--green)';
+}
+
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++) s+=c[Math.floor(Math.random()*c.length)];return s;}
+
+async function doCreate(){
+  if(!G.selectedCats.size){showN('اختر فئة واحدة على الأقل','e');return;}
+  const btn=document.getElementById('cr-btn');btn.disabled=true;
+  btn.innerHTML='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"/></svg> جارٍ الإنشاء...';
+  const code=genCode(),cats=[...G.selectedCats];
+  const qCount=parseInt(document.getElementById('cr-qcount').value)||10;
+  const qTime=parseInt(document.getElementById('cr-qtime').value)||30;
+  const maxP=parseInt(document.getElementById('cr-maxp').value)||8;
+  const features={betting:FS.bet,danger:FS.dng,lives:FS.lv};
+  const questions=pickQs(cats,qCount);
+  const room={code,type:'custom',host:G.pname,hostId:G.pid,
+    config:{cats,qCount,qTime,maxPlayers:maxP,features,isPublic:roomIsPublic},
+    status:'waiting',createdAt:Date.now(),
+    players:{[G.pid]:{id:G.pid,name:G.pname,avatar:G.pav,score:1000,lives:3,isHost:true,isSpec:false,joinedAt:Date.now()}},
+    questions};
+  try{
+    await roomsRef.child(code).set(room);
+    G.roomCode=code;G.isHost=true;G.myScore=1000;G.myLives=3;
+    G.roomRef=roomsRef.child(code);G.gameRef=G.roomRef.child('game');
+    G.questions=questions;G.features=features;
+    enterLobby();
+  }catch(e){
+    showN('خطأ: '+e.message,'e');
+    btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> إنشاء الغرفة';
+  }
+}
+
+// ══ JOIN ══
+async function doJoin(forceCode=null){
+  const code=(forceCode||document.getElementById('join-code').value.trim()).toUpperCase();
+  const errEl=document.getElementById('join-err');
+  if(errEl) errEl.textContent='';
+  if(code.length!==6){if(errEl) errEl.textContent='الكود ٦ أحرف';return;}
+  const snap=await roomsRef.child(code).once('value');
+  const r=snap.val();
+  if(!r){if(errEl) errEl.textContent='الغرفة غير موجودة';return;}
+  if(r.status==='finished'){if(errEl) errEl.textContent='المسابقة انتهت';return;}
+  const pCount=Object.keys(r.players||{}).length;
+  if(!G.isSpec&&pCount>=(r.config?.maxPlayers||20)){if(errEl) errEl.textContent='الغرفة ممتلئة';return;}
+  await roomsRef.child(code).child('players').child(G.pid).set({
+    id:G.pid,name:G.pname,avatar:G.pav,score:1000,lives:3,isHost:false,isSpec:G.isSpec,joinedAt:Date.now()
+  });
+  G.roomCode=code;G.isHost=false;G.myScore=1000;G.myLives=3;
+  G.roomRef=roomsRef.child(code);G.gameRef=G.roomRef.child('game');
+  G.features=r.config?.features||{betting:true,danger:true,lives:true};
+  enterLobby();
+}
+
+// ══ SYSTEM ROOMS ══
+async function ensureSystemRooms(){
+  const snap=await roomsRef.orderByChild('type').equalTo('system').once('value');
+  const existing=snap.val()||{};
+  const existingNames=Object.values(existing).map(r=>r.name);
+  for(const t of SYS_TEMPLATES){
+    if(!existingNames.includes(t.name)) await createSysRoom(t);
+  }
+}
+
+async function createSysRoom(t){
+  const code=genCode();
+  const questions=pickQs(t.cats,t.qCount);
+  await roomsRef.child(code).set({
+    code,type:'system',name:t.name,color:t.color,
+    host:'النظام',hostId:'system',
+    config:{cats:t.cats,qCount:t.qCount,qTime:30,maxPlayers:t.maxP,features:{betting:true,danger:true,lives:true},isPublic:true},
+    status:'waiting',createdAt:Date.now(),
+    players:{},questions
+  });
+}
+
+// ══ ROOMS TABS ══
+let currentRoomsTab='sys';
+function switchRoomsTab(tab){
+  currentRoomsTab=tab;
+  const sysBtn=document.getElementById('tab-sys'),pubBtn=document.getElementById('tab-pub');
+  const sysList=document.getElementById('sys-list'),pubList=document.getElementById('pub-list');
+  if(tab==='sys'){
+    sysBtn.style.background='var(--neon2)';sysBtn.style.color='#fff';
+    pubBtn.style.background='transparent';pubBtn.style.color='var(--muted)';
+    sysList.style.display='block';pubList.style.display='none';
+  }else{
+    pubBtn.style.background='var(--neon2)';pubBtn.style.color='#fff';
+    sysBtn.style.background='transparent';sysBtn.style.color='var(--muted)';
+    sysList.style.display='none';pubList.style.display='block';
+  }
+}
+
+function loadSysRooms(){
+  roomsRef.on('value',snap=>{
+    const all=Object.values(snap.val()||{});
+    const sys=all.filter(r=>(r.type==='system')&&(r.status==='waiting'||r.status==='playing'));
+    const pub=all.filter(r=>(r.type!=='system')&&r.config?.isPublic&&(r.status==='waiting'||r.status==='playing'));
+    const total=sys.length+pub.length;
+    document.getElementById('sys-cnt').textContent=total;
+    renderSysList(sys);
+    renderPubList(pub);
+    renderSysPreview([...sys,...pub].filter(r=>r.status==='waiting').slice(0,5));
+
+    // Auto-recreate finished system rooms
+    const finished=all.filter(r=>r.type==='system'&&r.status==='finished');
+    finished.forEach(r=>{
+      const template=SYS_TEMPLATES.find(t=>t.name===r.name);
+      if(template) createSysRoom(template);
+    });
+  });
+}
+
+function renderSysList(rooms){
+  const el=document.getElementById('sys-list');if(!el)return;
+  if(!rooms.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px;opacity:.3"><path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18"/></svg>جارٍ إنشاء الغرف...</div>';return;}
+  el.innerHTML=rooms.map(r=>{
+    const pc=Object.keys(r.players||{}).length,mp=r.config?.maxPlayers||10;
+    const pct=Math.round(pc/mp*100);
+    const cats=(r.config?.cats||[]).map(id=>catById(id).l).join(' · ');
+    const ready=pc>=3&&r.status==='waiting';
+    return`<div class="src-card" onclick="joinSysRoom('${r.code}')" style="border-right-color:${r.color||'var(--neon2)'}">
+      <div class="src-name">
+        <span style="color:${r.color||'var(--neon2)'}">${r.name||r.code}</span>
+        <span class="badge" style="background:${r.color||'var(--neon2)'}18;color:${r.color||'var(--neon2)'};border:1px solid ${r.color||'var(--neon2)'}33;font-size:10px">تلقائية</span>
+        ${r.status==='playing'?'<span class="badge br2" style="font-size:10px">جارية الآن</span>':''}
+        ${ready?'<span class="badge bgr" style="font-size:10px">جاهز للبدء!</span>':''}
+      </div>
+      <div class="src-meta2">
+        <span>${cats}</span>
+        <span>${r.config?.qCount||10} سؤال</span>
+        <span style="font-weight:800;color:${pc>=3?'var(--green)':'var(--text2)'}">${pc}/${mp} لاعب</span>
+      </div>
+      <div class="src-pbar"><div class="src-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderPubList(rooms){
+  const el=document.getElementById('pub-list');if(!el)return;
+  if(!rooms.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 10px;opacity:.3"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>لا توجد غرف عامة الآن</div>';return;}
+  el.innerHTML=rooms.map(r=>{
+    const pc=Object.keys(r.players||{}).length,mp=r.config?.maxPlayers||10;
+    const cats=(r.config?.cats||[]).map(id=>catById(id).l).join(' · ');
+    const feats=[];
+    if(r.config?.features?.betting) feats.push('مراهنة');
+    if(r.config?.features?.danger) feats.push('خطر×٢');
+    if(r.config?.features?.lives) feats.push('حيوات');
+    return`<div class="src-card" onclick="joinSysRoom('${r.code}')" style="border-right-color:var(--gold)">
+      <div class="src-name">
+        <span style="color:var(--gold)">${r.host||'لاعب'}</span>
+        <span class="badge bg2" style="font-size:10px">عامة</span>
+        ${r.status==='playing'?'<span class="badge br2" style="font-size:10px">جارية</span>':''}
+      </div>
+      <div class="src-meta2">
+        <span>${cats}</span>
+        <span>${pc}/${mp} لاعب</span>
+        ${feats.length?`<span style="color:var(--neon2)">${feats.join(' · ')}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSysPreview(rooms){
+  const el=document.getElementById('sys-preview');if(!el)return;
+  if(!rooms.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:10px 0">جارٍ إنشاء الغرف...</div>';return;}
+  el.innerHTML=rooms.map(r=>`
+    <div class="sr-chip" onclick="joinSysRoom('${r.code}')">
+      <div class="src-name" style="color:${r.color||'var(--neon2)'};font-size:12px;font-weight:800;margin-bottom:3px">${r.name}</div>
+      <div class="src-meta"><div class="sr-dot"></div><span>${Object.keys(r.players||{}).length}/${r.config?.maxPlayers||10}</span></div>
+    </div>`).join('');
+}
+
+function joinSysRoom(code){
+  if(!G.pname){G.pendingAction='public-join';G.pendingCode=code;gotoName('public-join');return;}
+  doJoin(code);
+}
+
+// ══ LOBBY ══
+function enterLobby(){
+  goS('lobby');
+  document.getElementById('lb-code').textContent=G.roomCode;
+  document.getElementById('lb-host-area').style.display=G.isHost?'block':'none';
+  document.getElementById('lb-guest-area').style.display=G.isHost?'none':'block';
+
+  addL(G.roomRef.child('players').on('value',snap=>{
+    const ps=snap.val()||{};
+    renderLbPlayers(ps);
+    const active=Object.values(ps).filter(p=>!p.isSpec).length;
+    const maxP=G.roomRef?._delegate?._path||10; // fallback
+    if(G.isHost){
+      document.getElementById('start-btn').disabled=active<1;
+      document.getElementById('lb-wmsg').textContent=active<2
+        ?`${active} لاعب — يمكنك البدء أو انتظار المزيد`
+        :`${active} لاعبون جاهزون`;
+      // Auto-start when 3+ players join a system room
+      G.roomRef.child('config/isPublic').once('value',async pubSnap=>{
+        G.roomRef.child('type').once('value',tSnap=>{
+          if(tSnap.val()==='system'&&active>=3){
+            document.getElementById('lb-cdb-w').style.display='block';
+            document.getElementById('lb-auto-msg').textContent=`${active} لاعبون — سيبدأ تلقائياً الآن!`;
+            // Short delay then auto-start
+            clearTimeout(G._autoStart);
+            G._autoStart=setTimeout(()=>hostStart(),2000);
+          }else if(active>=maxP){
+            // Custom room - start when full
+            document.getElementById('lb-cdb-w').style.display='block';
+            document.getElementById('lb-auto-msg').textContent='اكتمل العدد — سيبدأ تلقائياً!';
+            clearTimeout(G._autoStart);
+            G._autoStart=setTimeout(()=>hostStart(),2000);
+          }
+        });
+      });
+    }
+  }));
+
+  addL(G.roomRef.child('config').once('value',snap=>{renderLbCfg(snap.val()||{});}));
+
+  // Status listener
+  addL(G.roomRef.child('status').on('value',snap=>{
+    const s=snap.val();
+    if(s==='pick_cat') startPickCat();
+    if(s==='betting') openBetting();
+    if(s==='question'){ if(!document.getElementById('game-scr').classList.contains('on')) enterGame(); }
+    if(s==='finished') showResults();
+  }));
+}
+
+function renderLbPlayers(ps){
+  const el=document.getElementById('lb-players');
+  el.innerHTML=Object.values(ps).map(p=>`
+    <div class="pc ${p.isHost?'hpc':''} ${p.isSpec?'spc':''}">
+      <div class="pav" style="background:${AVS.find(a=>a.id===p.avatar)?.c||'#7c3aed'}22">${avSVG(p.avatar,22)}</div>
+      <div class="pn">${p.name}</div>
+      <div class="pl" style="color:${p.isHost?'var(--gold)':p.isSpec?'var(--blue)':'var(--muted)'}">${p.isHost?'مضيف':p.isSpec?'مشاهد':'لاعب'}</div>
+    </div>`).join('');
+}
+
+function renderLbCfg(cfg){
+  const cats=(cfg.cats||[]).map(id=>catById(id).l).join(' · ');
+  const feats=[];
+  if(cfg.features?.betting) feats.push('مراهنة');
+  if(cfg.features?.danger) feats.push('خطر×٢');
+  if(cfg.features?.lives) feats.push('حيوات');
+  document.getElementById('lb-cfg').innerHTML=`
+    <div class="cfgr"><span class="cfgk">الفئات</span><span class="cfgv">${cats||'—'}</span></div>
+    <div class="cfgr"><span class="cfgk">الأسئلة</span><span class="cfgv">${cfg.qCount||10} · ${cfg.qTime||30}ث</span></div>
+    <div class="cfgr"><span class="cfgk">الميزات</span><span class="cfgv">${feats.join(' · ')||'—'}</span></div>
+    <div class="cfgr"><span class="cfgk">اللاعبون</span><span class="cfgv">حتى ${cfg.maxPlayers||10}</span></div>`;
+}
+
+function hostStart(){
+  const psSnap=G.roomRef.child('players').once('value',ps=>{
+    const players=Object.values(ps.val()||{}).filter(p=>!p.isSpec);
+    G.turnOrder=players.map(p=>p.id);
+    G.turnIdx=0;
+    G.roomRef.child('status').set('pick_cat');
+    G.gameRef.set({qIndex:0,turnIndex:0,startedAt:Date.now()});
+  });
+}
+
+// ══ PICK CATEGORY ══
+function startPickCat(){
+  goS('pick-cat');
+  G.roomRef.child('questions').once('value',qs=>{
+    const raw=qs.val();
+    G.questions=raw?Object.values(raw):[];
+    G.questions.sort((a,b)=>(a.id||0)-(b.id||0));
+  });
+  G.roomRef.child('players').once('value',ps=>{
+    const players=Object.values(ps.val()||{}).filter(p=>!p.isSpec);
+    G.turnOrder=players.map(p=>p.id);
+  });
+
+  addL(G.gameRef.child('turnIndex').on('value',snap=>{
+    G.turnIdx=snap.val()||0;
+    const tpid=G.turnOrder[G.turnIdx%Math.max(1,G.turnOrder.length)];
+    G.isMyTurn=(tpid===G.pid)&&!G.isSpec;
+    renderPickCat(tpid);
+  }));
+}
+
+function renderPickCat(tpid){
+  G.roomRef.child('players').child(tpid).once('value',snap=>{
+    const p=snap.val()||{};
+    const isMe=tpid===G.pid;
+    const cpg=document.getElementById('cpg');
+    const wstate=document.getElementById('watch-state');
+    if(isMe&&!G.isSpec){
+      cpg.style.display='grid';wstate.style.display='none';
+      const av=document.getElementById('pick-av');
+      if(av){av.innerHTML=avSVG(p.avatar,28);av.style.background=AVS.find(a=>a.id===p.avatar)?.c+'22'||'';}
+      document.getElementById('pick-nm').textContent='دورك يا '+p.name+'!';
+      document.getElementById('pick-sub').textContent='اختر الفئة — ستكسب ضعف النقاط إذا أجبت صحيحاً';
+      G.roomRef.child('config/cats').once('value',csSnap=>{
+        const allCats=csSnap.val()||CATS.map(c=>c.id);
+        const shuffled=[...allCats].sort(()=>Math.random()-.5).slice(0,Math.min(3,allCats.length));
+        cpg.innerHTML=shuffled.map(cid=>{
+          const c=catById(cid);
+          return`<div class="cpb" onclick="selectCat('${cid}')" style="border-color:${c.c}44">
+            <div class="cpbi" style="background:${c.c}18">${catSVG(cid,22)}</div>
+            <div class="cpbn" style="color:${c.c}">${c.l}</div>
+            <div class="cpbp">×٢ إذا أجبت صحيحاً</div>
+          </div>`;
+        }).join('');
+      });
+    }else{
+      cpg.style.display='none';wstate.style.display='flex';
+      const wav=document.getElementById('watch-av');
+      if(wav){wav.innerHTML=avSVG(p.avatar,28);wav.style.background=AVS.find(a=>a.id===p.avatar)?.c+'22'||'';}
+      document.getElementById('watch-nm').textContent=p.name;
+    }
+  });
+}
+
+function selectCat(catId){
+  if(!G.isMyTurn)return;
+  const q=pickQ(catId);
+  q.selectedByCurrent=true;
+  G.gameRef.update({currentCat:catId,currentQ:q,turnPid:G.pid,phase:'betting',answers:null,bets:null});
+  G.roomRef.child('status').set('betting');
+}
+
+// ══ BETTING ══
+let myBetAmt=0,betDone=false;
+
+function openBetting(){
+  if(G.isSpec){enterGame();return;}
+  goS('bet-scr');
+  betDone=false;myBetAmt=0;
+  document.getElementById('bet-ok').disabled=true;
+  document.getElementById('bet-ok').innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> تأكيد المراهنة';
+
+  G.roomRef.child('players').child(G.pid).child('score').once('value',snap=>{
+    G.myScore=snap.val()||1000;
+    document.getElementById('bet-pts').textContent=G.myScore;
+    document.getElementById('b25').textContent=Math.round(G.myScore*.25)+' نقطة';
+    document.getElementById('b50').textContent=Math.round(G.myScore*.5)+' نقطة';
+    document.getElementById('b75').textContent=Math.round(G.myScore*.75)+' نقطة';
+    document.getElementById('b100').textContent=G.myScore+' نقطة';
+  });
+
+  G.gameRef.child('currentCat').once('value',snap=>{
+    const c=catById(snap.val()||'culture');
+    document.getElementById('bet-cat').textContent=c.l;
+  });
+
+  let t=15;
+  clearInterval(G.betInt);
+  G.betInt=setInterval(()=>{
+    t--;document.getElementById('bet-t').textContent=t;
+    if(t<=0){clearInterval(G.betInt);if(!betDone)confirmBet();}
+  },1000);
+}
+
+function selectBet(pct){
+  myBetAmt=Math.round(G.myScore*pct);
+  document.querySelectorAll('.bet-o').forEach(el=>el.classList.remove('pk'));
+  event.currentTarget.classList.add('pk');
+  document.getElementById('bet-inp').value=myBetAmt;
+  document.getElementById('bet-ok').disabled=false;
+}
+
+function adjBet(d){
+  myBetAmt=Math.max(0,Math.min(G.myScore,(parseInt(document.getElementById('bet-inp').value)||0)+d));
+  document.getElementById('bet-inp').value=myBetAmt;
+  document.getElementById('bet-ok').disabled=myBetAmt<=0;
+}
+
+function onCustBet(){
+  const v=parseInt(document.getElementById('bet-inp').value)||0;
+  myBetAmt=Math.max(0,Math.min(G.myScore,v));
+  document.querySelectorAll('.bet-o').forEach(el=>el.classList.remove('pk'));
+  document.getElementById('bet-ok').disabled=myBetAmt<=0;
+}
+
+function confirmBet(){
+  betDone=true;clearInterval(G.betInt);G.myBet=myBetAmt;
+  G.gameRef.child('bets').child(G.pid).set(myBetAmt);
+  document.getElementById('bet-ok').disabled=true;
+  document.getElementById('bet-ok').innerHTML='✓ تم التأكيد';
+  // Check if host & all bet
+  if(G.isHost){
+    G.roomRef.child('players').once('value',ps=>{
+      const active=Object.keys(ps.val()||{}).filter(pid=>!ps.val()[pid].isSpec);
+      G.gameRef.child('bets').once('value',bs=>{
+        if(Object.keys(bs.val()||{}).length>=active.length) G.roomRef.child('status').set('question');
+      });
+    });
+  }
+}
+
+// ══ GAME ══
+function enterGame(){
+  if(document.getElementById('game-scr').classList.contains('on')) return;
+  G.answered=false;clearInterval(G.timerInt);goS('game-scr');
+  renderLives();
+
+  G.gameRef.off();
+
+  G.gameRef.once('value',snap=>{
+    const g=snap.val();
+    if(g?.currentQ&&g.phase==='question') showQ(g.currentQ,g.turnPid,g.qIndex||0);
+    if(g?.scores) renderSB(g.scores,g.lives);
+  });
+
+  addL(G.gameRef.on('value',snap=>{
+    const g=snap.val();if(!g)return;
+    if(g.phase==='question'&&g.currentQ&&g.qIndex!==G.currentQ){G.currentQ=g.qIndex;showQ(g.currentQ,g.turnPid,g.qIndex||0);}
+    if(g.phase==='reveal'&&g.correctAnswer!==undefined) revealAns(g);
+    if(g.phase==='leaderboard'&&g.leaderboard) showBtw(g);
+    if(g.scores) renderSB(g.scores,g.lives);
+  }));
+
+  if(G.isHost) hostDrive();
+}
+
+function renderLives(){
+  const el=document.getElementById('lives-r');if(!el)return;
+  G.roomRef.child('players').child(G.pid).child('lives').once('value',snap=>{
+    G.myLives=snap.val()??3;
+    el.innerHTML=Array(3).fill(0).map((_,i)=>`
+      <svg class="lhrt ${i>=G.myLives?'lost':''}" viewBox="0 0 24 24" width="16" height="16" fill="${i<G.myLives?'var(--red)':'var(--muted)'}" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`).join('');
+  });
+}
+
+function showQ(q,tpid,qIdx){
+  G.answered=false;
+  G.timeLeft=q.time||30;G.totalTime=G.timeLeft;
+  document.getElementById('gq-wait').style.display='none';
+  document.getElementById('gq-active').style.display='block';
+  document.getElementById('gq-rev').style.display='none';
+  document.getElementById('gq-al').style.display='none';
+
+  document.getElementById('gqn').textContent=`${qIdx+1}/${G.questions.length||'—'}`;
+
+  const isDanger=q.isDanger||false;
+  document.getElementById('dng-badge').style.display=isDanger?'flex':'none';
+  const pts=isDanger?(q.pts||10)*2:(q.pts||10);
+  document.getElementById('g-pts').innerHTML=`<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>${pts} نقطة`;
+
+  const c=catById(q.category);
+  const isTP=tpid===G.pid;
+  document.getElementById('qcs').innerHTML=`${catSVG(q.category,16)}<span class="qcn" style="color:${c.c}">${c.l}</span>${isTP?`<span class="badge" style="background:${c.c}18;color:${c.c};border:1px solid ${c.c}44;font-size:10px;margin-right:auto">دورك × ٢</span>`:''}`;
+  document.getElementById('gqt').textContent=q.text;
+
+  if(G.myBet>0){document.getElementById('gq-bl').style.display='flex';document.getElementById('gq-ba').textContent=G.myBet;}
+
+  renderOpts(q);
+
+  clearInterval(G.timerInt);
+  G.timerInt=setInterval(()=>{G.timeLeft--;updateTimer(G.timeLeft,G.totalTime);if(G.timeLeft<=0) clearInterval(G.timerInt);},1000);
+  updateTimer(G.timeLeft,G.totalTime);
+  document.getElementById('g-pf').style.width='0%';
+
+  G.gameRef.child('timeLeft').off();
+  addL(G.gameRef.child('timeLeft').on('value',snap=>{const t=snap.val();if(t!==null&&t>=0){G.timeLeft=t;updateTimer(t,G.totalTime);}}));
+}
+
+function renderOpts(q){
+  const L=['أ','ب','ج','د'];
+  const el=document.getElementById('gq-opts');
+  if(q.type==='tf'){
+    el.innerHTML=`<div class="tf-w">
+      <button class="tf-b tft" onclick="ansQ(true)" id="tft"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;margin:0 auto 5px"><polyline points="20 6 9 17 4 12"/></svg>صحيح</button>
+      <button class="tf-b tff" onclick="ansQ(false)" id="tff"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;margin:0 auto 5px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>خطأ</button>
+    </div>`;
+  }else if(q.type==='fill'){
+    el.innerHTML=`<div class="fi-w"><input class="inp fi-i" id="fi-i" placeholder="اكتب إجابتك..." autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')subFill()"><button class="btn b-p" onclick="subFill()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>إرسال</button></div>`;
+    setTimeout(()=>document.getElementById('fi-i')?.focus(),200);
+  }else{
+    el.innerHTML=(q.options||[]).map((o,i)=>`<button class="opt" onclick="ansQ(${i})" data-i="${i}"><div class="ol">${L[i]}</div>${o}</button>`).join('');
+  }
+}
+
+function updateTimer(t,tot){
+  const el=document.getElementById('g-tr'),num=document.getElementById('g-trn');
+  if(!el||!num)return;
+  num.textContent=t;
+  el.style.setProperty('--p',(t/tot*360)+'deg');
+  document.getElementById('g-pf').style.width=((1-t/tot)*100)+'%';
+  el.className='tr '+(t>tot*.5?'tr-ok':t>tot*.25?'tr-wn':'tr-bd');
+}
+
+function ansQ(val){
+  if(G.answered||G.isSpec)return;G.answered=true;
+  document.getElementById('gq-al').style.display='flex';
+  const q=G.questions[G.currentQ]||G.gameRef.child('currentQ');
+  if(typeof val==='boolean'){
+    document.getElementById('tft')?.classList.add(val?'st':'');
+    document.getElementById('tff')?.classList.add(!val?'sf':'');
+    document.querySelectorAll('.tf-b').forEach(b=>b.disabled=true);
+  }else{
+    document.querySelectorAll('.opt').forEach((b,i)=>{if(i===val) b.classList.add('sel');});
+  }
+  G.gameRef.child('answers').child(G.pid).set({answer:val,timeLeft:G.timeLeft});
+}
+
+function subFill(){
+  const v=document.getElementById('fi-i')?.value.trim();
+  if(!v){showN('اكتب إجابتك أولاً','e');return;}
+  if(G.answered)return;G.answered=true;
+  document.getElementById('fi-i').disabled=true;
+  document.getElementById('gq-al').style.display='flex';
+  G.gameRef.child('answers').child(G.pid).set({answer:v,timeLeft:G.timeLeft});
+}
+
+// ══ HOST DRIVER ══
+function hostDrive(){
+  let qi=0;
+
+  G.gameRef.once('value',snap=>{qi=snap.val()?.qIndex||0;runRound(qi);});
+
+  function runRound(qi){
+    if(qi>=G.questions.length){endGame();return;}
+
+    const isDanger=G.features?.danger&&Math.random()<.2;
+    const q={...G.questions[qi],isDanger};
+    if(isDanger) q.pts=(q.pts||10)*2;
+
+    G.roomRef.child('players').once('value',psSnap=>{
+      const all=Object.values(psSnap.val()||{});
+      const active=all.filter(p=>!p.isSpec&&(p.lives??3)>0);
+      if(active.length===0){endGame();return;}
+
+      const turnIdx=G.gameRef.child('turnIndex').once('value',tiSnap=>{
+        const ti=(tiSnap.val()||0)%active.length;
+        const tpid=active[ti].id||active[ti].name;
+
+        G.gameRef.update({qIndex:qi,currentQ:q,turnPid:tpid,phase:'question',timeLeft:q.time||30,answers:null,bets:null});
+
+        let t=q.time||30;
+        clearInterval(G.timerInt);
+
+        const answersRef=G.gameRef.child('answers');
+        answersRef.on('value',aSnap=>{
+          if(Object.keys(aSnap.val()||{}).length>=active.length){
+            answersRef.off();clearInterval(G.timerInt);
+            processRound(q,tpid,qi,active);
+          }
+        });
+
+        G.timerInt=setInterval(()=>{
+          t--;G.gameRef.child('timeLeft').set(t);
+          if(t<=0){clearInterval(G.timerInt);answersRef.off();processRound(q,tpid,qi,active);}
+        },1000);
+      });
+    });
+  }
+
+  async function processRound(q,tpid,qi,active){
+    const [aSn,bSn,psSn]=await Promise.all([
+      G.gameRef.child('answers').once('value'),
+      G.gameRef.child('bets').once('value'),
+      G.roomRef.child('players').once('value'),
+    ]);
+    const ans=aSn.val()||{},bets=bSn.val()||{},players=psSn.val()||{};
+    const qTime=q.time||30,pts=q.pts||10;
+    const updates={};
+    const rScores={};
+
+    Object.entries(players).forEach(([pid,p])=>{
+      if(p.isSpec)return;
+      const a=ans[pid],bet=bets[pid]||0;
+      let ok=false;
+      if(q.type==='tf') ok=a?.answer===q.answer;
+      else if(q.type==='fill') ok=String(a?.answer||'').trim().toLowerCase()===String(q.answer||'').trim().toLowerCase();
+      else ok=a?.answer===q.correct;
+
+      const spd=a?Math.max(0,Math.round((a.timeLeft/qTime)*5)):0;
+      const mult=pid===tpid?2:1;
+      let gain=0,liveLost=0;
+      if(ok){gain=(pts+spd)*mult;if(bet>0) gain+=bet;}
+      else{if(bet>0) gain=-bet;if(G.features?.lives) liveLost=1;}
+
+      rScores[pid]=gain;
+      updates[`players/${pid}/score`]=Math.max(0,(p.score||1000)+gain);
+      updates[`players/${pid}/lives`]=Math.max(0,(p.lives??3)-liveLost);
+    });
+
+    await G.roomRef.update(updates);
+    const psSn2=await G.roomRef.child('players').once('value');
+    const updated=Object.values(psSn2.val()||{}).map(p=>({id:p.id,name:p.name,avatar:p.avatar,score:p.score||0,lives:p.lives??3,delta:rScores[p.id]||0})).sort((a,b)=>b.score-a.score);
+
+    const correctVal=q.type==='tf'?q.answer:q.type==='fill'?q.answer:q.correct;
+    G.gameRef.update({phase:'reveal',correctAnswer:correctVal,roundScores:rScores});
+
+    const nextTi=((await G.gameRef.child('turnIndex').once('value')).val()||0)+1;
+
+    setTimeout(async()=>{
+      G.gameRef.update({phase:'leaderboard',leaderboard:updated,turnIndex:nextTi});
+      setTimeout(async()=>{
+        const nextQi=qi+1;
+        if(nextQi>=G.questions.length){endGame();return;}
+        // Rebuild turn order (remove dead players)
+        const psN=await G.roomRef.child('players').once('value');
+        const alive=Object.values(psN.val()||{}).filter(p=>!p.isSpec&&(p.lives??3)>0);
+        if(!alive.length){endGame();return;}
+        G.turnOrder=alive.map(p=>p.id);
+        G.gameRef.update({qIndex:nextQi,answers:null,bets:null});
+        G.roomRef.child('status').set('pick_cat');
+      },3000);
+    },2500);
+  }
+
+  async function endGame(){
+    G.gameRef.update({phase:'done'});
+    G.roomRef.child('status').set('finished');
+    statsRef.child('totalGames').transaction(v=>(v||0)+1);
+  }
+}
+
+// ══ REVEAL ══
+function revealAns(g){
+  clearInterval(G.timerInt);
+  const q=g.currentQ;if(!q)return;
+  document.getElementById('gq-active').style.display='none';
+  document.getElementById('gq-rev').style.display='block';
+
+  let ct='—';
+  if(q.type==='tf') ct=g.correctAnswer?'صحيح':'خطأ';
+  else if(q.type==='fill') ct=q.answer||'—';
+  else ct=q.options?.[g.correctAnswer]||'—';
+  document.getElementById('gq-ca').textContent=ct;
+
+  if(q.type==='tf'){
+    document.getElementById('tft')?.classList.add(g.correctAnswer===true?'ok':'no');
+    document.getElementById('tff')?.classList.add(g.correctAnswer===false?'ok':'no');
+  }else if(q.type!=='fill'){
+    document.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(i===g.correctAnswer) b.classList.add('ok');else if(b.classList.contains('sel')) b.classList.add('no');});
+  }
+
+  const myPts=g.roundScores?.[G.pid]||0;
+  const el=document.getElementById('gq-res');
+  if(myPts>0){el.textContent=`إجابة صحيحة! +${myPts} نقطة`;el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(16,185,129,.12);color:var(--green)';}
+  else if(myPts<0){el.textContent=`خسرت ${Math.abs(myPts)} نقطة من الرهان`;el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(239,68,68,.1);color:var(--red)';}
+  else{el.textContent=!G.answered?'لم تُجب — 0 نقطة':'إجابة خاطئة — 0 نقطة';el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(100,100,150,.1);color:var(--muted)';}
+}
+
+function showBtw(g){
+  goS('btw-rnd');
+  const lb=g.leaderboard||[];
+  const isLast=g.qIndex>=(G.questions.length||10)-1;
+  document.getElementById('br-nl').textContent=isLast?'النتائج النهائية':'اختيار الفئة التالية';
+  document.getElementById('br-ttl').textContent=`بعد السؤال ${(g.qIndex||0)+1}`;
+  const el=document.getElementById('br-rows');
+  el.innerHTML=lb.map((p,i)=>`
+    <div class="br-row ${p.id===G.pid?'me':''} ${i===0?'t1':''}" style="animation-delay:${i*.07}s">
+      <div class="br-rk" style="color:${i===0?'var(--gold)':i===1?'#aaa':i===2?'#cd7f32':'var(--muted)'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+      ${avSVG(p.avatar||'bolt',18)}
+      <div class="br-nm">${p.name}${p.id===G.pid?' (أنت)':''}</div>
+      <div>${p.delta!==0?`<span class="brd ${p.delta>0?'bdp':'bd0'}">${p.delta>0?'+':''}${p.delta}</span>`:''}<span class="br-pt">${p.score||0}</span></div>
+      <div style="font-size:10px">${Array(3).fill(0).map((_,j)=>`<svg viewBox="0 0 24 24" width="12" height="12" fill="${j<(p.lives??3)?'var(--red)':'var(--b2)'}" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`).join('')}</div>
+    </div>`).join('');
+}
+
+function renderSB(scores,lives){
+  const el=document.getElementById('g-sb');if(!el)return;
+  G.roomRef.child('players').once('value',snap=>{
+    const ps=Object.values(snap.val()||{}).filter(p=>!p.isSpec).sort((a,b)=>(scores[b.id]||b.score||0)-(scores[a.id]||a.score||0));
+    el.innerHTML=ps.map((p,i)=>`
+      <div class="sc-c ${p.id===G.pid?'me':''} ${i===0?'lead':''}">
+        ${avSVG(p.avatar||'bolt',14)}
+        <span class="scn">${p.name}</span>
+        <span class="scp ${i===0?'lc':''}">${scores[p.id]||p.score||0}</span>
+      </div>`).join('');
+  });
+}
+
+// ══ RESULTS ══
+function showResults(){
+  goS('results');spawnConf();
+  G.roomRef.child('players').once('value',snap=>{
+    const ps=Object.values(snap.val()||{}).filter(p=>!p.isSpec).sort((a,b)=>b.score-a.score);
+    const w=ps[0];
+    document.getElementById('res-nm').textContent=w?.name||'—';
+    document.getElementById('res-pt').textContent=(w?.score||0)+' نقطة';
+    const pod=document.getElementById('res-pod');
+    const top=[ps[1],ps[0],ps[2]].filter(Boolean);
+    pod.innerHTML=top.map((p,i)=>`
+      <div class="pod ${i===1?'p1':i===0?'p2':'p3'}">
+        <div class="pod-b"><div class="pod-n">${i===1?'1':i===0?'2':'3'}</div></div>
+        <div class="pod-nm">${p?.name||''}</div><div class="pod-p">${p?.score||0}</div>
+      </div>`).join('');
+    document.getElementById('res-lb').innerHTML=ps.map((p,i)=>`
+      <div class="lb-row ${p.id===G.pid?'me':''}">
+        <div class="lb-rk" style="color:${i===0?'var(--gold)':i===1?'#aaa':i===2?'#cd7f32':'var(--muted)'}">${i+1}</div>
+        ${avSVG(p.avatar||'bolt',18)}
+        <div class="lb-nm">${p.name}${p.id===G.pid?' (أنت)':''}</div>
+        <div class="lb-pt">${p.score||0}</div>
+      </div>`).join('');
+  });
+}
+
+function spawnConf(){
+  const cfw=document.getElementById('cfw');cfw.innerHTML='';
+  const cols=['#f59e0b','#a855f7','#10b981','#ef4444','#3b82f6'];
+  for(let i=0;i<80;i++){const p=document.createElement('div');p.className='cfp';p.style.cssText=`left:${Math.random()*100}%;width:${Math.random()*8+4}px;height:${Math.random()*8+4}px;background:${cols[Math.floor(Math.random()*cols.length)]};animation-duration:${Math.random()*2+2}s;animation-delay:${Math.random()*1.5}s;`;cfw.appendChild(p);}
+}
+
+function playAgain(){if(G.isHost) openCreate();else goS('home');}
+
+// ══ LEAVE ══
+function leaveRoom(){
+  if(G.roomRef&&G.pid) G.roomRef.child('players').child(G.pid).remove();
+  if(G.isHost&&G.roomRef) G.roomRef.child('status').set('cancelled');
+  cleanL();G.roomCode=null;G.isHost=false;G.roomRef=null;G.gameRef=null;G.isSpec=false;
+  goS('home');
+}
+
+// ══ SHARE / QR ══
+function getRoomURL(){return location.href.split('?')[0]+'?room='+G.roomCode;}
+function copyLink(){navigator.clipboard.writeText(getRoomURL()).then(()=>showN('تم نسخ الرابط','s'));}
+
+function shareRoom(){
+  const url=getRoomURL(),code=G.roomCode,text=`انضم لغرفتي في Faisal Arena!\nكود: ${code}\n${url}`;
+  if(navigator.share) navigator.share({title:'Faisal Arena 2',text,url}).catch(()=>showShareModal(url,code));
+  else showShareModal(url,code);
+}
+
+function showShareModal(url,code){
+  const w=document.createElement('div');
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:400;display:flex;align-items:flex-end;justify-content:center;padding:20px';
+  w.onclick=e=>{if(e.target===w)w.remove();};
+  const enc=encodeURIComponent(url),tenc=encodeURIComponent('انضم لغرفتي في Faisal Arena! كود: '+code);
+  w.innerHTML=`<div style="background:var(--s);border-radius:var(--rxl);padding:24px;width:100%;max-width:390px;animation:slide-up .3s ease">
+    <div style="font-size:15px;font-weight:800;text-align:center;margin-bottom:12px">مشاركة الغرفة</div>
+    <div style="font-family:'Exo 2';font-size:28px;font-weight:900;letter-spacing:6px;color:var(--neon2);text-align:center;padding:12px;background:var(--s2);border-radius:var(--r);margin-bottom:14px">${code}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <a href="https://wa.me/?text=${tenc}%20${enc}" target="_blank" class="btn b-gh" style="text-decoration:none;justify-content:center">واتساب</a>
+      <a href="https://t.me/share/url?url=${enc}&text=${tenc}" target="_blank" class="btn b-gh" style="text-decoration:none;justify-content:center">تيليغرام</a>
+      <button class="btn b-gh" onclick="navigator.clipboard.writeText('${url}').then(()=>showN('تم النسخ','s'));this.closest('div').parentElement.remove()">نسخ الرابط</button>
+      <button class="btn b-gh" onclick="this.closest('div').parentElement.remove();showQR()">QR كود</button>
+    </div>
+    <button class="btn b-gh b-fw" onclick="this.closest('[style]').remove()">إغلاق</button>
+  </div>`;
+  document.body.appendChild(w);
+}
+
+function showQR(){
+  const url=getRoomURL(),code=G.roomCode;
+  document.getElementById('qr-m')?.remove();
+  const w=document.createElement('div');w.id='qr-m';w.className='qr-back';
+  w.onclick=e=>{if(e.target===w)w.remove();};
+  w.innerHTML=`<div class="qr-box">
+    <div style="font-size:15px;font-weight:800;text-align:center;margin-bottom:4px">QR كود الغرفة</div>
+    <div class="qr-cvw"><canvas id="qr-cv" width="190" height="190"></canvas></div>
+    <div style="font-family:'Exo 2';font-size:26px;font-weight:900;letter-spacing:6px;color:var(--neon2);text-align:center;margin-bottom:12px">${code}</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn b-p b-sm" onclick="shareRoom();document.getElementById('qr-m').remove()">مشاركة</button>
+      <button class="btn b-gh b-sm" onclick="document.getElementById('qr-m').remove()">إغلاق</button>
+    </div>
+  </div>`;
+  document.body.appendChild(w);
+  const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  s.onload=()=>{const c=document.getElementById('qr-cv');c.parentNode.innerHTML='<div id="qr-d" style="display:inline-block"></div>';new QRCode(document.getElementById('qr-d'),{text:url,width:180,height:180,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});};
+  s.onerror=()=>{const c=document.getElementById('qr-cv')?.getContext('2d');if(!c)return;c.fillStyle='#fff';c.fillRect(0,0,190,190);c.fillStyle='#000';c.font='bold 14px monospace';c.textAlign='center';c.fillText(code,95,95);};
+  document.head.appendChild(s);
+}
+
+// ══ STATS ══
+function loadStats(){
+  roomsRef.on('value',snap=>{
+    const rooms=Object.values(snap.val()||{});
+    const active=rooms.filter(r=>r.status==='waiting'||r.status==='playing');
+    let players=0;active.forEach(r=>players+=Object.keys(r.players||{}).length);
+    document.getElementById('hs-rooms').textContent=active.length;
+    document.getElementById('hs-online').textContent=players;
+  });
+  statsRef.child('totalGames').on('value',snap=>document.getElementById('hs-games').textContent=snap.val()||0);
+}
+
+function checkURL(){
+  const p=new URLSearchParams(location.search),code=p.get('room');
+  if(code){G.pendingAction='public-join';G.pendingCode=code.toUpperCase();gotoName('public-join');}
+}
+
+// ══ BOOT ══
+document.addEventListener('DOMContentLoaded',()=>{
+  loadStats();
+  loadSysRooms();
+  ensureSystemRooms();
+  checkURL();
+});
+</script>
+</body>
+</html>
