@@ -259,16 +259,25 @@ body {
 ══════════════════════════════ */
 #create-room { align-items:center; justify-content:center; padding:24px; }
 
-.cat-grid { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
 .cat-pill {
   padding:7px 14px; border-radius:20px; border:1.5px solid var(--border2);
   background:var(--surface2); cursor:pointer;
   font-family:'Tajawal',sans-serif; font-size:12px; font-weight:700;
   color:var(--text2); transition:all .2s; user-select:none;
-  display:flex; align-items:center; gap:5px;
+  display:flex; align-items:center; gap:5px; position:relative;
 }
-.cat-pill:hover { border-color:var(--neon); color:var(--text); }
-.cat-pill.sel { background:rgba(0,245,255,.1); border-color:var(--neon); color:var(--neon); }
+.cat-pill:hover { border-color:var(--neon); color:var(--text); background:var(--surface); }
+.cat-pill.sel {
+  background:rgba(0,245,255,.12); border-color:var(--neon); color:var(--neon);
+  box-shadow:0 0 10px rgba(0,245,255,.15);
+}
+.cat-pill.sel::after {
+  content:'';
+  width:7px; height:7px; border-radius:50%;
+  background:var(--neon); display:inline-block;
+  box-shadow:0 0 6px var(--neon);
+  margin-right:2px;
+}
 
 .slider-row { display:flex; align-items:center; gap:14px; }
 .slider { flex:1; -webkit-appearance:none; height:4px; border-radius:2px; background:var(--border2); outline:none; }
@@ -403,7 +412,36 @@ body {
 .opt-btn.correct .opt-letter { background:var(--green); color:#000; border-color:var(--green); }
 .opt-btn.wrong .opt-letter { background:var(--red); color:#fff; border-color:var(--red); }
 
-/* Waiting for Q */
+/* TF buttons */
+.tf-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
+.tf-btn {
+  padding:20px; border-radius:var(--r-lg);
+  border:2px solid var(--border2); background:var(--surface);
+  font-family:'Tajawal',sans-serif; font-size:16px; font-weight:800;
+  cursor:pointer; transition:all .2s; text-align:center; color:var(--text);
+}
+.tf-btn:hover:not(:disabled) { transform:translateY(-3px); }
+.tf-btn.tf-true:hover:not(:disabled) { border-color:var(--green); color:var(--green); background:rgba(0,230,118,.08); }
+.tf-btn.tf-false:hover:not(:disabled) { border-color:var(--red); color:var(--red); background:rgba(255,23,68,.08); }
+.tf-btn.selected-true { border-color:var(--green); background:rgba(0,230,118,.1); color:var(--green); }
+.tf-btn.selected-false { border-color:var(--red); background:rgba(255,23,68,.1); color:var(--red); }
+.tf-btn.correct { border-color:var(--green); background:rgba(0,230,118,.15); color:var(--green); }
+.tf-btn.wrong { border-color:var(--red); background:rgba(255,23,68,.1); color:var(--red); opacity:.7; }
+.tf-btn:disabled { cursor:default; }
+
+/* Fill input */
+.fill-wrap { display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:12px; }
+.fill-input {
+  width:100%; max-width:360px; text-align:center;
+  font-family:'Tajawal',sans-serif; font-size:18px; font-weight:700;
+  background:var(--surface2); border:2px solid var(--border2);
+  color:var(--text); border-radius:var(--r-lg); padding:14px;
+  transition:border-color .2s;
+}
+.fill-input:focus { outline:none; border-color:var(--neon); box-shadow:0 0 0 3px rgba(0,245,255,.1); }
+.fill-input.correct-fill { border-color:var(--green); background:rgba(0,230,118,.1); color:var(--green); }
+.fill-input.wrong-fill { border-color:var(--red); background:rgba(255,23,68,.08); }
+
 .waiting-q { text-align:center; padding:32px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
 .pulse-dot { width:14px; height:14px; border-radius:50%; background:var(--neon); box-shadow:var(--glow-neon); animation:pulse-d 1.5s ease-in-out infinite; }
 @keyframes pulse-d { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.6} }
@@ -964,94 +1002,158 @@ const CATS = [
 // ══════════════════════════════════════
 //  QUESTION BANK
 // ══════════════════════════════════════
+// ══════════════════════════════════════
+//  QUESTION BANK — موثّق ومدقّق
+//  الأسئلة الدينية: المنهج الحنبلي السني المعتمد
+//  أنواع: mcq=اختيار متعدد, tf=صح وخطأ, fill=أكمل
+// ══════════════════════════════════════
 const QBANK = {
   islamic:[
-    {t:'كم عدد أركان الإسلام؟',o:['٣','٤','٥','٦'],c:2},
-    {t:'ما أول مسجد بُني في الإسلام؟',o:['المسجد الحرام','مسجد قباء','المسجد النبوي','المسجد الأقصى'],c:1},
-    {t:'في أي شهر نزل القرآن الكريم؟',o:['رجب','شعبان','رمضان','محرم'],c:2},
-    {t:'كم عدد سور القرآن الكريم؟',o:['١١٢','١١٣','١١٤','١١٥'],c:2},
-    {t:'كم عدد الصلوات المفروضة يومياً؟',o:['٣','٤','٥','٦'],c:2},
-    {t:'ما اسم زوجة النبي ﷺ الأولى؟',o:['عائشة','حفصة','خديجة','زينب'],c:2},
-    {t:'ما هي القبلة الأولى للمسلمين؟',o:['مكة المكرمة','القدس','المدينة','الطائف'],c:1},
-    {t:'كم سنة نزل الوحي على النبي ﷺ؟',o:['١٥','٢٠','٢٣','٢٥'],c:2},
+    // أركان الإسلام — صحيح البخاري ومسلم
+    {t:'كم عدد أركان الإسلام؟',ty:'mcq',o:['٣','٤','٥','٦'],c:2},
+    {t:'ما الركن الأول من أركان الإسلام؟',ty:'mcq',o:['الصلاة','الصيام','شهادة أن لا إله إلا الله وأن محمداً رسول الله','الزكاة'],c:2},
+    {t:'كم عدد أركان الإيمان؟',ty:'mcq',o:['٤','٥','٦','٧'],c:2},
+    // القرآن الكريم
+    {t:'كم عدد سور القرآن الكريم؟',ty:'mcq',o:['١١٢','١١٣','١١٤','١١٥'],c:2},
+    {t:'ما أول سورة نزلت في القرآن الكريم؟',ty:'mcq',o:['الفاتحة','البقرة','العلق','المدثر'],c:2},
+    {t:'ما أطول سورة في القرآن الكريم؟',ty:'mcq',o:['آل عمران','النساء','البقرة','المائدة'],c:2},
+    {t:'ما أقصر سورة في القرآن الكريم؟',ty:'mcq',o:['الإخلاص','الفلق','الناس','الكوثر'],c:3},
+    {t:'في أي شهر نزل القرآن الكريم؟',ty:'mcq',o:['رجب','شعبان','رمضان','محرم'],c:2},
+    // الصلاة
+    {t:'كم عدد الصلوات المفروضة في اليوم والليلة؟',ty:'mcq',o:['٣','٤','٥','٦'],c:2},
+    {t:'الصلاة الوحيدة التي لا يُجهر فيها في صلاة الجماعة هي؟',ty:'mcq',o:['الفجر','الظهر','المغرب','العشاء'],c:1},
+    {t:'كم عدد ركعات صلاة الفجر؟',ty:'mcq',o:['ركعة','ركعتان','ثلاث','أربع'],c:1},
+    {t:'كم عدد ركعات صلاة الظهر؟',ty:'mcq',o:['٢','٣','٤','٥'],c:2},
+    // السيرة النبوية
+    {t:'في أي مدينة وُلد النبي محمد ﷺ؟',ty:'mcq',o:['المدينة المنورة','مكة المكرمة','الطائف','جدة'],c:1},
+    {t:'كم كان عمر النبي ﷺ عند بعثته؟',ty:'mcq',o:['٣٥','٤٠','٤٥','٥٠'],c:1},
+    {t:'ما اسم أبي النبي محمد ﷺ؟',ty:'mcq',o:['عبدالله','عبدالمطلب','أبو طالب','الزبير'],c:0},
+    {t:'ما اسم أم النبي محمد ﷺ؟',ty:'mcq',o:['فاطمة','خديجة','آمنة','سمية'],c:2},
+    {t:'كم سنة استغرقت نزول الوحي؟',ty:'mcq',o:['١٥','٢٠','٢٣','٢٥'],c:2},
+    {t:'إلى أي مدينة كانت الهجرة النبوية؟',ty:'mcq',o:['مكة المكرمة','المدينة المنورة','الطائف','الحبشة'],c:1},
+    // صح وخطأ — ديني
+    {t:'الزكاة واجبة على كل مسلم بالغ عاقل يملك النصاب',ty:'tf',a:true},
+    {t:'صيام رمضان فُرض في السنة الثانية من الهجرة',ty:'tf',a:true},
+    {t:'الحج فريضة على كل مسلم مرة واحدة في العمر لمن استطاع',ty:'tf',a:true},
+    // إكمال الفراغ
+    {t:'قال النبي ﷺ: "إنما الأعمال ____"',ty:'fill',a:'بالنيات'},
+    {t:'سورة الإخلاص تعدل ثلث ____',ty:'fill',a:'القرآن'},
   ],
   history:[
-    {t:'متى فُتحت مكة المكرمة؟',o:['٦ هـ','٧ هـ','٨ هـ','٩ هـ'],c:2},
-    {t:'من هو مؤسس الدولة السعودية الأولى؟',o:['الملك عبدالعزيز','محمد بن سعود','الملك فيصل','الملك سعود'],c:1},
-    {t:'في أي عام وحّد الملك عبدالعزيز المملكة؟',o:['١٩٢٨','١٩٣٠','١٩٣٢','١٩٣٤'],c:2},
-    {t:'ما اسم المعركة الأولى في الإسلام؟',o:['أحد','بدر','الخندق','تبوك'],c:1},
-    {t:'من هو أول خليفة في الإسلام؟',o:['عمر','علي','أبو بكر','عثمان'],c:2},
-    {t:'متى انتهت الحرب العالمية الثانية؟',o:['١٩٤٣','١٩٤٤','١٩٤٥','١٩٤٦'],c:2},
-    {t:'من اكتشف أمريكا؟',o:['ماجلان','كولومبس','فاسكو دي غاما','كابوت'],c:1},
-    {t:'في أي عام قامت الثورة الفرنسية؟',o:['١٧٨٥','١٧٨٩','١٧٩٢','١٧٩٥'],c:1},
+    // التاريخ الإسلامي — موثّق
+    {t:'في أي عام بُنيت الكعبة المشرفة على يد إبراهيم وإسماعيل عليهما السلام؟',ty:'mcq',o:['قبل الميلاد بـ٢٠٠٠ عام','قبل الميلاد بـ٣٠٠٠ عام','قبل الميلاد بـ٤٠٠٠ عام','غير معروف بالضبط'],c:3},
+    {t:'في أي عام وقعت غزوة بدر؟',ty:'mcq',o:['١ هـ','٢ هـ','٣ هـ','٤ هـ'],c:1},
+    {t:'في أي عام فُتحت مكة المكرمة؟',ty:'mcq',o:['٦ هـ','٧ هـ','٨ هـ','٩ هـ'],c:2},
+    {t:'من هو أول الخلفاء الراشدين؟',ty:'mcq',o:['عمر بن الخطاب','علي بن أبي طالب','أبو بكر الصديق','عثمان بن عفان'],c:2},
+    {t:'من قاد جيش المسلمين في فتح مصر؟',ty:'mcq',o:['عمر بن الخطاب','خالد بن الوليد','عمرو بن العاص','سعد بن أبي وقاص'],c:2},
+    {t:'من فتح بلاد الشام للمسلمين؟',ty:'mcq',o:['عمرو بن العاص','خالد بن الوليد','أبو عبيدة','معاوية بن أبي سفيان'],c:1},
+    // تاريخ المملكة العربية السعودية
+    {t:'من هو مؤسس الدولة السعودية الأولى؟',ty:'mcq',o:['الملك عبدالعزيز','الإمام محمد بن سعود','الملك فيصل','الإمام تركي'],c:1},
+    {t:'في أي عام توحّدت المملكة العربية السعودية على يد الملك عبدالعزيز؟',ty:'mcq',o:['١٩٢٨م','١٩٣٠م','١٩٣٢م','١٩٣٤م'],c:2},
+    {t:'ما اسم الملك المؤسس للمملكة العربية السعودية الحديثة؟',ty:'mcq',o:['الملك سعود','الملك عبدالعزيز بن عبدالرحمن آل سعود','الملك فيصل','الملك خالد'],c:1},
+    // تاريخ عالمي
+    {t:'في أي عام انتهت الحرب العالمية الثانية؟',ty:'mcq',o:['١٩٤٣م','١٩٤٤م','١٩٤٥م','١٩٤٦م'],c:2},
+    {t:'في أي عام اندلعت الحرب العالمية الأولى؟',ty:'mcq',o:['١٩١٢م','١٩١٤م','١٩١٦م','١٩١٨م'],c:1},
+    {t:'من اكتشف قارة أمريكا عام ١٤٩٢م؟',ty:'mcq',o:['فيرديناند ماجلان','كريستوفر كولومبوس','فاسكو دي غاما','جون كابوت'],c:1},
+    {t:'في أي عام سقطت الخلافة العثمانية؟',ty:'mcq',o:['١٩١٨م','١٩٢٠م','١٩٢٢م','١٩٢٤م'],c:3},
+    // صح وخطأ
+    {t:'غزوة أُحُد كانت في السنة الثالثة من الهجرة',ty:'tf',a:true},
+    {t:'عاصمة الخلافة العباسية كانت دمشق',ty:'tf',a:false},
+    {t:'الملك عبدالعزيز هو من وحّد أجزاء الجزيرة العربية في مملكة واحدة',ty:'tf',a:true},
+    // إكمل
+    {t:'عاصمة الخلافة العباسية هي مدينة ____',ty:'fill',a:'بغداد'},
+    {t:'أول خليفة راشدي هو ____',ty:'fill',a:'أبو بكر الصديق'},
   ],
   science:[
-    {t:'ما رمز الذهب في الجدول الدوري؟',o:['Go','Gd','Au','Ag'],c:2},
-    {t:'ما سرعة الضوء تقريباً؟',o:['٣٠٠ألف كم/ث','١٥٠ألف كم/ث','٦٠٠ألف كم/ث','٩٠٠ألف كم/ث'],c:0},
-    {t:'ما الجهاز الذي يضخ الدم؟',o:['الرئة','الكبد','الكلية','القلب'],c:3},
-    {t:'كم عدد عظام الإنسان البالغ؟',o:['١٦٦','٢٠٦','٢٤٦','٣٠٦'],c:1},
-    {t:'ما أكبر كوكب في المجموعة الشمسية؟',o:['زحل','المريخ','المشتري','أورانوس'],c:2},
-    {t:'ما صيغة الماء الكيميائية؟',o:['CO2','H2O','O2','NaCl'],c:1},
-    {t:'كم يبعد القمر عن الأرض تقريباً؟',o:['٢٠٠ألف كم','٣٨٤ألف كم','٥٠٠ألف كم','١مليون كم'],c:1},
-    {t:'ما أصغر وحدة في الكائن الحي؟',o:['ذرة','خلية','جزيء','جين'],c:1},
+    {t:'ما رمز عنصر الذهب في الجدول الدوري؟',ty:'mcq',o:['Go','Gd','Au','Ag'],c:2},
+    {t:'ما سرعة الضوء في الفراغ تقريباً؟',ty:'mcq',o:['٣٠٠,٠٠٠ كم/ث','١٥٠,٠٠٠ كم/ث','٦٠٠,٠٠٠ كم/ث','٩٠,٠٠٠ كم/ث'],c:0},
+    {t:'ما الجهاز الذي يضخ الدم في جسم الإنسان؟',ty:'mcq',o:['الرئة','الكبد','الكلية','القلب'],c:3},
+    {t:'كم عدد عظام جسم الإنسان البالغ؟',ty:'mcq',o:['١٦٦','٢٠٦','٢٤٦','٣٠٦'],c:1},
+    {t:'ما أكبر كوكب في المجموعة الشمسية؟',ty:'mcq',o:['زحل','المريخ','المشتري','أورانوس'],c:2},
+    {t:'ما الصيغة الكيميائية للماء؟',ty:'mcq',o:['CO2','H2O2','H2O','NaCl'],c:2},
+    {t:'كم يبعد القمر عن الأرض تقريباً؟',ty:'mcq',o:['٢٠٠,٠٠٠ كم','٣٨٤,٠٠٠ كم','٥٠٠,٠٠٠ كم','١,٠٠٠,٠٠٠ كم'],c:1},
+    {t:'ما عدد كروموسومات الإنسان السليم؟',ty:'mcq',o:['٤٢','٤٤','٤٦','٤٨'],c:2},
+    {t:'ما الغاز الأكثر وفرة في الغلاف الجوي للأرض؟',ty:'mcq',o:['الأكسجين','ثاني أكسيد الكربون','النيتروجين','الأرغون'],c:2},
+    {t:'ما أصغر وحدة في الكائن الحي؟',ty:'mcq',o:['ذرة','خلية','جزيء','جين'],c:1},
+    {t:'الماء يتجمد عند درجة صفر مئوية',ty:'tf',a:true},
+    {t:'الشمس كوكب في المجموعة الشمسية',ty:'tf',a:false},
+    {t:'الصيغة الكيميائية للملح الطعام هي ____',ty:'fill',a:'NaCl'},
   ],
   geography:[
-    {t:'ما عاصمة المملكة العربية السعودية؟',o:['جدة','الدمام','الرياض','مكة'],c:2},
-    {t:'ما أطول نهر في العالم؟',o:['الأمازون','النيل','الكونغو','المسيسيبي'],c:1},
-    {t:'كم عدد دول العالم تقريباً؟',o:['١٥٦','١٧٦','١٩٥','٢١٠'],c:2},
-    {t:'ما أكبر قارة في العالم؟',o:['أفريقيا','أمريكا','أوروبا','آسيا'],c:3},
-    {t:'أين يقع برج إيفل؟',o:['لندن','برلين','باريس','روما'],c:2},
-    {t:'ما أعلى جبل في العالم؟',o:['إيفرست','K2','كيليمنجارو','الأنديز'],c:0},
-    {t:'ما عاصمة اليابان؟',o:['أوساكا','كيوتو','طوكيو','ناغويا'],c:2},
-    {t:'ما المحيط الأكبر في العالم؟',o:['الأطلسي','الهادئ','الهندي','المتجمد'],c:1},
+    {t:'ما عاصمة المملكة العربية السعودية؟',ty:'mcq',o:['جدة','الدمام','الرياض','مكة المكرمة'],c:2},
+    {t:'ما أطول نهر في العالم؟',ty:'mcq',o:['نهر الأمازون','نهر النيل','نهر الكونغو','نهر المسيسيبي'],c:1},
+    {t:'ما أكبر قارة في العالم مساحةً؟',ty:'mcq',o:['أفريقيا','أمريكا الشمالية','أوروبا','آسيا'],c:3},
+    {t:'ما أعمق بحيرة في العالم؟',ty:'mcq',o:['بحيرة فيكتوريا','بحيرة سوبيريور','بحيرة بايكال','بحيرة تيتيكاكا'],c:2},
+    {t:'ما أعلى جبل في العالم؟',ty:'mcq',o:['K2','إيفرست','كيليمنجارو','مونت بلان'],c:1},
+    {t:'ما أكبر محيط في العالم؟',ty:'mcq',o:['الأطلسي','الهادئ','الهندي','المتجمد الشمالي'],c:1},
+    {t:'ما عاصمة اليابان؟',ty:'mcq',o:['أوساكا','كيوتو','طوكيو','ناغويا'],c:2},
+    {t:'كم يبلغ عدد دول العالم المعترف بها في الأمم المتحدة؟',ty:'mcq',o:['١٧٦','١٨٥','١٩٣','٢٠٠'],c:2},
+    {t:'المملكة العربية السعودية هي أكبر دولة في شبه الجزيرة العربية',ty:'tf',a:true},
+    {t:'البحر الميت يقع في قارة أفريقيا',ty:'tf',a:false},
+    {t:'عاصمة فرنسا هي مدينة ____',ty:'fill',a:'باريس'},
+    {t:'أطول نهر في العالم هو نهر ____',ty:'fill',a:'النيل'},
   ],
   sports:[
-    {t:'كم لاعباً في فريق كرة القدم؟',o:['٩','١٠','١١','١٢'],c:2},
-    {t:'كم دقيقة تستغرق مباراة كرة القدم؟',o:['٦٠','٧٥','٩٠','١٢٠'],c:2},
-    {t:'في أي دولة أقيم كأس العالم ٢٠٢٢؟',o:['الإمارات','السعودية','قطر','البحرين'],c:2},
-    {t:'كم عدد حلقات شعار الأولمبياد؟',o:['٤','٥','٦','٧'],c:1},
-    {t:'ما أسرع رياضة في العالم؟',o:['كرة القدم','التنس','سباقات الخيل','الريشة الطائرة'],c:3},
-    {t:'كم طول ملعب كرة القدم القياسي؟',o:['٩٠م','١٠٠م','١٠٥م','١١٠م'],c:2},
-    {t:'من يُلقب بـ"الكابتن الأمريكي"؟',o:['باتمان','سوبرمان','ستيف روجرز','توني ستارك'],c:2},
-    {t:'ما الرياضة التي تُلعب بالمضرب والريشة؟',o:['التنس','البادمنتون','الاسكواش','البيسبول'],c:1},
+    {t:'كم عدد لاعبي فريق كرة القدم في الملعب؟',ty:'mcq',o:['٩','١٠','١١','١٢'],c:2},
+    {t:'كم دقيقة يستغرق وقت اللعب الأصلي في مباراة كرة القدم؟',ty:'mcq',o:['٦٠','٧٥','٩٠','١٢٠'],c:2},
+    {t:'في أي دولة أُقيم كأس العالم لكرة القدم ٢٠٢٢؟',ty:'mcq',o:['الإمارات','السعودية','قطر','البحرين'],c:2},
+    {t:'كم عدد حلقات الشعار الأولمبي؟',ty:'mcq',o:['٤','٥','٦','٧'],c:1},
+    {t:'ما الرياضة التي تُعرف بـ"اللعبة الجميلة"؟',ty:'mcq',o:['كرة السلة','كرة القدم','التنس','السباحة'],c:1},
+    {t:'كم طول ملعب كرة القدم القياسي وفق الفيفا؟',ty:'mcq',o:['٩٠-٩٥م','١٠٠-١١٠م','١٠٥-١١٠م','١١٠-١٢٠م'],c:1},
+    {t:'ما الرياضة التي تُلعب بمضرب وريشة (كوك)?',ty:'mcq',o:['التنس','الاسكواش','البادمنتون','التنس الطاولة'],c:2},
+    {t:'في كرة القدم، يُعلن عن ضربة جزاء عند حدوث مخالفة داخل منطقة الجزاء',ty:'tf',a:true},
+    {t:'كأس العالم لكرة القدم يُقام كل أربع سنوات',ty:'tf',a:true},
+    {t:'عدد لاعبي فريق كرة اليد هو ____ لاعباً',ty:'fill',a:'٧'},
   ],
   culture:[
-    {t:'من رسم الموناليزا؟',o:['مايكل أنجلو','رفائيل','ليوناردو دافنشي','بيكاسو'],c:2},
-    {t:'من كتب رواية ألف شمس مشرقة؟',o:['نجيب محفوظ','خالد حسيني','طه حسين','ماركيز'],c:1},
-    {t:'ما أقدم حضارة في التاريخ؟',o:['الفرعونية','السومرية','الرومانية','الإغريقية'],c:1},
-    {t:'ما اللغة الأكثر تحدثاً في العالم؟',o:['الإنجليزية','الإسبانية','الماندرين','العربية'],c:2},
-    {t:'من ألّف مسرحية روميو وجولييت؟',o:['تشيخوف','موليير','شكسبير','إبسن'],c:2},
-    {t:'ما أطول رواية في التاريخ؟',o:['الحرب والسلام','إخوة كارامازوف','دون كيخوته','البحث عن الزمن المفقود'],c:3},
+    {t:'من رسم لوحة الموناليزا؟',ty:'mcq',o:['مايكل أنجلو','رفائيل','ليوناردو دافنشي','بيكاسو'],c:2},
+    {t:'من ألّف كتاب ألف ليلة وليلة؟',ty:'mcq',o:['لمؤلف واحد محدد','مجهول — جمع على مر العصور','نجيب محفوظ','طه حسين'],c:1},
+    {t:'ما أقدم حضارة موثّقة في التاريخ؟',ty:'mcq',o:['الفرعونية','السومرية','الرومانية','الإغريقية'],c:1},
+    {t:'ما اللغة الأكثر تحدثاً في العالم من حيث عدد المتحدثين الأصليين؟',ty:'mcq',o:['الإنجليزية','الإسبانية','الماندرين الصينية','العربية'],c:2},
+    {t:'من ألّف مسرحية روميو وجولييت؟',ty:'mcq',o:['تشيخوف','موليير','ويليام شكسبير','إبسن'],c:2},
+    {t:'من هو مبتكر الطباعة بالحروف المتحركة؟',ty:'mcq',o:['نيوتن','غوتنبرغ','فرانكلين','داغير'],c:1},
+    {t:'اللغة العربية هي اللغة الرسمية لأكثر من ٢٠ دولة',ty:'tf',a:true},
+    {t:'نجيب محفوظ هو أول أديب عربي يحصل على جائزة نوبل للآداب',ty:'tf',a:true},
+    {t:'الفنان الذي رسم السقف الكنسي لكنيسة سيستينا هو ____',ty:'fill',a:'مايكل أنجلو'},
   ],
   tech:[
-    {t:'ما معنى CPU؟',o:['وحدة طباعة مركزية','وحدة معالجة مركزية','وحدة برمجة مركزية','وحدة حماية مركزية'],c:1},
-    {t:'من أسس شركة Apple؟',o:['بيل غيتس','ستيف جوبز','إيلون ماسك','مارك زوكربيرغ'],c:1},
-    {t:'في أي عام تأسست Google؟',o:['١٩٩٥','١٩٩٦','١٩٩٨','٢٠٠٠'],c:2},
-    {t:'ما معنى WiFi؟',o:['Wireless Fidelity','Wide Frequency','Web Interface','Wireless Fiber'],c:0},
-    {t:'ما لغة البرمجة الأكثر استخداماً في الويب؟',o:['Python','Java','JavaScript','C++'],c:2},
-    {t:'كم بت في البايت الواحد؟',o:['٤','٨','١٦','٣٢'],c:1},
-    {t:'ما معنى URL؟',o:['Unique Resource Link','Universal Record Locator','Uniform Resource Locator','Upload Resource List'],c:2},
-    {t:'ما أول شبكة إنترنت في العالم؟',o:['ARPANET','BITNET','NSFNET','MILNET'],c:0},
+    {t:'ما معنى اختصار CPU؟',ty:'mcq',o:['Central Processing Unit','Core Power Unit','Central Program Unit','Computing Process Unit'],c:0},
+    {t:'من هو المؤسس المشارك لشركة Apple إلى جانب ستيف وزنياك؟',ty:'mcq',o:['بيل غيتس','ستيف جوبز','إيلون ماسك','مارك زوكربيرغ'],c:1},
+    {t:'في أي عام تأسست شركة Google؟',ty:'mcq',o:['١٩٩٥م','١٩٩٦م','١٩٩٨م','٢٠٠٠م'],c:2},
+    {t:'ما لغة البرمجة التي صُممت خصيصاً لتطوير تطبيقات Android رسمياً؟',ty:'mcq',o:['Python','Swift','Kotlin','Java'],c:2},
+    {t:'كم بت (bit) يساوي البايت (Byte) الواحد؟',ty:'mcq',o:['٤','٨','١٦','٣٢'],c:1},
+    {t:'ما معنى اختصار URL؟',ty:'mcq',o:['Uniform Resource Locator','Universal Record Link','Upload Resource Log','Unique Reference List'],c:0},
+    {t:'ما أول شبكة حاسوبية في التاريخ؟',ty:'mcq',o:['ARPANET','BITNET','NSFNET','MILNET'],c:0},
+    {t:'HTML هي لغة برمجة',ty:'tf',a:false},
+    {t:'الإنترنت والشبكة العنكبوتية (WWW) شيء واحد',ty:'tf',a:false},
+    {t:'منفذ HTTP الافتراضي هو ____ ',ty:'fill',a:'80'},
   ],
   math:[
-    {t:'كم يساوي ٢ أس ١٠؟',o:['٥١٢','٨٩٦','١٠٢٤','٢٠٤٨'],c:2},
-    {t:'ما قيمة الجذر التربيعي لـ ١٤٤؟',o:['١٠','١١','١٢','١٣'],c:2},
-    {t:'ما قيمة π تقريباً؟',o:['٣.١','٣.١٤','٣.٢','٣.٣'],c:1},
-    {t:'ما مجموع زوايا المثلث؟',o:['٩٠°','١٢٠°','١٨٠°','٣٦٠°'],c:2},
-    {t:'ما ناتج ١٥ × ١٥؟',o:['٢٠٥','٢٢٥','٢٤٥','٢٦٥'],c:1},
-    {t:'كم عدد الأعداد الأولية بين ١ و ٢٠؟',o:['٦','٧','٨','٩'],c:2},
+    {t:'كم يساوي ٢ أُس ١٠؟',ty:'mcq',o:['٥١٢','٨٩٦','١٠٢٤','٢٠٤٨'],c:2},
+    {t:'ما الجذر التربيعي لـ ١٤٤؟',ty:'mcq',o:['١٠','١١','١٢','١٣'],c:2},
+    {t:'ما قيمة π (باي) تقريباً بمنزلتين عشريتين؟',ty:'mcq',o:['٣.١٠','٣.١٢','٣.١٤','٣.١٦'],c:2},
+    {t:'ما مجموع زوايا المثلث؟',ty:'mcq',o:['٩٠°','١٢٠°','١٨٠°','٣٦٠°'],c:2},
+    {t:'ما ناتج ١٥ × ١٥؟',ty:'mcq',o:['٢٠٥','٢٢٥','٢٤٥','٢٦٥'],c:1},
+    {t:'ما عدد الأعداد الأولية بين ١ و ٢٠؟',ty:'mcq',o:['٦','٧','٨','٩'],c:2},
+    {t:'العدد صفر (٠) عدد زوجي',ty:'tf',a:true},
+    {t:'العدد (١) عدد أولي',ty:'tf',a:false},
+    {t:'مجموع زوايا المربع = ____  درجة',ty:'fill',a:'٣٦٠'},
   ],
   politics:[
-    {t:'كم دولة عضو في الأمم المتحدة؟',o:['١٦٠','١٧٠','١٨٠','١٩٣'],c:3},
-    {t:'ما مقر الأمم المتحدة؟',o:['لندن','باريس','نيويورك','جنيف'],c:2},
-    {t:'ما شعار منظمة الأمم المتحدة؟',o:['نسر','حمامة','زيتون وكرة أرضية','نجمة'],c:2},
-    {t:'ما نظام الحكم في بريطانيا؟',o:['جمهوري','ملكي دستوري','ديمقراطي شعبي','فيدرالي'],c:1},
+    {t:'كم دولة عضو في منظمة الأمم المتحدة؟',ty:'mcq',o:['١٦٠','١٧٥','١٨٠','١٩٣'],c:3},
+    {t:'أين يقع مقر الأمم المتحدة الرئيسي؟',ty:'mcq',o:['لندن','باريس','نيويورك','جنيف'],c:2},
+    {t:'ما نظام الحكم في المملكة العربية السعودية؟',ty:'mcq',o:['جمهوري','ملكي إسلامي','ديمقراطي برلماني','فيدرالي'],c:1},
+    {t:'ما نظام الحكم في المملكة المتحدة؟',ty:'mcq',o:['جمهوري','ملكي دستوري','ديمقراطي شعبي','فيدرالي'],c:1},
+    {t:'مجلس الأمن الدولي يضم ٥ أعضاء دائمين',ty:'tf',a:true},
+    {t:'مقر الاتحاد الأوروبي الرئيسي في باريس',ty:'tf',a:false},
   ],
   war:[
-    {t:'ما أطول حرب في التاريخ الحديث؟',o:['الحرب العالمية الأولى','الحرب الباردة','حرب المئة عام','الحرب الأهلية الأمريكية'],c:2},
-    {t:'في أي عام اندلعت الحرب العالمية الأولى؟',o:['١٩١٢','١٩١٤','١٩١٦','١٩١٨'],c:1},
-    {t:'ما اسم الهجوم الذي دخلت به أمريكا الحرب العالمية الثانية؟',o:['بيرل هاربر','نورماندي','ميدواي','غوادالكانال'],c:0},
-    {t:'ما الاسم الرمزي لإنزال نورماندي؟',o:['عملية أوفرلورد','عملية طوفان','عملية البرق','عملية تيتان'],c:0},
+    {t:'في أي عام اندلعت الحرب العالمية الأولى؟',ty:'mcq',o:['١٩١٢م','١٩١٤م','١٩١٦م','١٩١٨م'],c:1},
+    {t:'في أي عام انتهت الحرب العالمية الثانية؟',ty:'mcq',o:['١٩٤٣م','١٩٤٤م','١٩٤٥م','١٩٤٧م'],c:2},
+    {t:'ما اسم الهجوم الياباني الذي أدخل الولايات المتحدة الحرب العالمية الثانية؟',ty:'mcq',o:['هيروشيما','بيرل هاربر','نورماندي','ميدواي'],c:1},
+    {t:'ما الاسم الرمزي لعملية إنزال الحلفاء في نورماندي عام ١٩٤٤م؟',ty:'mcq',o:['عملية أوفرلورد','عملية باربروسا','عملية البرق','عملية طوفان'],c:0},
+    {t:'الحرب العالمية الأولى بدأت عام ١٩١٤م',ty:'tf',a:true},
+    {t:'ألمانيا هي التي ألقت القنبلة الذرية على هيروشيما',ty:'tf',a:false},
   ],
 };
 
@@ -1062,8 +1164,15 @@ function getQuestionsForCats(catIds, count) {
   });
   pool.sort(() => Math.random() - .5);
   return pool.slice(0, count).map((q, i) => ({
-    id: i, text: q.t, options: q.o, correct: q.c,
-    category: q.cat, pts: 10, time: 30
+    id: i,
+    text: q.t,
+    type: q.ty || 'mcq',
+    options: q.o || null,
+    correct: q.c !== undefined ? q.c : null,
+    answer: q.a !== undefined ? q.a : null,
+    category: q.cat,
+    pts: 10,
+    time: q.ty === 'fill' ? 40 : q.ty === 'tf' ? 20 : 30
   }));
 }
 
@@ -1729,7 +1838,17 @@ function hostDriveGame() {
       const roundScores = {};
 
       Object.entries(answers).forEach(([pid, ans]) => {
-        if (ans.answer === q.correct) {
+        let isCorrect = false;
+        if (q.type === 'tf') {
+          isCorrect = ans.answer === q.answer;
+        } else if (q.type === 'fill') {
+          const given = String(ans.answer||'').trim().toLowerCase();
+          const expected = String(q.answer||'').trim().toLowerCase();
+          isCorrect = given === expected;
+        } else {
+          isCorrect = ans.answer === q.correct;
+        }
+        if (isCorrect) {
           const speedBonus = Math.max(0, Math.round((ans.timeLeft / qTime) * 5));
           roundScores[pid] = q.pts + speedBonus;
         } else {
@@ -1745,10 +1864,12 @@ function hostDriveGame() {
         }
       });
 
-      // Push reveal state
+      // Push reveal state — correct answer varies by type
+      const correctVal = q.type === 'tf' ? q.answer :
+                        q.type === 'fill' ? q.answer : q.correct;
       State.gameRef.update({
         phase: 'reveal',
-        correctAnswer: q.correct,
+        correctAnswer: correctVal,
         roundScores
       });
 
@@ -1788,17 +1909,51 @@ function showQuestion(qi) {
   document.getElementById('g-answered-label').style.display = 'none';
 
   document.getElementById('g-q-num').textContent = `${qi + 1} / ${State.questions.length}`;
-  document.getElementById('g-pts-badge').innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>${q.pts} نقطة`;
+
+  // Type badge
+  const typeLabels = {mcq:'اختيار متعدد', tf:'صح أم خطأ', fill:'أكمل الفراغ'};
+  document.getElementById('g-pts-badge').innerHTML = `
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>
+    ${q.pts} نقطة · <span style="font-size:10px;opacity:.8">${typeLabels[q.type]||'اختيار'}</span>`;
+
   document.getElementById('g-q-text').textContent = q.text;
 
-  const L = ['أ','ب','ج','د'];
-  document.getElementById('g-options').innerHTML = q.options.map((o, i) => `
-    <button class="opt-btn" onclick="answerQ(${i})" data-idx="${i}">
-      <div class="opt-letter">${L[i]}</div>
-      ${o}
-    </button>`).join('');
+  const optEl = document.getElementById('g-options');
 
-  // Start timer (client-side display, host drives actual timer)
+  if (q.type === 'tf') {
+    // صح وخطأ
+    optEl.innerHTML = `<div class="tf-grid" style="grid-column:1/-1">
+      <button class="tf-btn tf-true" onclick="answerQ(true)" id="tf-t">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;margin:0 auto 6px"><polyline points="20 6 9 17 4 12"/></svg>
+        صحيح
+      </button>
+      <button class="tf-btn tf-false" onclick="answerQ(false)" id="tf-f">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;margin:0 auto 6px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        خطأ
+      </button>
+    </div>`;
+  } else if (q.type === 'fill') {
+    // إكمال الفراغ
+    optEl.innerHTML = `<div class="fill-wrap" style="grid-column:1/-1">
+      <input class="fill-input" id="fill-answer" placeholder="اكتب إجابتك..." autocomplete="off" autocorrect="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter')submitFill()">
+      <button class="btn btn-neon" onclick="submitFill()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        إرسال الإجابة
+      </button>
+    </div>`;
+    setTimeout(() => document.getElementById('fill-answer')?.focus(), 200);
+  } else {
+    // MCQ — اختيار متعدد
+    const L = ['أ','ب','ج','د'];
+    optEl.innerHTML = (q.options||[]).map((o, i) => `
+      <button class="opt-btn" onclick="answerQ(${i})" data-idx="${i}">
+        <div class="opt-letter">${L[i]}</div>
+        ${o}
+      </button>`).join('');
+  }
+
+  // Timer
   clearInterval(State.timerInt);
   State.timerInt = setInterval(() => {
     if (State.timeLeft <= 0) { clearInterval(State.timerInt); return; }
@@ -1807,10 +1962,11 @@ function showQuestion(qi) {
   }, 1000);
   updateTimerDisplay(State.timeLeft, State.totalTime);
 
-  // Also sync with Firebase timeLeft
+  // Sync with Firebase timeLeft
+  State.gameRef.child('timeLeft').off();
   addListener(State.gameRef.child('timeLeft').on('value', snap => {
     const t = snap.val();
-    if (t !== null) { State.timeLeft = t; updateTimerDisplay(t, State.totalTime); }
+    if (t !== null && t >= 0) { State.timeLeft = t; updateTimerDisplay(t, State.totalTime); }
   }));
 }
 
@@ -1825,20 +1981,47 @@ function updateTimerDisplay(t, tot) {
   el.className = 'timer-ring ' + (t > tot*.5 ? 'tr-ok' : t > tot*.25 ? 'tr-warn' : 'tr-danger');
 }
 
-function answerQ(optIdx) {
+function answerQ(val) {
   if (State.answered) return;
   State.answered = true;
 
-  // Visual feedback
-  const btns = document.querySelectorAll('.opt-btn');
-  btns.forEach((b, i) => { if (i === optIdx) b.classList.add('selected'); });
-
-  // Show answered label
+  const q = State.questions[State.currentQ];
   document.getElementById('g-answered-label').style.display = 'flex';
 
-  // Send answer to Firebase
+  if (q?.type === 'tf') {
+    // Mark selected button
+    document.getElementById('tf-t')?.classList.add(val === true ? 'selected-true' : '');
+    document.getElementById('tf-f')?.classList.add(val === false ? 'selected-false' : '');
+    document.querySelectorAll('.tf-btn').forEach(b => b.disabled = true);
+  } else {
+    // MCQ visual
+    document.querySelectorAll('.opt-btn').forEach((b, i) => {
+      if (i === val) b.classList.add('selected');
+    });
+  }
+
+  // Send to Firebase
   State.gameRef.child('answers').child(State.playerId).set({
-    answer: optIdx,
+    answer: val,
+    timeLeft: State.timeLeft
+  });
+}
+
+function submitFill() {
+  if (State.answered) return;
+  const val = document.getElementById('fill-answer')?.value.trim();
+  if (!val) { showN('اكتب إجابتك أولاً', 'e'); return; }
+  answerFill(val);
+}
+
+function answerFill(val) {
+  if (State.answered) return;
+  State.answered = true;
+  const inp = document.getElementById('fill-answer');
+  if (inp) inp.disabled = true;
+  document.getElementById('g-answered-label').style.display = 'flex';
+  State.gameRef.child('answers').child(State.playerId).set({
+    answer: val,
     timeLeft: State.timeLeft
   });
 }
@@ -1852,32 +2035,47 @@ function showReveal(qi, correctIdx, roundScores) {
   document.getElementById('g-waiting').style.display = 'none';
   document.getElementById('g-reveal').style.display = 'block';
 
-  document.getElementById('g-correct-answer').textContent = q.options[correctIdx] || '—';
-
-  // Show my result + points earned
-  const myPts = roundScores?.[State.playerId] || 0;
-  const resultEl = document.getElementById('g-my-result');
-  const myAns = State.answered;
-  if (!myAns) {
-    resultEl.textContent = 'لم تُجب — 0 نقطة';
-    resultEl.style.background = 'rgba(100,100,120,.15)';
-    resultEl.style.color = 'var(--muted)';
-  } else if (myPts > 0) {
-    resultEl.textContent = `إجابة صحيحة! +${myPts} نقطة`;
-    resultEl.style.background = 'rgba(0,230,118,.15)';
-    resultEl.style.color = 'var(--green)';
+  // Show correct answer text
+  let correctText = '';
+  if (q.type === 'tf') {
+    correctText = correctIdx === true ? 'صحيح' : 'خطأ';
+    // Mark tf buttons
+    const tBtn = document.getElementById('tf-t');
+    const fBtn = document.getElementById('tf-f');
+    if (tBtn) { tBtn.disabled=true; tBtn.classList.add(correctIdx===true?'correct':'wrong'); }
+    if (fBtn) { fBtn.disabled=true; fBtn.classList.add(correctIdx===false?'correct':'wrong'); }
+  } else if (q.type === 'fill') {
+    correctText = q.answer || '—';
+    const inp = document.getElementById('fill-answer');
+    if (inp) {
+      const myVal = (inp.value||'').trim().toLowerCase();
+      const correct = (q.answer||'').trim().toLowerCase();
+      inp.classList.add(myVal === correct ? 'correct-fill' : 'wrong-fill');
+    }
   } else {
-    resultEl.textContent = 'إجابة خاطئة — 0 نقطة';
-    resultEl.style.background = 'rgba(255,23,68,.1)';
-    resultEl.style.color = 'var(--red)';
+    correctText = q.options?.[correctIdx] || '—';
+    document.querySelectorAll('.opt-btn').forEach((b, i) => {
+      b.disabled = true;
+      if (i === correctIdx) b.classList.add('correct');
+      else if (b.classList.contains('selected')) b.classList.add('wrong');
+    });
   }
 
-  // Mark options
-  document.querySelectorAll('.opt-btn').forEach((b, i) => {
-    b.disabled = true;
-    if (i === correctIdx) b.classList.add('correct');
-    else if (b.classList.contains('selected')) b.classList.add('wrong');
-  });
+  document.getElementById('g-correct-answer').textContent = correctText;
+
+  // My result
+  const myPts = roundScores?.[State.playerId] || 0;
+  const resultEl = document.getElementById('g-my-result');
+  if (!State.answered) {
+    resultEl.textContent = 'لم تُجب — 0 نقطة';
+    resultEl.style.cssText = 'background:rgba(100,100,120,.15);color:var(--muted)';
+  } else if (myPts > 0) {
+    resultEl.textContent = `إجابة صحيحة! +${myPts} نقطة`;
+    resultEl.style.cssText = 'background:rgba(0,230,118,.15);color:var(--green)';
+  } else {
+    resultEl.textContent = 'إجابة خاطئة — 0 نقطة';
+    resultEl.style.cssText = 'background:rgba(255,23,68,.1);color:var(--red)';
+  }
 }
 
 function showBetweenQuestions(leaderboard) {
