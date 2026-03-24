@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Faisal Arena">
+<title>Faisal Arena — مسابقات مباشرة</title>
+<link rel="manifest" href="arena-manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Exo+2:wght@700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+/* ══════════════════════════════
+   DESIGN SYSTEM — Dark Arena
+══════════════════════════════ */
+:root {
+  --bg:      #0a0a14;
+  --bg2:     #0f0f1e;
+  --surface: #13132a;
+  --surface2:#1a1a35;
+  --border:  #2a2a50;
+  --border2: #3a3a60;
+
+  --neon:    #00f5ff;
+  --neon-d:  #00bcd4;
+  --gold:    #ffd700;
+  --gold-d:  #f0a500;
+  --green:   #00e676;
+  --red:     #ff1744;
+  --purple:  #e040fb;
+  --orange:  #ff6d00;
+
+  --text:    #f0f0ff;
+  --text2:   #b0b0d0;
+  --muted:   #606080;
+
+  --r: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+
+  --glow-neon: 0 0 20px rgba(0,245,255,.25);
+  --glow-gold: 0 0 20px rgba(255,215,0,.25);
+  --shadow: 0 4px 24px rgba(0,0,0,.6);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; }
+body {
+  font-family:'Tajawal',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh; min-height:100dvh;
+  overflow-x:hidden;
+  position:relative;
+}
+
+/* Ambient particle bg */
+.arena-bg {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(0,245,255,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(224,64,251,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255,215,0,.02) 0%, transparent 70%);
+}
+.arena-grid {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,245,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,.025) 1px, transparent 1px);
+  background-size:48px 48px;
+}
+
+/* ══════════════════════════════
+   SCREENS
+══════════════════════════════ */
+.screen { display:none; position:relative; z-index:1; min-height:100vh; min-height:100dvh; flex-direction:column; }
+.screen.active { display:flex; }
+
+/* ══════════════════════════════
+   TOPBAR
+══════════════════════════════ */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 18px; height:56px;
+  background:rgba(10,10,20,.85);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);
+  position:sticky; top:0; z-index:100;
+}
+.tb-brand {
+  font-family:'Exo 2',sans-serif; font-size:18px; font-weight:900;
+  background:linear-gradient(135deg,var(--neon),var(--gold));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  letter-spacing:-0.5px;
+}
+.tb-right { display:flex; align-items:center; gap:8px; }
+
+/* ══════════════════════════════
+   BUTTONS
+══════════════════════════════ */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:10px 20px; border:none; border-radius:var(--r);
+  font-family:'Tajawal',sans-serif; font-size:14px; font-weight:700;
+  cursor:pointer; transition:all .2s; white-space:nowrap; position:relative; overflow:hidden;
+}
+.btn::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0); transition:background .2s; }
+.btn:hover::after { background:rgba(255,255,255,.06); }
+.btn:active { transform:scale(.96); }
+.btn:disabled { opacity:.35; cursor:not-allowed; }
+
+.btn-neon {
+  background:linear-gradient(135deg,var(--neon-d),#006080);
+  color:#000; font-weight:800;
+  box-shadow:var(--glow-neon);
+}
+.btn-gold {
+  background:linear-gradient(135deg,var(--gold),var(--gold-d));
+  color:#000; font-weight:800;
+  box-shadow:var(--glow-gold);
+}
+.btn-green { background:linear-gradient(135deg,var(--green),#00a050); color:#000; font-weight:800; }
+.btn-red { background:linear-gradient(135deg,var(--red),#b00020); color:#fff; }
+.btn-ghost {
+  background:transparent; border:1px solid var(--border2);
+  color:var(--text2);
+}
+.btn-ghost:hover { border-color:var(--neon); color:var(--neon); }
+.btn-purple { background:linear-gradient(135deg,var(--purple),#9000b0); color:#fff; }
+
+.btn-sm { padding:6px 14px; font-size:12px; border-radius:8px; }
+.btn-lg { padding:14px 32px; font-size:16px; border-radius:var(--r-lg); }
+.btn-xl { padding:17px 40px; font-size:18px; border-radius:var(--r-lg); font-weight:900; }
+.btn-full { width:100%; }
+
+/* ══════════════════════════════
+   FORMS
+══════════════════════════════ */
+.form-label { display:block; font-size:11px; font-weight:700; color:var(--muted); margin-bottom:5px; letter-spacing:1px; text-transform:uppercase; }
+.form-input {
+  width:100%; background:var(--surface2); border:1.5px solid var(--border2);
+  border-radius:var(--r); padding:12px 15px; color:var(--text);
+  font-family:'Tajawal',sans-serif; font-size:14px;
+  transition:border-color .2s, box-shadow .2s;
+  -webkit-appearance:none;
+}
+.form-input:focus { outline:none; border-color:var(--neon); box-shadow:0 0 0 3px rgba(0,245,255,.1); }
+.form-input::placeholder { color:var(--muted); }
+
+/* ══════════════════════════════
+   CARD
+══════════════════════════════ */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:20px;
+  box-shadow:var(--shadow); transition:border-color .2s;
+}
+.card-glow { border-color:var(--neon); box-shadow:var(--glow-neon), var(--shadow); }
+.content { flex:1; padding:20px; max-width:600px; margin:0 auto; width:100%; }
+
+/* ══════════════════════════════
+   BADGE
+══════════════════════════════ */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:.3px; }
+.b-neon { background:rgba(0,245,255,.1); color:var(--neon); border:1px solid rgba(0,245,255,.3); }
+.b-gold { background:rgba(255,215,0,.1); color:var(--gold); border:1px solid rgba(255,215,0,.3); }
+.b-green { background:rgba(0,230,118,.1); color:var(--green); border:1px solid rgba(0,230,118,.3); }
+.b-red { background:rgba(255,23,68,.1); color:var(--red); border:1px solid rgba(255,23,68,.3); }
+
+/* ══════════════════════════════
+   ICO BTN
+══════════════════════════════ */
+.ico-btn {
+  width:36px; height:36px; border-radius:50%;
+  border:1px solid var(--border2); background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .2s; color:var(--text2);
+}
+.ico-btn:hover { border-color:var(--neon); color:var(--neon); }
+
+/* ══════════════════════════════
+   HOME SCREEN
+══════════════════════════════ */
+#home {
+  align-items:center; justify-content:center;
+  padding:24px 20px 80px; gap:0;
+}
+.home-inner { max-width:420px; width:100%; display:flex; flex-direction:column; align-items:center; }
+.arena-logo {
+  font-family:'Exo 2',sans-serif;
+  font-size:clamp(52px,14vw,88px); font-weight:900; letter-spacing:-3px;
+  background:linear-gradient(135deg,var(--neon),var(--gold) 60%,var(--purple));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  text-align:center; line-height:1;
+  filter:drop-shadow(0 0 30px rgba(0,245,255,.3));
+  animation:logo-pulse 3s ease-in-out infinite alternate;
+}
+@keyframes logo-pulse {
+  from { filter:drop-shadow(0 0 20px rgba(0,245,255,.2)); }
+  to   { filter:drop-shadow(0 0 40px rgba(0,245,255,.45)); }
+}
+.arena-tagline { font-size:12px; letter-spacing:5px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:6px; margin-bottom:28px; }
+
+.home-actions { display:flex; flex-direction:column; gap:12px; width:100%; margin-bottom:24px; }
+.action-btn {
+  display:flex; align-items:center; gap:16px;
+  padding:18px 20px; border-radius:var(--r-xl);
+  border:1.5px solid var(--border2); background:var(--surface);
+  cursor:pointer; transition:all .25s; text-align:right; width:100%;
+  font-family:'Tajawal',sans-serif;
+}
+.action-btn:hover { transform:translateX(-4px); }
+.action-btn.create-btn:hover { border-color:var(--neon); box-shadow:var(--glow-neon); }
+.action-btn.join-btn:hover { border-color:var(--gold); box-shadow:var(--glow-gold); }
+.action-btn.rooms-btn:hover { border-color:var(--purple); box-shadow:0 0 20px rgba(224,64,251,.25); }
+.ab-icon {
+  width:48px; height:48px; border-radius:14px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.ab-title { font-size:16px; font-weight:800; color:var(--text); margin-bottom:3px; }
+.ab-desc { font-size:12px; color:var(--muted); }
+.ab-arrow { margin-right:auto; color:var(--muted); transition:transform .2s; }
+.action-btn:hover .ab-arrow { transform:translateX(-4px); }
+
+.home-stats { display:flex; gap:24px; justify-content:center; padding:16px 0; border-top:1px solid var(--border); width:100%; }
+.hs-val { font-family:'Exo 2',sans-serif; font-size:24px; font-weight:900; color:var(--neon); text-align:center; }
+.hs-lbl { font-size:11px; color:var(--muted); text-align:center; margin-top:2px; }
+
+/* ══════════════════════════════
+   NAME ENTRY SCREEN
+══════════════════════════════ */
+#name-entry { align-items:center; justify-content:center; padding:24px; }
+.name-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-xl); padding:36px 28px;
+  width:100%; max-width:400px;
+  box-shadow:var(--shadow);
+  animation:slide-up .4s ease;
+}
+@keyframes slide-up { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+.name-title { font-size:22px; font-weight:900; margin-bottom:6px; text-align:center; }
+.name-sub { font-size:13px; color:var(--muted); text-align:center; margin-bottom:24px; }
+.avatar-grid { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:18px; }
+.av-btn {
+  width:42px; height:42px; border-radius:50%;
+  border:2px solid var(--border2); background:var(--surface2);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .2s; font-size:18px;
+  color:var(--text2);
+}
+.av-btn:hover { transform:scale(1.15); border-color:var(--neon); }
+.av-btn.sel { border-color:var(--gold); box-shadow:var(--glow-gold); background:rgba(255,215,0,.1); color:var(--gold); }
+
+/* ══════════════════════════════
+   CREATE ROOM
+══════════════════════════════ */
+#create-room { align-items:center; justify-content:center; padding:24px; }
+
+.cat-grid { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.cat-pill {
+  padding:7px 14px; border-radius:20px; border:1.5px solid var(--border2);
+  background:var(--surface2); cursor:pointer;
+  font-family:'Tajawal',sans-serif; font-size:12px; font-weight:700;
+  color:var(--text2); transition:all .2s; user-select:none;
+  display:flex; align-items:center; gap:5px;
+}
+.cat-pill:hover { border-color:var(--neon); color:var(--text); }
+.cat-pill.sel { background:rgba(0,245,255,.1); border-color:var(--neon); color:var(--neon); }
+
+.slider-row { display:flex; align-items:center; gap:14px; }
+.slider { flex:1; -webkit-appearance:none; height:4px; border-radius:2px; background:var(--border2); outline:none; }
+.slider::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--neon); cursor:pointer; box-shadow:var(--glow-neon); }
+.slider-val { font-family:'Exo 2',sans-serif; font-size:18px; font-weight:900; color:var(--neon); min-width:32px; text-align:center; }
+
+/* ══════════════════════════════
+   JOIN ROOM
+══════════════════════════════ */
+#join-room { align-items:center; justify-content:center; padding:24px; }
+.room-code-input {
+  font-family:'Exo 2',sans-serif; font-size:32px; font-weight:900;
+  text-align:center; letter-spacing:8px; text-transform:uppercase;
+  background:var(--surface2); border:2px solid var(--border2);
+  color:var(--text); border-radius:var(--r-lg); padding:16px;
+  width:100%;
+}
+.room-code-input:focus { border-color:var(--neon); box-shadow:var(--glow-neon); outline:none; }
+
+/* ══════════════════════════════
+   PUBLIC ROOMS
+══════════════════════════════ */
+#public-rooms { flex-direction:column; }
+.room-card {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r-lg); padding:16px 18px;
+  display:flex; align-items:center; gap:14px;
+  cursor:pointer; transition:all .2s; margin-bottom:10px;
+}
+.room-card:hover { border-color:var(--neon); transform:translateX(-3px); box-shadow:var(--glow-neon); }
+.room-code-badge {
+  font-family:'Exo 2',sans-serif; font-size:17px; font-weight:900;
+  color:var(--neon); letter-spacing:2px; min-width:80px;
+}
+.room-info { flex:1; }
+.room-host { font-size:13px; font-weight:700; color:var(--text); }
+.room-meta { font-size:11px; color:var(--muted); margin-top:3px; display:flex; gap:10px; flex-wrap:wrap; }
+.room-players { display:flex; align-items:center; gap:5px; }
+.player-dot { width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); }
+
+/* ══════════════════════════════
+   LOBBY SCREEN
+══════════════════════════════ */
+#lobby { flex-direction:column; }
+.lobby-code {
+  text-align:center; padding:24px 20px 0;
+}
+.lc-label { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+.lc-code {
+  font-family:'Exo 2',sans-serif; font-size:clamp(40px,10vw,72px); font-weight:900;
+  letter-spacing:10px;
+  background:linear-gradient(135deg,var(--neon),var(--gold));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 20px rgba(0,245,255,.3));
+}
+.lc-share { font-size:12px; color:var(--muted); margin-top:6px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; }
+.lc-share:hover { color:var(--neon); }
+
+.players-grid { display:flex; flex-wrap:wrap; gap:10px; padding:20px; justify-content:center; }
+.player-card {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r-lg); padding:14px 16px;
+  text-align:center; min-width:100px;
+  animation:player-in .4s cubic-bezier(.175,.885,.32,1.275);
+  transition:all .3s;
+}
+.player-card.host-card { border-color:var(--gold); }
+@keyframes player-in { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+.pc-avatar { width:44px; height:44px; border-radius:50%; margin:0 auto 8px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.pc-name { font-size:13px; font-weight:700; }
+.pc-host { font-size:10px; color:var(--gold); margin-top:2px; }
+
+.lobby-config { padding:0 20px 20px; }
+.config-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.config-row:last-child { border:none; }
+.config-label { color:var(--muted); }
+.config-val { font-weight:700; color:var(--text); }
+
+/* ══════════════════════════════
+   GAME SCREEN
+══════════════════════════════ */
+#game { flex-direction:column; }
+.game-header { padding:12px 16px; display:flex; align-items:center; gap:10px; background:var(--bg2); border-bottom:1px solid var(--border); }
+.q-counter { font-family:'Exo 2',sans-serif; font-size:13px; font-weight:900; color:var(--muted); }
+.q-pts-badge { padding:4px 12px; border-radius:20px; background:rgba(255,215,0,.1); border:1px solid rgba(255,215,0,.3); color:var(--gold); font-size:12px; font-weight:700; display:flex; align-items:center; gap:4px; }
+
+/* Timer ring */
+.timer-ring-wrap { display:flex; align-items:center; gap:12px; }
+.timer-ring { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Exo 2',sans-serif; font-size:18px; font-weight:900; position:relative; flex-shrink:0; }
+.timer-ring::before { content:''; position:absolute; inset:4px; border-radius:50%; background:var(--bg2); z-index:0; }
+.timer-ring span { position:relative; z-index:1; }
+.tr-ok { background:conic-gradient(var(--green) var(--p,360deg),var(--border) 0); color:var(--green); }
+.tr-warn { background:conic-gradient(var(--gold) var(--p,180deg),var(--border) 0); color:var(--gold); }
+.tr-danger { background:conic-gradient(var(--red) var(--p,72deg),var(--border) 0); color:var(--red); animation:danger-pulse .4s infinite alternate; }
+@keyframes danger-pulse { from{transform:scale(1)} to{transform:scale(1.1)} }
+
+/* Progress bar */
+.q-progress { height:3px; background:var(--border); position:relative; overflow:hidden; }
+.q-progress-fill { height:100%; background:linear-gradient(90deg,var(--neon),var(--gold)); transition:width .4s; position:relative; }
+.q-progress-fill::after { content:''; position:absolute; top:0; right:0; width:20px; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.4)); }
+
+/* Question */
+.q-body-wrap { flex:1; display:flex; flex-direction:column; padding:16px; overflow-y:auto; }
+.q-text {
+  font-size:clamp(16px,3.5vw,22px); font-weight:800; line-height:1.5;
+  text-align:center; padding:16px 8px; color:var(--text);
+  min-height:80px; display:flex; align-items:center; justify-content:center;
+}
+.q-answered-label { text-align:center; font-size:12px; color:var(--green); font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:5px; justify-content:center; }
+
+/* MCQ options */
+.options-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.opt-btn {
+  padding:14px 16px; border-radius:var(--r-lg);
+  border:2px solid var(--border2); background:var(--surface);
+  color:var(--text); font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; transition:all .2s; text-align:right;
+  display:flex; align-items:center; gap:10px; position:relative; overflow:hidden;
+}
+.opt-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent,rgba(255,255,255,.03)); }
+.opt-btn:hover:not(:disabled) { border-color:var(--neon); transform:translateY(-2px); box-shadow:var(--glow-neon); }
+.opt-btn:disabled { cursor:default; }
+.opt-btn.selected { border-color:var(--neon); background:rgba(0,245,255,.08); }
+.opt-btn.correct { border-color:var(--green); background:rgba(0,230,118,.1); color:var(--green); }
+.opt-btn.wrong { border-color:var(--red); background:rgba(255,23,68,.08); color:var(--red); opacity:.7; }
+.opt-letter {
+  width:26px; height:26px; border-radius:7px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Exo 2',sans-serif; font-size:11px; font-weight:900;
+  background:var(--surface2); color:var(--text2); border:1px solid var(--border2);
+}
+.opt-btn.correct .opt-letter { background:var(--green); color:#000; border-color:var(--green); }
+.opt-btn.wrong .opt-letter { background:var(--red); color:#fff; border-color:var(--red); }
+
+/* Waiting for Q */
+.waiting-q { text-align:center; padding:32px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+.pulse-dot { width:14px; height:14px; border-radius:50%; background:var(--neon); box-shadow:var(--glow-neon); animation:pulse-d 1.5s ease-in-out infinite; }
+@keyframes pulse-d { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.6} }
+
+/* Scores ticker */
+.scores-bar { display:flex; gap:8px; overflow-x:auto; padding:10px 16px; background:var(--bg2); border-top:1px solid var(--border); scrollbar-width:none; }
+.scores-bar::-webkit-scrollbar { display:none; }
+.score-chip {
+  display:flex; align-items:center; gap:7px; flex-shrink:0;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:20px; padding:5px 12px; transition:all .3s;
+}
+.score-chip.me { border-color:var(--neon); background:rgba(0,245,255,.08); }
+.score-chip.lead { border-color:var(--gold); }
+.sc-name { font-size:12px; font-weight:700; color:var(--text2); max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sc-pts { font-family:'Exo 2',sans-serif; font-size:15px; font-weight:900; color:var(--neon); }
+.sc-pts.lead-pts { color:var(--gold); }
+
+/* ══════════════════════════════
+   RESULTS SCREEN
+══════════════════════════════ */
+#results { align-items:center; text-align:center; padding:28px 20px; gap:0; overflow-y:auto; }
+.winner-crown {
+  width:88px; height:88px; border-radius:50%; margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-d));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 40px rgba(255,215,0,.4);
+  animation:winner-float 2s ease-in-out infinite alternate;
+  color:#000;
+}
+@keyframes winner-float { from{transform:translateY(0) rotate(-5deg)} to{transform:translateY(-12px) rotate(5deg)} }
+.winner-label { font-size:13px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+.winner-name { font-family:'Exo 2',sans-serif; font-size:clamp(28px,7vw,52px); font-weight:900; background:linear-gradient(135deg,var(--gold),#ff9500); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:4px; }
+.winner-score { font-size:14px; color:var(--muted); margin-bottom:24px; }
+
+.podium { display:flex; align-items:flex-end; justify-content:center; gap:8px; margin-bottom:24px; }
+.podium-slot { text-align:center; }
+.podium-bar { border-radius:var(--r) var(--r) 0 0; display:flex; align-items:center; justify-content:center; }
+.p1 .podium-bar { width:90px; height:90px; background:linear-gradient(180deg,var(--gold),var(--gold-d)); }
+.p2 .podium-bar { width:76px; height:66px; background:linear-gradient(180deg,#9e9e9e,#616161); }
+.p3 .podium-bar { width:70px; height:50px; background:linear-gradient(180deg,#cd7f32,#8b4513); }
+.podium-num { font-family:'Exo 2',sans-serif; font-size:20px; font-weight:900; color:#000; }
+.podium-name { font-size:11px; font-weight:700; color:var(--text2); margin-top:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:90px; }
+.podium-pts { font-family:'Exo 2',sans-serif; font-size:13px; color:var(--muted); }
+
+.leaderboard { width:100%; max-width:400px; margin:0 auto 24px; }
+.lb-row { display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); margin-bottom:7px; }
+.lb-row.me-row { border-color:var(--neon); background:rgba(0,245,255,.05); }
+.lb-rank { font-family:'Exo 2',sans-serif; font-size:14px; font-weight:900; color:var(--muted); width:20px; text-align:center; }
+.lb-name { flex:1; font-size:13px; font-weight:700; }
+.lb-pts { font-family:'Exo 2',sans-serif; font-size:16px; font-weight:900; color:var(--neon); }
+
+/* Confetti */
+.cfw { position:fixed; inset:0; pointer-events:none; z-index:50; }
+.cfp { position:absolute; border-radius:2px; animation:cff linear forwards; }
+@keyframes cff { 0%{transform:translateY(-20px) rotate(0);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+
+/* ══════════════════════════════
+   NOTIF
+══════════════════════════════ */
+.notif {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  padding:10px 20px; border-radius:var(--r);
+  font-weight:700; font-size:13px; z-index:600;
+  display:flex; align-items:center; gap:8px;
+  box-shadow:0 8px 32px rgba(0,0,0,.6); white-space:nowrap;
+  animation:notif-in .3s ease, notif-out .3s 2.3s ease forwards;
+}
+@keyframes notif-in { from{opacity:0;transform:translateX(-50%) translateY(16px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes notif-out { to{opacity:0} }
+.n-s { background:var(--green); color:#000; }
+.n-e { background:var(--red); color:#fff; }
+.n-i { background:var(--neon); color:#000; }
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+@media(max-width:480px) {
+  .options-grid { grid-template-columns:1fr; }
+  .podium { gap:4px; }
+  .p1 .podium-bar { width:76px; height:76px; }
+  .p2 .podium-bar { width:64px; height:56px; }
+  .p3 .podium-bar { width:58px; height:44px; }
+}
+@media(max-width:380px) {
+  .arena-logo { font-size:52px; }
+  .lc-code { font-size:40px; letter-spacing:6px; }
+}
+</style>
+</head>
+<body>
+<div class="arena-bg"></div>
+<div class="arena-grid"></div>
+
+<!-- ══════════════════════════════
+     HOME
+════════════════════════════════ -->
+<div id="home" class="screen active">
+  <div style="position:absolute;top:14px;left:14px;z-index:10">
+    <button class="ico-btn" onclick="toggleTheme()" id="thm-btn" title="وضع مضيء">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </div>
+
+  <div class="home-inner" style="margin:auto">
+    <div class="arena-logo">ARENA</div>
+    <div class="arena-tagline">مسابقات مباشرة · تنافس · افز</div>
+
+    <div class="home-actions">
+      <button class="action-btn create-btn" onclick="goNameEntry('create')">
+        <div class="ab-icon" style="background:rgba(0,245,255,.1)">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--neon)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div>
+          <div class="ab-title">أنشئ غرفة</div>
+          <div class="ab-desc">اختر الفئات وادعُ أصدقاءك</div>
+        </div>
+        <div class="ab-arrow">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+      </button>
+
+      <button class="action-btn join-btn" onclick="goNameEntry('join')">
+        <div class="ab-icon" style="background:rgba(255,215,0,.1)">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        </div>
+        <div>
+          <div class="ab-title">انضم بكود</div>
+          <div class="ab-desc">أدخل كود الغرفة للانضمام</div>
+        </div>
+        <div class="ab-arrow">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+      </button>
+
+      <button class="action-btn rooms-btn" onclick="goNameEntry('public')">
+        <div class="ab-icon" style="background:rgba(224,64,251,.1)">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div>
+          <div class="ab-title">غرف عامة</div>
+          <div class="ab-desc">العب مع غرباء من كل مكان</div>
+        </div>
+        <div class="ab-arrow">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+      </button>
+    </div>
+
+    <div class="home-stats">
+      <div><div class="hs-val" id="hs-rooms">—</div><div class="hs-lbl">غرفة نشطة</div></div>
+      <div><div class="hs-val" id="hs-players">—</div><div class="hs-lbl">لاعب الآن</div></div>
+      <div><div class="hs-val" id="hs-games">—</div><div class="hs-lbl">جلسة لُعبت</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     NAME ENTRY
+════════════════════════════════ -->
+<div id="name-entry" class="screen">
+  <div class="name-card" style="margin:auto">
+    <div class="name-title">من أنت؟</div>
+    <div class="name-sub">اختر اسماً وأيقونة قبل الدخول</div>
+
+    <div class="avatar-grid" id="avatar-grid"></div>
+
+    <div style="margin-bottom:14px">
+      <label class="form-label">اسم اللاعب</label>
+      <input id="player-name" class="form-input" placeholder="أدخل اسمك..." maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')confirmName()">
+    </div>
+
+    <button class="btn btn-neon btn-full btn-lg" onclick="confirmName()" id="name-ok-btn">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      متابعة
+    </button>
+    <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="goScreen('home')">رجوع</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     CREATE ROOM
+════════════════════════════════ -->
+<div id="create-room" class="screen">
+  <div style="background:rgba(10,10,20,.85);border-bottom:1px solid var(--border);padding:14px 18px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px">
+    <button class="ico-btn" onclick="goScreen('home')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span style="font-size:16px;font-weight:800">إعداد الغرفة</span>
+  </div>
+  <div class="content">
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--neon);margin-bottom:12px;display:flex;align-items:center;gap:7px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        الفئات
+      </div>
+      <div class="cat-grid" id="cat-grid-create"></div>
+      <p style="font-size:11px;color:var(--muted);margin-top:6px">اختر فئة واحدة على الأقل</p>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--neon);margin-bottom:16px;display:flex;align-items:center;gap:7px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        عدد الأسئلة
+      </div>
+      <div class="slider-row">
+        <input type="range" class="slider" id="q-count-slider" min="5" max="25" value="10" oninput="document.getElementById('q-count-val').textContent=this.value">
+        <div class="slider-val" id="q-count-val">10</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--neon);margin-bottom:16px;display:flex;align-items:center;gap:7px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        وقت كل سؤال (ثانية)
+      </div>
+      <div class="slider-row">
+        <input type="range" class="slider" id="q-time-slider" min="10" max="60" step="5" value="30" oninput="document.getElementById('q-time-val').textContent=this.value">
+        <div class="slider-val" id="q-time-val">30</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;font-weight:700">غرفة عامة</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">يظهر في قائمة الغرف للجميع</div>
+        </div>
+        <label style="position:relative;width:44px;height:24px;flex-shrink:0">
+          <input type="checkbox" id="room-public" checked style="opacity:0;width:0;height:0">
+          <span style="position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:12px;transition:.3s"></span>
+        </label>
+      </div>
+    </div>
+
+    <button class="btn btn-neon btn-full btn-xl" id="create-room-btn" onclick="createRoom()" disabled>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      إنشاء الغرفة
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     JOIN ROOM
+════════════════════════════════ -->
+<div id="join-room" class="screen">
+  <div class="name-card" style="margin:auto">
+    <div class="name-title">انضم لغرفة</div>
+    <div class="name-sub">أدخل الكود المكوّن من 6 أحرف</div>
+    <input id="join-code-input" class="room-code-input" placeholder="ABC123" maxlength="6" autocomplete="off" autocorrect="off" spellcheck="false" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinRoom()">
+    <div style="height:16px;font-size:12px;color:var(--red);text-align:center;margin:8px 0" id="join-err"></div>
+    <button class="btn btn-gold btn-full btn-lg" onclick="joinRoom()" style="margin-top:4px">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/></svg>
+      انضم الآن
+    </button>
+    <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="goScreen('home')">رجوع</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PUBLIC ROOMS LIST
+════════════════════════════════ -->
+<div id="public-rooms" class="screen">
+  <div class="topbar">
+    <button class="ico-btn" onclick="goScreen('home')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span class="tb-brand">الغرف العامة</span>
+    <span class="badge b-neon" id="rooms-count">0 غرفة</span>
+  </div>
+  <div class="content">
+    <div id="rooms-list" style="margin-top:8px">
+      <div style="text-align:center;padding:40px;color:var(--muted)">جارٍ التحميل...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     LOBBY
+════════════════════════════════ -->
+<div id="lobby" class="screen">
+  <div class="topbar">
+    <div class="tb-brand">الانتظار</div>
+    <div class="tb-right">
+      <span class="badge b-green" id="lobby-status-badge">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 6px var(--green)"></span>
+        في الانتظار
+      </span>
+      <button class="ico-btn" onclick="leaveRoom()" title="مغادرة">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--red)" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="lobby-code">
+    <div class="lc-label">كود الغرفة</div>
+    <div class="lc-code" id="lobby-code">——</div>
+    <div class="lc-share" onclick="shareRoom()">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      مشاركة الرابط
+    </div>
+  </div>
+
+  <div class="players-grid" id="lobby-players"></div>
+
+  <div class="lobby-config" id="lobby-config"></div>
+
+  <!-- Host controls -->
+  <div id="host-start-area" style="display:none;padding:0 20px 20px">
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px" id="waiting-msg">
+      في انتظار اللاعبين... (لاعب واحد على الأقل)
+    </div>
+    <button class="btn btn-gold btn-full btn-xl" id="start-game-btn" onclick="hostStartGame()" disabled>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+      ابدأ المسابقة
+    </button>
+  </div>
+
+  <!-- Guest waiting -->
+  <div id="guest-wait-area" style="display:none;padding:0 20px 20px;text-align:center">
+    <div class="pulse-dot" style="margin:0 auto 12px"></div>
+    <div style="font-size:14px;color:var(--muted)">في انتظار المضيف لبدء المسابقة...</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     GAME
+════════════════════════════════ -->
+<div id="game" class="screen">
+  <div class="game-header">
+    <span class="q-counter" id="g-q-num">١ / ١٠</span>
+    <span class="q-pts-badge" id="g-pts-badge">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>
+      ١٠ نقطة
+    </span>
+    <div style="margin-right:auto" class="timer-ring-wrap">
+      <div class="timer-ring tr-ok" id="g-timer"><span id="g-timer-num">30</span></div>
+    </div>
+  </div>
+
+  <div class="q-progress"><div class="q-progress-fill" id="g-progress" style="width:0%"></div></div>
+
+  <div class="q-body-wrap">
+    <!-- Waiting state -->
+    <div id="g-waiting" class="waiting-q">
+      <div class="pulse-dot"></div>
+      <div style="font-size:15px;font-weight:700;color:var(--muted)">في انتظار السؤال...</div>
+    </div>
+
+    <!-- Question active -->
+    <div id="g-question" style="display:none">
+      <div class="q-text" id="g-q-text"></div>
+      <div id="g-answered-label" class="q-answered-label" style="display:none">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        تم إرسال إجابتك
+      </div>
+      <div class="options-grid" id="g-options"></div>
+    </div>
+
+    <!-- Reveal state -->
+    <div id="g-reveal" style="display:none;text-align:center;padding:20px">
+      <div style="font-size:14px;color:var(--muted);margin-bottom:10px;letter-spacing:2px;text-transform:uppercase">الإجابة الصحيحة</div>
+      <div style="font-size:22px;font-weight:900;color:var(--green);margin-bottom:10px" id="g-correct-answer">—</div>
+      <div id="g-my-result" style="font-size:15px;font-weight:800;padding:10px 20px;border-radius:var(--r);display:inline-block"></div>
+    </div>
+  </div>
+
+  <div class="scores-bar" id="g-scores-bar"></div>
+</div>
+
+<!-- ══════════════════════════════
+     RESULTS
+════════════════════════════════ -->
+<div id="results" class="screen">
+  <div class="cfw" id="cfw"></div>
+  <div class="winner-crown">
+    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 21h8m-4-4v4M5 3h14v7a7 7 0 01-14 0V3z"/><path d="M5 7H3a2 2 0 000 4h2M19 7h2a2 2 0 010 4h-2"/></svg>
+  </div>
+  <div class="winner-label">الفائز</div>
+  <div class="winner-name" id="res-winner">—</div>
+  <div class="winner-score" id="res-winner-score">—</div>
+
+  <div class="podium" id="res-podium"></div>
+  <div class="leaderboard" id="res-leaderboard"></div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+    <button class="btn btn-gold btn-lg" onclick="playAgain()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+      لعب مرة أخرى
+    </button>
+    <button class="btn btn-ghost btn-lg" onclick="goScreen('home')">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      الرئيسية
+    </button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  FIREBASE CONFIG
+// ══════════════════════════════════════
+firebase.initializeApp({
+  apiKey:"AIzaSyC2SEYoUINYbYim4Vi0qE3jd1-FHI9aoVM",
+  authDomain:"faisal-3fd18.firebaseapp.com",
+  databaseURL:"https://faisal-3fd18-default-rtdb.firebaseio.com",
+  projectId:"faisal-3fd18",
+  storageBucket:"faisal-3fd18.firebasestorage.app",
+  messagingSenderId:"792373130754",
+  appId:"1:792373130754:web:73d6ccc7656992e38d191b"
+});
+const db = firebase.database();
+const roomsRef = db.ref('arena_rooms');
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+const State = {
+  playerName: '',
+  playerAvatar: 'star',
+  playerId: null,
+  roomCode: null,
+  isHost: false,
+  pendingAction: null, // 'create' | 'join' | 'public'
+  roomRef: null,
+  gameRef: null,
+  listeners: [],
+  currentQ: 0,
+  myScore: 0,
+  answered: false,
+  timerInt: null,
+  timeLeft: 0,
+  totalTime: 30,
+  questions: [],
+  selectedCats: new Set(),
+};
+
+// ══════════════════════════════════════
+//  CATEGORIES
+// ══════════════════════════════════════
+const CATS = [
+  {id:'islamic',   label:'إسلامي',     color:'#00e676', path:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z'},
+  {id:'history',   label:'تاريخ',      color:'#ffd700', path:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'},
+  {id:'science',   label:'علوم',       color:'#00f5ff', path:'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3'},
+  {id:'geography', label:'جغرافيا',    color:'#e040fb', path:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3'},
+  {id:'sports',    label:'رياضة',      color:'#ff1744', path:'M13 10V3L4 14h7v7l9-11h-7z'},
+  {id:'culture',   label:'ثقافة',      color:'#00bcd4', path:'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13'},
+  {id:'tech',      label:'تقنية',      color:'#7c4dff', path:'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2'},
+  {id:'politics',  label:'سياسة',      color:'#ff6d00', path:'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z'},
+  {id:'math',      label:'رياضيات',    color:'#69f0ae', path:'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z'},
+  {id:'war',       label:'حروب',       color:'#ff6e40', path:'M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z'},
+];
+
+// ══════════════════════════════════════
+//  QUESTION BANK
+// ══════════════════════════════════════
+const QBANK = {
+  islamic:[
+    {t:'كم عدد أركان الإسلام؟',o:['٣','٤','٥','٦'],c:2},
+    {t:'ما أول مسجد بُني في الإسلام؟',o:['المسجد الحرام','مسجد قباء','المسجد النبوي','المسجد الأقصى'],c:1},
+    {t:'في أي شهر نزل القرآن الكريم؟',o:['رجب','شعبان','رمضان','محرم'],c:2},
+    {t:'كم عدد سور القرآن الكريم؟',o:['١١٢','١١٣','١١٤','١١٥'],c:2},
+    {t:'كم عدد الصلوات المفروضة يومياً؟',o:['٣','٤','٥','٦'],c:2},
+    {t:'ما اسم زوجة النبي ﷺ الأولى؟',o:['عائشة','حفصة','خديجة','زينب'],c:2},
+    {t:'ما هي القبلة الأولى للمسلمين؟',o:['مكة المكرمة','القدس','المدينة','الطائف'],c:1},
+    {t:'كم سنة نزل الوحي على النبي ﷺ؟',o:['١٥','٢٠','٢٣','٢٥'],c:2},
+  ],
+  history:[
+    {t:'متى فُتحت مكة المكرمة؟',o:['٦ هـ','٧ هـ','٨ هـ','٩ هـ'],c:2},
+    {t:'من هو مؤسس الدولة السعودية الأولى؟',o:['الملك عبدالعزيز','محمد بن سعود','الملك فيصل','الملك سعود'],c:1},
+    {t:'في أي عام وحّد الملك عبدالعزيز المملكة؟',o:['١٩٢٨','١٩٣٠','١٩٣٢','١٩٣٤'],c:2},
+    {t:'ما اسم المعركة الأولى في الإسلام؟',o:['أحد','بدر','الخندق','تبوك'],c:1},
+    {t:'من هو أول خليفة في الإسلام؟',o:['عمر','علي','أبو بكر','عثمان'],c:2},
+    {t:'متى انتهت الحرب العالمية الثانية؟',o:['١٩٤٣','١٩٤٤','١٩٤٥','١٩٤٦'],c:2},
+    {t:'من اكتشف أمريكا؟',o:['ماجلان','كولومبس','فاسكو دي غاما','كابوت'],c:1},
+    {t:'في أي عام قامت الثورة الفرنسية؟',o:['١٧٨٥','١٧٨٩','١٧٩٢','١٧٩٥'],c:1},
+  ],
+  science:[
+    {t:'ما رمز الذهب في الجدول الدوري؟',o:['Go','Gd','Au','Ag'],c:2},
+    {t:'ما سرعة الضوء تقريباً؟',o:['٣٠٠ألف كم/ث','١٥٠ألف كم/ث','٦٠٠ألف كم/ث','٩٠٠ألف كم/ث'],c:0},
+    {t:'ما الجهاز الذي يضخ الدم؟',o:['الرئة','الكبد','الكلية','القلب'],c:3},
+    {t:'كم عدد عظام الإنسان البالغ؟',o:['١٦٦','٢٠٦','٢٤٦','٣٠٦'],c:1},
+    {t:'ما أكبر كوكب في المجموعة الشمسية؟',o:['زحل','المريخ','المشتري','أورانوس'],c:2},
+    {t:'ما صيغة الماء الكيميائية؟',o:['CO2','H2O','O2','NaCl'],c:1},
+    {t:'كم يبعد القمر عن الأرض تقريباً؟',o:['٢٠٠ألف كم','٣٨٤ألف كم','٥٠٠ألف كم','١مليون كم'],c:1},
+    {t:'ما أصغر وحدة في الكائن الحي؟',o:['ذرة','خلية','جزيء','جين'],c:1},
+  ],
+  geography:[
+    {t:'ما عاصمة المملكة العربية السعودية؟',o:['جدة','الدمام','الرياض','مكة'],c:2},
+    {t:'ما أطول نهر في العالم؟',o:['الأمازون','النيل','الكونغو','المسيسيبي'],c:1},
+    {t:'كم عدد دول العالم تقريباً؟',o:['١٥٦','١٧٦','١٩٥','٢١٠'],c:2},
+    {t:'ما أكبر قارة في العالم؟',o:['أفريقيا','أمريكا','أوروبا','آسيا'],c:3},
+    {t:'أين يقع برج إيفل؟',o:['لندن','برلين','باريس','روما'],c:2},
+    {t:'ما أعلى جبل في العالم؟',o:['إيفرست','K2','كيليمنجارو','الأنديز'],c:0},
+    {t:'ما عاصمة اليابان؟',o:['أوساكا','كيوتو','طوكيو','ناغويا'],c:2},
+    {t:'ما المحيط الأكبر في العالم؟',o:['الأطلسي','الهادئ','الهندي','المتجمد'],c:1},
+  ],
+  sports:[
+    {t:'كم لاعباً في فريق كرة القدم؟',o:['٩','١٠','١١','١٢'],c:2},
+    {t:'كم دقيقة تستغرق مباراة كرة القدم؟',o:['٦٠','٧٥','٩٠','١٢٠'],c:2},
+    {t:'في أي دولة أقيم كأس العالم ٢٠٢٢؟',o:['الإمارات','السعودية','قطر','البحرين'],c:2},
+    {t:'كم عدد حلقات شعار الأولمبياد؟',o:['٤','٥','٦','٧'],c:1},
+    {t:'ما أسرع رياضة في العالم؟',o:['كرة القدم','التنس','سباقات الخيل','الريشة الطائرة'],c:3},
+    {t:'كم طول ملعب كرة القدم القياسي؟',o:['٩٠م','١٠٠م','١٠٥م','١١٠م'],c:2},
+    {t:'من يُلقب بـ"الكابتن الأمريكي"؟',o:['باتمان','سوبرمان','ستيف روجرز','توني ستارك'],c:2},
+    {t:'ما الرياضة التي تُلعب بالمضرب والريشة؟',o:['التنس','البادمنتون','الاسكواش','البيسبول'],c:1},
+  ],
+  culture:[
+    {t:'من رسم الموناليزا؟',o:['مايكل أنجلو','رفائيل','ليوناردو دافنشي','بيكاسو'],c:2},
+    {t:'من كتب رواية ألف شمس مشرقة؟',o:['نجيب محفوظ','خالد حسيني','طه حسين','ماركيز'],c:1},
+    {t:'ما أقدم حضارة في التاريخ؟',o:['الفرعونية','السومرية','الرومانية','الإغريقية'],c:1},
+    {t:'ما اللغة الأكثر تحدثاً في العالم؟',o:['الإنجليزية','الإسبانية','الماندرين','العربية'],c:2},
+    {t:'من ألّف مسرحية روميو وجولييت؟',o:['تشيخوف','موليير','شكسبير','إبسن'],c:2},
+    {t:'ما أطول رواية في التاريخ؟',o:['الحرب والسلام','إخوة كارامازوف','دون كيخوته','البحث عن الزمن المفقود'],c:3},
+  ],
+  tech:[
+    {t:'ما معنى CPU؟',o:['وحدة طباعة مركزية','وحدة معالجة مركزية','وحدة برمجة مركزية','وحدة حماية مركزية'],c:1},
+    {t:'من أسس شركة Apple؟',o:['بيل غيتس','ستيف جوبز','إيلون ماسك','مارك زوكربيرغ'],c:1},
+    {t:'في أي عام تأسست Google؟',o:['١٩٩٥','١٩٩٦','١٩٩٨','٢٠٠٠'],c:2},
+    {t:'ما معنى WiFi؟',o:['Wireless Fidelity','Wide Frequency','Web Interface','Wireless Fiber'],c:0},
+    {t:'ما لغة البرمجة الأكثر استخداماً في الويب؟',o:['Python','Java','JavaScript','C++'],c:2},
+    {t:'كم بت في البايت الواحد؟',o:['٤','٨','١٦','٣٢'],c:1},
+    {t:'ما معنى URL؟',o:['Unique Resource Link','Universal Record Locator','Uniform Resource Locator','Upload Resource List'],c:2},
+    {t:'ما أول شبكة إنترنت في العالم؟',o:['ARPANET','BITNET','NSFNET','MILNET'],c:0},
+  ],
+  math:[
+    {t:'كم يساوي ٢ أس ١٠؟',o:['٥١٢','٨٩٦','١٠٢٤','٢٠٤٨'],c:2},
+    {t:'ما قيمة الجذر التربيعي لـ ١٤٤؟',o:['١٠','١١','١٢','١٣'],c:2},
+    {t:'ما قيمة π تقريباً؟',o:['٣.١','٣.١٤','٣.٢','٣.٣'],c:1},
+    {t:'ما مجموع زوايا المثلث؟',o:['٩٠°','١٢٠°','١٨٠°','٣٦٠°'],c:2},
+    {t:'ما ناتج ١٥ × ١٥؟',o:['٢٠٥','٢٢٥','٢٤٥','٢٦٥'],c:1},
+    {t:'كم عدد الأعداد الأولية بين ١ و ٢٠؟',o:['٦','٧','٨','٩'],c:2},
+  ],
+  politics:[
+    {t:'كم دولة عضو في الأمم المتحدة؟',o:['١٦٠','١٧٠','١٨٠','١٩٣'],c:3},
+    {t:'ما مقر الأمم المتحدة؟',o:['لندن','باريس','نيويورك','جنيف'],c:2},
+    {t:'ما شعار منظمة الأمم المتحدة؟',o:['نسر','حمامة','زيتون وكرة أرضية','نجمة'],c:2},
+    {t:'ما نظام الحكم في بريطانيا؟',o:['جمهوري','ملكي دستوري','ديمقراطي شعبي','فيدرالي'],c:1},
+  ],
+  war:[
+    {t:'ما أطول حرب في التاريخ الحديث؟',o:['الحرب العالمية الأولى','الحرب الباردة','حرب المئة عام','الحرب الأهلية الأمريكية'],c:2},
+    {t:'في أي عام اندلعت الحرب العالمية الأولى؟',o:['١٩١٢','١٩١٤','١٩١٦','١٩١٨'],c:1},
+    {t:'ما اسم الهجوم الذي دخلت به أمريكا الحرب العالمية الثانية؟',o:['بيرل هاربر','نورماندي','ميدواي','غوادالكانال'],c:0},
+    {t:'ما الاسم الرمزي لإنزال نورماندي؟',o:['عملية أوفرلورد','عملية طوفان','عملية البرق','عملية تيتان'],c:0},
+  ],
+};
+
+function getQuestionsForCats(catIds, count) {
+  let pool = [];
+  catIds.forEach(id => {
+    (QBANK[id] || []).forEach(q => pool.push({...q, cat: id}));
+  });
+  pool.sort(() => Math.random() - .5);
+  return pool.slice(0, count).map((q, i) => ({
+    id: i, text: q.t, options: q.o, correct: q.c,
+    category: q.cat, pts: 10, time: 30
+  }));
+}
+
+// ══════════════════════════════════════
+//  AVATARS
+// ══════════════════════════════════════
+const AVATARS = [
+  {id:'star',    color:'#ffd700', path:'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'},
+  {id:'bolt',    color:'#00f5ff', path:'M13 2L3 14h9l-1 8 10-12h-9l1-8z'},
+  {id:'fire',    color:'#ff6d00', path:'M17.66 11.2c-.23-.3-.51-.56-.77-.82-.67-.6-1.43-1.03-2.07-1.66C13.33 7.26 13 4.85 13.95 3c-1 .23-1.89.8-2.64 1.57-.73.82-1.17 1.9-1.17 2.95 0 .26-.02.52-.03.78-.07.2-.26.35-.46.34-.31-.02-.56-.28-.52-.61.03-.3.05-.62.05-.9 0-1.18.26-2.35.88-3.37-.4.43-.7.9-.93 1.42-.65 1.45-.79 3.08-.47 4.64.12.62.32 1.22.56 1.79-1.7-1.05-2.2-3.63-.68-5.14C7.44 6.71 5.43 9.11 5 11.6c-.26.8-.33 1.58-.16 2.38.08.28.24.54.38.78.26.34.57.63.89.87.68.5 1.49.78 2.31.91C9.3 16.1 10.2 16.41 11 16.78c1.01.46 1.78 1.08 2.08 2.25.26.98-.09 2-.78 2.77.5.03 1.1-.22 1.65-.62 1.22-.89 2.31-2.27 2.35-3.84.02-.91-.26-1.79-.72-2.56l-.06-.1c-.2-.29-.45-.55-.71-.78.48.36.92.82 1.2 1.32.26.48.42.99.52 1.52 1.11-1.71 1.1-3.98.13-5.54z'},
+  {id:'crown',   color:'#e040fb', path:'M2 4l3 12h14l3-12-6 7-4-7-4 7z'},
+  {id:'diamond', color:'#00e676', path:'M12 2l10 10-10 10L2 12z'},
+  {id:'shield',  color:'#ff1744', path:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'},
+  {id:'rocket',  color:'#7c4dff', path:'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z'},
+  {id:'brain',   color:'#69f0ae', path:'M9.5 2A2.5 2.5 0 017 4.5v5A2.5 2.5 0 009.5 12H12v-1.5A2.5 2.5 0 0014.5 8h5A2.5 2.5 0 0022 5.5 2.5 2.5 0 0019.5 3h-5A2.5 2.5 0 0012 5.5V7H9.5A.5.5 0 019 6.5v-2A2.5 2.5 0 006.5 2h-1A2.5 2.5 0 003 4.5v15A2.5 2.5 0 005.5 22H6a2.5 2.5 0 002.5-2.5V9'},
+];
+
+function avSVG(avId, size=22, color=null) {
+  const av = AVATARS.find(a => a.id === avId) || AVATARS[0];
+  const c = color || av.color;
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${c}" stroke="none"><path d="${av.path}"/></svg>`;
+}
+
+// ══════════════════════════════════════
+//  THEME
+// ══════════════════════════════════════
+let darkMode = true;
+function toggleTheme() {
+  darkMode = !darkMode;
+  // For now stays dark — arena is dark-first
+  showN(darkMode ? 'وضع مظلم' : 'وضع مضيء', 'i');
+}
+
+// ══════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goNameEntry(action) {
+  State.pendingAction = action;
+  goScreen('name-entry');
+  renderAvatarGrid();
+  document.getElementById('player-name').value = State.playerName || '';
+  setTimeout(() => document.getElementById('player-name').focus(), 300);
+}
+
+function renderAvatarGrid() {
+  const el = document.getElementById('avatar-grid');
+  el.innerHTML = AVATARS.map(av => `
+    <button class="av-btn ${State.playerAvatar === av.id ? 'sel' : ''}" onclick="selectAvatar('${av.id}')">
+      ${avSVG(av.id, 20)}
+    </button>`).join('');
+}
+
+function selectAvatar(id) {
+  State.playerAvatar = id;
+  renderAvatarGrid();
+}
+
+function confirmName() {
+  const name = document.getElementById('player-name').value.trim();
+  if (!name) { showN('أدخل اسمك أولاً', 'e'); return; }
+  State.playerName = name;
+  // Generate unique player ID
+  if (!State.playerId) State.playerId = db.ref().push().key;
+
+  if (State.pendingAction === 'create') {
+    goScreen('create-room');
+    renderCreateCats();
+  } else if (State.pendingAction === 'join') {
+    goScreen('join-room');
+    document.getElementById('join-code-input').value = '';
+    document.getElementById('join-err').textContent = '';
+    setTimeout(() => document.getElementById('join-code-input').focus(), 300);
+  } else if (State.pendingAction === 'public') {
+    goScreen('public-rooms');
+    loadPublicRooms();
+  }
+}
+
+// ══════════════════════════════════════
+//  CREATE ROOM
+// ══════════════════════════════════════
+function renderCreateCats() {
+  const el = document.getElementById('cat-grid-create');
+  el.innerHTML = CATS.map(c => `
+    <button class="cat-pill ${State.selectedCats.has(c.id) ? 'sel' : ''}"
+      onclick="toggleCat('${c.id}')"
+      style="${State.selectedCats.has(c.id) ? `background:${c.color}18;border-color:${c.color};color:${c.color}` : ''}">
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="${c.path}"/></svg>
+      ${c.label}
+    </button>`).join('');
+  updateCreateBtn();
+}
+
+function toggleCat(id) {
+  if (State.selectedCats.has(id)) State.selectedCats.delete(id);
+  else State.selectedCats.add(id);
+  renderCreateCats();
+}
+
+function updateCreateBtn() {
+  document.getElementById('create-room-btn').disabled = State.selectedCats.size === 0;
+}
+
+function generateRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+async function createRoom() {
+  if (!State.selectedCats.size) { showN('اختر فئة واحدة على الأقل', 'e'); return; }
+  const btn = document.getElementById('create-room-btn');
+  btn.disabled = true; btn.textContent = 'جارٍ الإنشاء...';
+
+  const code = generateRoomCode();
+  const qCount = parseInt(document.getElementById('q-count-slider').value) || 10;
+  const qTime = parseInt(document.getElementById('q-time-slider').value) || 30;
+  const isPublic = document.getElementById('room-public').checked;
+  const cats = [...State.selectedCats];
+
+  // Generate questions
+  const questions = getQuestionsForCats(cats, qCount);
+
+  const roomData = {
+    code,
+    host: State.playerName,
+    hostId: State.playerId,
+    config: { categories: cats, qCount, qTime, isPublic },
+    status: 'waiting',
+    createdAt: Date.now(),
+    players: {
+      [State.playerId]: {
+        name: State.playerName,
+        avatar: State.playerAvatar,
+        score: 0,
+        isHost: true,
+        joinedAt: Date.now()
+      }
+    },
+    questions
+  };
+
+  try {
+    await roomsRef.child(code).set(roomData);
+    State.roomCode = code;
+    State.isHost = true;
+    State.roomRef = roomsRef.child(code);
+    State.gameRef = State.roomRef.child('game');
+    enterLobby();
+  } catch(e) {
+    showN('خطأ في إنشاء الغرفة: ' + e.message, 'e');
+    btn.disabled = false; btn.textContent = 'إنشاء الغرفة';
+  }
+}
+
+// ══════════════════════════════════════
+//  JOIN ROOM
+// ══════════════════════════════════════
+async function joinRoom() {
+  const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('join-err');
+  if (code.length !== 6) { errEl.textContent = 'الكود يجب أن يكون 6 أحرف'; return; }
+
+  const snap = await roomsRef.child(code).once('value');
+  const room = snap.val();
+  if (!room) { errEl.textContent = 'الغرفة غير موجودة'; return; }
+  if (room.status === 'playing') { errEl.textContent = 'المسابقة بدأت بالفعل'; return; }
+  if (room.status === 'finished') { errEl.textContent = 'المسابقة انتهت'; return; }
+
+  // Add player to room
+  await roomsRef.child(code).child('players').child(State.playerId).set({
+    name: State.playerName,
+    avatar: State.playerAvatar,
+    score: 0,
+    isHost: false,
+    joinedAt: Date.now()
+  });
+
+  State.roomCode = code;
+  State.isHost = false;
+  State.roomRef = roomsRef.child(code);
+  State.gameRef = State.roomRef.child('game');
+  enterLobby();
+}
+
+// ══════════════════════════════════════
+//  PUBLIC ROOMS
+// ══════════════════════════════════════
+function loadPublicRooms() {
+  roomsRef.orderByChild('status').equalTo('waiting').on('value', snap => {
+    const rooms = snap.val() || {};
+    const publicRooms = Object.values(rooms).filter(r => r.config?.isPublic);
+    document.getElementById('rooms-count').textContent = publicRooms.length + ' غرفة';
+    const el = document.getElementById('rooms-list');
+    if (!publicRooms.length) {
+      el.innerHTML = '<div style="text-align:center;padding:48px;color:var(--muted)"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 14px;opacity:.3"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>لا توجد غرف مفتوحة الآن<br><span style="font-size:12px;margin-top:6px;display:block">أنشئ غرفة وادعُ الآخرين</span></div>';
+      return;
+    }
+    el.innerHTML = publicRooms.sort((a,b) => b.createdAt - a.createdAt).map(r => {
+      const pCount = Object.keys(r.players||{}).length;
+      const cats = (r.config?.categories||[]).map(id => CATS.find(c=>c.id===id)?.label||id).join(' · ');
+      return `<div class="room-card" onclick="quickJoin('${r.code}')">
+        <div class="room-code-badge">${r.code}</div>
+        <div class="room-info">
+          <div class="room-host">${r.host || 'مجهول'}</div>
+          <div class="room-meta">
+            <span>${cats}</span>
+            <span>${r.config?.qCount||10} سؤال</span>
+          </div>
+        </div>
+        <div class="room-players">
+          <div class="player-dot"></div>
+          <span style="font-size:12px;font-weight:700;color:var(--green)">${pCount}</span>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+async function quickJoin(code) {
+  const snap = await roomsRef.child(code).once('value');
+  const room = snap.val();
+  if (!room || room.status !== 'waiting') { showN('الغرفة لم تعد متاحة', 'e'); return; }
+
+  await roomsRef.child(code).child('players').child(State.playerId).set({
+    name: State.playerName,
+    avatar: State.playerAvatar,
+    score: 0,
+    isHost: false,
+    joinedAt: Date.now()
+  });
+
+  State.roomCode = code;
+  State.isHost = false;
+  State.roomRef = roomsRef.child(code);
+  State.gameRef = State.roomRef.child('game');
+  // Remove public rooms listener
+  roomsRef.off();
+  enterLobby();
+}
+
+// ══════════════════════════════════════
+//  LOBBY
+// ══════════════════════════════════════
+function enterLobby() {
+  goScreen('lobby');
+  document.getElementById('lobby-code').textContent = State.roomCode;
+  document.getElementById('host-start-area').style.display = State.isHost ? 'block' : 'none';
+  document.getElementById('guest-wait-area').style.display = State.isHost ? 'none' : 'block';
+
+  // Listen to players
+  addListener(State.roomRef.child('players').on('value', snap => {
+    const players = snap.val() || {};
+    renderLobbyPlayers(players);
+    if (State.isHost) {
+      const pCount = Object.keys(players).length;
+      document.getElementById('start-game-btn').disabled = pCount < 1;
+      document.getElementById('waiting-msg').textContent = pCount < 2
+        ? `لاعب واحد فقط — العب وحدك أو انتظر انضمام آخرين`
+        : `${pCount} لاعبون جاهزون`;
+    }
+  }));
+
+  // Listen for room config
+  addListener(State.roomRef.child('config').once('value', snap => {
+    const cfg = snap.val() || {};
+    renderLobbyConfig(cfg);
+  }));
+
+  // Listen for game status
+  addListener(State.roomRef.child('status').on('value', snap => {
+    const status = snap.val();
+    if (status === 'playing') {
+      // Load questions and enter game
+      State.roomRef.child('questions').once('value', snap2 => {
+        State.questions = snap2.val() ? Object.values(snap2.val()) : [];
+        State.questions.sort((a,b) => (a.id||0) - (b.id||0));
+        enterGame();
+      });
+    }
+    if (status === 'finished') showResults();
+  }));
+}
+
+function renderLobbyPlayers(players) {
+  const el = document.getElementById('lobby-players');
+  el.innerHTML = Object.values(players).map(p => `
+    <div class="player-card ${p.isHost ? 'host-card' : ''}">
+      <div class="pc-avatar" style="background:${AVATARS.find(a=>a.id===p.avatar)?.color||'#00f5ff'}22">
+        ${avSVG(p.avatar||'star', 24)}
+      </div>
+      <div class="pc-name">${p.name}</div>
+      ${p.isHost ? '<div class="pc-host">المضيف</div>' : ''}
+    </div>`).join('');
+}
+
+function renderLobbyConfig(cfg) {
+  const cats = (cfg.categories||[]).map(id => CATS.find(c=>c.id===id)?.label||id).join(' · ');
+  document.getElementById('lobby-config').innerHTML = `
+    <div class="config-row"><span class="config-label">الفئات</span><span class="config-val">${cats||'—'}</span></div>
+    <div class="config-row"><span class="config-label">عدد الأسئلة</span><span class="config-val">${cfg.qCount||10}</span></div>
+    <div class="config-row"><span class="config-label">وقت كل سؤال</span><span class="config-val">${cfg.qTime||30} ثانية</span></div>
+    <div class="config-row"><span class="config-label">الغرفة</span><span class="config-val">${cfg.isPublic?'عامة':'خاصة'}</span></div>`;
+}
+
+function shareRoom() {
+  const url = location.href.split('?')[0] + '?room=' + State.roomCode;
+  if (navigator.share) {
+    navigator.share({ title: 'Faisal Arena', text: 'انضم لغرفتي: ' + State.roomCode, url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => showN('تم نسخ الرابط', 's'));
+  }
+}
+
+function hostStartGame() {
+  State.roomRef.update({ status: 'playing' });
+  State.gameRef.set({ currentQ: 0, phase: 'question', startedAt: Date.now() });
+}
+
+function leaveRoom() {
+  if (State.roomRef && State.playerId) {
+    State.roomRef.child('players').child(State.playerId).remove();
+    if (State.isHost) State.roomRef.child('status').set('cancelled');
+  }
+  cleanupListeners();
+  State.roomCode = null;
+  State.isHost = false;
+  State.roomRef = null;
+  goScreen('home');
+}
+
+// ══════════════════════════════════════
+//  GAME
+// ══════════════════════════════════════
+function enterGame() {
+  State.myScore = 0;
+  State.currentQ = -1;
+  State.answered = false;
+  clearInterval(State.timerInt);
+  goScreen('game');
+
+  // Listen for game state
+  addListener(State.gameRef.on('value', snap => {
+    const g = snap.val();
+    if (!g) return;
+    if (g.phase === 'question' && g.currentQ !== State.currentQ) {
+      State.currentQ = g.currentQ;
+      showQuestion(g.currentQ);
+    }
+    if (g.phase === 'reveal') showReveal(g.currentQ, g.correctAnswer);
+    if (g.scores) updateScoresBar(g.scores);
+  }));
+
+  // Host drives the game
+  if (State.isHost) hostDriveGame();
+}
+
+function hostDriveGame() {
+  let qi = 0;
+  const qTime = State.questions[0]?.time || 30;
+
+  function nextQuestion() {
+    if (qi >= State.questions.length) {
+      // End game
+      State.gameRef.update({ phase: 'done' });
+      State.roomRef.child('status').set('finished');
+      return;
+    }
+    State.gameRef.update({ currentQ: qi, phase: 'question', timeLeft: qTime });
+    // Start countdown
+    let t = qTime;
+    clearInterval(State.timerInt);
+    State.timerInt = setInterval(() => {
+      t--;
+      State.gameRef.child('timeLeft').set(t);
+      if (t <= 0) {
+        clearInterval(State.timerInt);
+        // Reveal answer
+        const q = State.questions[qi];
+        State.gameRef.update({ phase: 'reveal', correctAnswer: q.correct });
+        // Award points based on speed
+        State.gameRef.child('answers').once('value', snap => {
+          const answers = snap.val() || {};
+          const scores = {};
+          Object.entries(answers).forEach(([pid, ans]) => {
+            if (ans.answer === q.correct) {
+              const speedBonus = Math.round((ans.timeLeft / qTime) * 5);
+              scores[pid] = (scores[pid] || 0) + q.pts + speedBonus;
+            }
+          });
+          // Update cumulative scores
+          Object.entries(scores).forEach(([pid, pts]) => {
+            State.roomRef.child('players').child(pid).child('score').transaction(s => (s||0) + pts);
+          });
+          State.gameRef.update({ scores });
+        });
+        // Next question after delay
+        setTimeout(() => {
+          State.gameRef.child('answers').remove();
+          qi++;
+          nextQuestion();
+        }, 3500);
+      }
+    }, 1000);
+  }
+  nextQuestion();
+}
+
+function showQuestion(qi) {
+  const q = State.questions[qi];
+  if (!q) return;
+  State.answered = false;
+  State.timeLeft = q.time || 30;
+  State.totalTime = State.timeLeft;
+
+  document.getElementById('g-waiting').style.display = 'none';
+  document.getElementById('g-question').style.display = 'block';
+  document.getElementById('g-reveal').style.display = 'none';
+  document.getElementById('g-answered-label').style.display = 'none';
+
+  document.getElementById('g-q-num').textContent = `${qi + 1} / ${State.questions.length}`;
+  document.getElementById('g-pts-badge').innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>${q.pts} نقطة`;
+  document.getElementById('g-q-text').textContent = q.text;
+
+  const L = ['أ','ب','ج','د'];
+  document.getElementById('g-options').innerHTML = q.options.map((o, i) => `
+    <button class="opt-btn" onclick="answerQ(${i})" data-idx="${i}">
+      <div class="opt-letter">${L[i]}</div>
+      ${o}
+    </button>`).join('');
+
+  // Start timer (client-side display, host drives actual timer)
+  clearInterval(State.timerInt);
+  State.timerInt = setInterval(() => {
+    if (State.timeLeft <= 0) { clearInterval(State.timerInt); return; }
+    State.timeLeft--;
+    updateTimerDisplay(State.timeLeft, State.totalTime);
+  }, 1000);
+  updateTimerDisplay(State.timeLeft, State.totalTime);
+
+  // Also sync with Firebase timeLeft
+  addListener(State.gameRef.child('timeLeft').on('value', snap => {
+    const t = snap.val();
+    if (t !== null) { State.timeLeft = t; updateTimerDisplay(t, State.totalTime); }
+  }));
+}
+
+function updateTimerDisplay(t, tot) {
+  const el = document.getElementById('g-timer');
+  const num = document.getElementById('g-timer-num');
+  if (!el || !num) return;
+  num.textContent = t;
+  const pct = (t / tot) * 360;
+  el.style.setProperty('--p', pct + 'deg');
+  document.getElementById('g-progress').style.width = (t / tot * 100) + '%';
+  el.className = 'timer-ring ' + (t > tot*.5 ? 'tr-ok' : t > tot*.25 ? 'tr-warn' : 'tr-danger');
+}
+
+function answerQ(optIdx) {
+  if (State.answered) return;
+  State.answered = true;
+
+  // Visual feedback
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach((b, i) => { if (i === optIdx) b.classList.add('selected'); });
+
+  // Show answered label
+  document.getElementById('g-answered-label').style.display = 'flex';
+
+  // Send answer to Firebase
+  State.gameRef.child('answers').child(State.playerId).set({
+    answer: optIdx,
+    timeLeft: State.timeLeft
+  });
+}
+
+function showReveal(qi, correctIdx) {
+  clearInterval(State.timerInt);
+  const q = State.questions[qi];
+  if (!q) return;
+
+  document.getElementById('g-question').style.display = 'none';
+  document.getElementById('g-reveal').style.display = 'block';
+
+  const L = ['أ','ب','ج','د'];
+  document.getElementById('g-correct-answer').textContent = q.options[correctIdx] || '—';
+
+  // Check my answer
+  State.gameRef.child('answers').child(State.playerId).once('value', snap => {
+    const myAns = snap.val();
+    const resultEl = document.getElementById('g-my-result');
+    if (!myAns) {
+      resultEl.textContent = 'لم تُجب';
+      resultEl.style.background = 'rgba(100,100,120,.2)';
+      resultEl.style.color = 'var(--muted)';
+    } else if (myAns.answer === correctIdx) {
+      resultEl.textContent = 'إجابة صحيحة!';
+      resultEl.style.background = 'rgba(0,230,118,.15)';
+      resultEl.style.color = 'var(--green)';
+    } else {
+      resultEl.textContent = 'إجابة خاطئة';
+      resultEl.style.background = 'rgba(255,23,68,.12)';
+      resultEl.style.color = 'var(--red)';
+    }
+  });
+
+  // Mark correct/wrong options
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === correctIdx) b.classList.add('correct');
+    else if (b.classList.contains('selected')) b.classList.add('wrong');
+  });
+}
+
+function updateScoresBar(scores) {
+  if (!scores) return;
+  const el = document.getElementById('g-scores-bar');
+  const players = [];
+  State.roomRef.child('players').once('value', snap => {
+    const ps = snap.val() || {};
+    Object.entries(ps).forEach(([pid, p]) => {
+      players.push({ ...p, id: pid, score: scores[pid] || p.score || 0 });
+    });
+    players.sort((a, b) => b.score - a.score);
+    const maxScore = players[0]?.score || 1;
+    el.innerHTML = players.map((p, i) => `
+      <div class="score-chip ${p.id === State.playerId ? 'me' : ''} ${i === 0 ? 'lead' : ''}">
+        ${avSVG(p.avatar || 'star', 16)}
+        <span class="sc-name">${p.name}</span>
+        <span class="sc-pts ${i===0?'lead-pts':''}">${p.score}</span>
+      </div>`).join('');
+  });
+}
+
+// ══════════════════════════════════════
+//  RESULTS
+// ══════════════════════════════════════
+function showResults() {
+  goScreen('results');
+  spawnConfetti();
+
+  State.roomRef.child('players').once('value', snap => {
+    const players = Object.values(snap.val() || {}).sort((a, b) => b.score - a.score);
+
+    // Winner
+    const winner = players[0];
+    document.getElementById('res-winner').textContent = winner?.name || '—';
+    document.getElementById('res-winner-score').textContent = winner?.score + ' نقطة' || '—';
+
+    // Podium (top 3)
+    const podiumEl = document.getElementById('res-podium');
+    const top3 = [players[1], players[0], players[2]].filter(Boolean);
+    const classes = ['p2','p1','p3'];
+    podiumEl.innerHTML = top3.map((p, i) => `
+      <div class="podium-slot ${classes[i]}">
+        <div class="podium-bar">
+          <div class="podium-num">${i===1?'1':i===0?'2':'3'}</div>
+        </div>
+        <div class="podium-name">${p?.name||''}</div>
+        <div class="podium-pts">${p?.score||0} نقطة</div>
+      </div>`).join('');
+
+    // Leaderboard
+    const lbEl = document.getElementById('res-leaderboard');
+    lbEl.innerHTML = players.map((p, i) => `
+      <div class="lb-row ${p.id === State.playerId ? 'me-row' : ''}">
+        <div class="lb-rank">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+        ${avSVG(p.avatar||'star', 20)}
+        <div class="lb-name">${p.name}${p.id===State.playerId?' (أنت)':''}</div>
+        <div class="lb-pts">${p.score||0}</div>
+      </div>`).join('');
+  });
+}
+
+function playAgain() {
+  if (State.isHost) {
+    goScreen('create-room');
+  } else {
+    goScreen('home');
+  }
+}
+
+// ══════════════════════════════════════
+//  CONFETTI
+// ══════════════════════════════════════
+function spawnConfetti() {
+  const cfw = document.getElementById('cfw');
+  cfw.innerHTML = '';
+  const colors = ['#ffd700','#00f5ff','#e040fb','#00e676','#ff1744'];
+  for (let i = 0; i < 80; i++) {
+    const p = document.createElement('div');
+    p.className = 'cfp';
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      width:${Math.random()*8+4}px;height:${Math.random()*8+4}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${Math.random()*2+2}s;
+      animation-delay:${Math.random()*1.5}s;
+    `;
+    cfw.appendChild(p);
+  }
+}
+
+// ══════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════
+function addListener(ref) {
+  State.listeners.push(ref);
+}
+
+function cleanupListeners() {
+  if (State.roomRef) {
+    State.roomRef.off();
+    State.gameRef?.off();
+  }
+  clearInterval(State.timerInt);
+  State.listeners = [];
+}
+
+function showN(msg, type='s') {
+  document.querySelectorAll('.notif').forEach(n => n.remove());
+  const n = document.createElement('div');
+  n.className = `notif n-${type}`;
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 2800);
+}
+
+// ══════════════════════════════════════
+//  HOME STATS
+// ══════════════════════════════════════
+function loadHomeStats() {
+  roomsRef.on('value', snap => {
+    const rooms = snap.val() || {};
+    const active = Object.values(rooms).filter(r => r.status === 'waiting' || r.status === 'playing');
+    const playing = active.filter(r => r.status === 'playing');
+    let totalPlayers = 0;
+    active.forEach(r => { totalPlayers += Object.keys(r.players || {}).length; });
+    document.getElementById('hs-rooms').textContent = active.length;
+    document.getElementById('hs-players').textContent = totalPlayers;
+  });
+
+  db.ref('arena_stats/totalGames').on('value', snap => {
+    document.getElementById('hs-games').textContent = snap.val() || 0;
+  });
+}
+
+// Check URL for room code
+function checkURLRoom() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('room');
+  if (code) {
+    goNameEntry('join');
+    setTimeout(() => {
+      document.getElementById('join-code-input').value = code.toUpperCase();
+    }, 400);
+  }
+}
+
+// ══════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadHomeStats();
+  checkURLRoom();
+});
+</script>
+</body>
+</html>
