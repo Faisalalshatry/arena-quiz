@@ -290,6 +290,37 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);ove
 .pub-tog{position:relative;width:54px;height:27px;border-radius:14px;border:none;cursor:pointer;transition:all .3s}
 .pub-knob{position:absolute;top:3px;right:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:all .3s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 @media(max-width:480px){.og{grid-template-columns:1fr}.cpg{grid-template-columns:1fr 1fr}.bet-opts{grid-template-columns:1fr 1fr}}
+/* ══ GAMING DESIGN UPGRADES ══ */
+.hbtn{background:linear-gradient(135deg,var(--s),var(--s2));box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 20px rgba(0,0,0,.4)}
+.hbtn.hc{border-color:rgba(124,58,237,.45)}.hbtn.hj{border-color:rgba(245,158,11,.4)}.hbtn.hr{border-color:rgba(16,185,129,.35)}.hbtn.hs{border-color:rgba(59,130,246,.35)}
+.btn.b-p{box-shadow:0 0 20px rgba(124,58,237,.4),0 4px 15px rgba(0,0,0,.3)}
+.btn.b-g{box-shadow:0 0 20px rgba(245,158,11,.35),0 4px 15px rgba(0,0,0,.3)}
+.btn.b-gr{box-shadow:0 0 20px rgba(16,185,129,.3),0 4px 15px rgba(0,0,0,.3)}
+.qt{font-size:clamp(16px,3.8vw,24px);font-weight:900;letter-spacing:-.3px}
+.opt{background:linear-gradient(135deg,var(--s),var(--s2));box-shadow:0 2px 12px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)}
+.opt:hover:not(:disabled){box-shadow:0 0 20px rgba(124,58,237,.4),0 4px 20px rgba(0,0,0,.3)}
+.opt.ok{box-shadow:0 0 24px rgba(16,185,129,.5)!important;animation:cpop .4s cubic-bezier(.175,.885,.32,1.275)}
+.opt.no{box-shadow:0 0 16px rgba(239,68,68,.3)!important}
+@keyframes cpop{0%{transform:scale(.95)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+.tr-ok{box-shadow:0 0 16px rgba(16,185,129,.4)}.tr-wn{box-shadow:0 0 16px rgba(245,158,11,.4)}.tr-bd{box-shadow:0 0 20px rgba(239,68,68,.5)}
+.danger-b{font-size:12px;font-weight:900;letter-spacing:1px;padding:5px 12px;background:linear-gradient(135deg,rgba(239,68,68,.2),rgba(249,115,22,.15));border:1.5px solid var(--red);color:#fff;text-shadow:0 0 8px rgba(239,68,68,.8)}
+.br-row{background:linear-gradient(135deg,var(--s),var(--s2));box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.br-row.t1{box-shadow:0 0 20px rgba(245,158,11,.3),0 2px 12px rgba(0,0,0,.3)}
+.sc-c{background:linear-gradient(135deg,var(--s),var(--s2))}.sc-c.me{box-shadow:0 0 14px rgba(124,58,237,.3)}
+.lcode{filter:drop-shadow(0 0 20px rgba(124,58,237,.5)) drop-shadow(0 0 40px rgba(245,158,11,.25))}
+.pc{background:linear-gradient(135deg,var(--s),var(--s2));box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.pc.hpc{box-shadow:0 0 18px rgba(245,158,11,.3),0 2px 10px rgba(0,0,0,.3)}
+.tw{box-shadow:0 0 50px rgba(245,158,11,.5),0 0 80px rgba(245,158,11,.2)}
+.p1 .pod-b{box-shadow:0 0 24px rgba(245,158,11,.5)}
+.sb{background:linear-gradient(90deg,var(--bg2),rgba(6,5,15,.95));border-top:1px solid rgba(124,58,237,.25)}
+.gtop{background:linear-gradient(90deg,var(--bg2),rgba(6,5,15,.9));border-bottom:1px solid rgba(124,58,237,.2)}
+/* Report */
+.rep-btn{width:100%;padding:12px 16px;background:var(--s2);border:1.5px solid var(--b);border-radius:var(--r);color:var(--text2);font-family:'Tajawal';font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;text-align:right}
+.rep-btn:hover{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.06);transform:translateX(-2px)}
+/* Answers waiting pips */
+.ans-pips{display:flex;gap:3px;align-items:center}
+.ap{width:8px;height:8px;border-radius:50%;background:var(--b);transition:all .3s}
+.ap.done{background:var(--green);box-shadow:0 0 6px var(--green)}
 </style>
 </head>
 <body>
@@ -589,8 +620,15 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);ove
       <div class="qcs" id="qcs"></div>
       <div class="qt" id="gqt"></div>
       <div id="gq-bl" class="q-bet-l" style="display:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>راهنت بـ <span id="gq-ba">0</span> نقطة</div>
-      <div id="gq-al" class="q-ans-l" style="display:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>تم إرسال إجابتك</div>
+      <div id="gq-al" class="q-ans-l" style="display:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>تم إرسال إجابتك — في انتظار البقية <span id="gq-ans-cnt" style="font-family:'Exo 2';font-weight:900;color:var(--neon2)"></span></div>
       <div class="og" id="gq-opts"></div>
+      <!-- Report button -->
+      <div style="text-align:center;margin-top:14px">
+        <button onclick="openReport()" style="background:none;border:none;color:var(--muted);font-family:'Tajawal';font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;transition:all .2s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18l-2 9H5z"/><circle cx="12" cy="19" r="2"/></svg>
+          الإبلاغ عن السؤال
+        </button>
+      </div>
     </div>
     <div id="gq-rev" style="display:none;text-align:center;padding:16px">
       <div style="font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">الإجابة الصحيحة</div>
@@ -626,6 +664,27 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);ove
   <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">
     <button class="btn b-g b-lg" onclick="playAgain()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>مرة أخرى</button>
     <button class="btn b-gh b-lg" onclick="goS('home')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>الرئيسية</button>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div id="report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:flex-end;justify-content:center;padding:20px">
+  <div style="background:var(--s);border-radius:var(--rxl) var(--rxl) 0 0;padding:24px;width:100%;max-width:420px;animation:slide-up .3s ease">
+    <div style="font-size:16px;font-weight:800;margin-bottom:4px">الإبلاغ عن السؤال</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">ساعدنا في تحسين البنك — اختر سبب الإبلاغ</div>
+    <div id="rep-opts" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      <button class="rep-btn" onclick="submitReport('إجابة خاطئة')">الإجابة الصحيحة خاطئة</button>
+      <button class="rep-btn" onclick="submitReport('سؤال غير واضح')">السؤال غير واضح أو ملتبس</button>
+      <button class="rep-btn" onclick="submitReport('معلومة قديمة')">المعلومة قديمة أو غير دقيقة</button>
+      <button class="rep-btn" onclick="submitReport('سؤال غير مناسب')">السؤال غير مناسب</button>
+      <button class="rep-btn" onclick="submitReport('فئة خاطئة')">السؤال في الفئة الخاطئة</button>
+    </div>
+    <div id="rep-done" style="display:none;text-align:center;padding:16px">
+      <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="var(--green)" stroke-width="2" style="display:block;margin:0 auto 10px"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
+      <div style="font-size:15px;font-weight:800;margin-bottom:4px">شكراً على تبليغك!</div>
+      <div style="font-size:12px;color:var(--muted)">تم إرسال بلاغك — سنراجع السؤال قريباً</div>
+    </div>
+    <button onclick="closeReport()" style="width:100%;padding:11px;border:1.5px solid var(--b2);border-radius:var(--r);background:transparent;color:var(--muted);font-family:'Tajawal';font-size:13px;font-weight:700;cursor:pointer">إغلاق</button>
   </div>
 </div>
 
@@ -750,13 +809,29 @@ const QB={
     {t:'رسام سقف كنيسة سيستينا ____',ty:'fill',a:'مايكل أنجلو'},
   ],
   tech:[
-    {t:'ما معنى CPU؟',ty:'mcq',o:['Central Processing Unit','Core Power Unit','Central Program Unit','Computing Process Unit'],c:0},
-    {t:'من المؤسس المشارك لشركة Apple؟',ty:'mcq',o:['بيل غيتس','ستيف جوبز','إيلون ماسك','مارك زوكربيرغ'],c:1},
-    {t:'في أي عام تأسست Google؟',ty:'mcq',o:['١٩٩٥','١٩٩٦','١٩٩٨','٢٠٠٠'],c:2},
-    {t:'كم بت في البايت؟',ty:'mcq',o:['٤','٨','١٦','٣٢'],c:1},
-    {t:'HTML هي لغة برمجة',ty:'tf',a:false},
-    {t:'الإنترنت والويب شيء واحد',ty:'tf',a:false},
-    {t:'منفذ HTTP الافتراضي ____',ty:'fill',a:'80'},
+    // مبتدئ
+    {t:'ما معنى اختصار CPU؟',ty:'mcq',o:['Central Processing Unit','Core Power Unit','Central Program Unit','Computing Process Unit'],c:0,d:1},
+    {t:'من المؤسس المشارك لشركة Apple مع ستيف وزنياك؟',ty:'mcq',o:['بيل غيتس','ستيف جوبز','إيلون ماسك','مارك زوكربيرغ'],c:1,d:1},
+    {t:'في أي عام تأسست Google؟',ty:'mcq',o:['١٩٩٥','١٩٩٦','١٩٩٨','٢٠٠٠'],c:2,d:1},
+    {t:'كم بت (bit) في البايت (Byte) الواحد؟',ty:'mcq',o:['٤','٨','١٦','٣٢'],c:1,d:1},
+    {t:'HTML هي لغة برمجة',ty:'tf',a:false,d:1},
+    {t:'الإنترنت والشبكة العنكبوتية (WWW) شيء واحد',ty:'tf',a:false,d:1},
+    {t:'ما الاختصار الكامل لـ RAM؟',ty:'mcq',o:['Random Access Memory','Read Access Module','Run Application Memory','Remote Access Machine'],c:0,d:1},
+    // متوسط
+    {t:'ما معنى اختصار URL؟',ty:'mcq',o:['Uniform Resource Locator','Universal Record Link','Upload Resource Log','Unique Reference List'],c:0,d:2},
+    {t:'ما أول شبكة حاسوبية في التاريخ؟',ty:'mcq',o:['ARPANET','BITNET','NSFNET','MILNET'],c:0,d:2},
+    {t:'منفذ HTTP الافتراضي هو ____',ty:'fill',a:'80',d:2},
+    {t:'منفذ HTTPS الافتراضي هو ____',ty:'fill',a:'443',d:2},
+    {t:'ما لغة البرمجة الأكثر استخداماً في تطوير الويب الأمامي؟',ty:'mcq',o:['Python','Java','JavaScript','C++'],c:2,d:2},
+    {t:'ما معنى اختصار SQL؟',ty:'mcq',o:['Structured Query Language','Simple Query Logic','System Query Layer','Saved Query List'],c:0,d:2},
+    {t:'Python لغة مفسَّرة وليست مُترجمة',ty:'tf',a:true,d:2},
+    {t:'Git هو نظام للتحكم بالإصدارات',ty:'tf',a:true,d:2},
+    {t:'ما رمز لغة البرمجة JavaScript في الملفات؟',ty:'fill',a:'.js',d:2},
+    // متقدم
+    {t:'ما عدد طبقات نموذج OSI للشبكات؟',ty:'mcq',o:['٥','٦','٧','٨'],c:2,d:3},
+    {t:'ما البروتوكول المستخدم لإرسال البريد الإلكتروني؟',ty:'mcq',o:['IMAP','POP3','SMTP','FTP'],c:2,d:3},
+    {t:'ما تعقيد خوارزمية البحث الثنائي؟',ty:'mcq',o:['O(n)','O(n²)','O(log n)','O(1)'],c:2,d:3},
+    {t:'IPv6 يستخدم عناوين بطول 128 بت',ty:'tf',a:true,d:3},
   ],
   math:[
     {t:'كم يساوي ٢ أس ١٠؟',ty:'mcq',o:['٥١٢','٨٩٦','١٠٢٤','٢٠٤٨'],c:2},
@@ -1336,6 +1411,11 @@ function enterGame(){
   addL(G.gameRef.on('value',snap=>{
     const g=snap.val();if(!g)return;
     if(g.phase==='question'&&g.currentQ&&g.qIndex!==G.currentQ){G.currentQ=g.qIndex;showQ(g.currentQ,g.turnPid,g.qIndex||0);}
+    // Show answered count without revealing answer
+    if(g.phase==='question'&&g.answeredCount!==undefined){
+      const total=Object.values((G.questions||[])).length||1;
+      updateAnsweredPips(g.answeredCount,Object.keys(g.answers||{}).length||g.answeredCount);
+    }
     if(g.phase==='reveal'&&g.correctAnswer!==undefined) revealAns(g);
     if(g.phase==='leaderboard'&&g.leaderboard) showBtw(g);
     if(g.scores) renderSB(g.scores,g.lives);
@@ -1459,19 +1539,29 @@ function hostDrive(){
         G.gameRef.update({qIndex:qi,currentQ:q,turnPid:tpid,phase:'question',timeLeft:q.time||30,answers:null,bets:null});
 
         let t=q.time||30;
+        let roundProcessed=false;
         clearInterval(G.timerInt);
 
         const answersRef=G.gameRef.child('answers');
         answersRef.on('value',aSnap=>{
-          if(Object.keys(aSnap.val()||{}).length>=active.length){
+          const cnt=Object.keys(aSnap.val()||{}).length;
+          // Show "waiting" progress to all clients
+          G.gameRef.child('answeredCount').set(cnt);
+          if(cnt>=active.length&&!roundProcessed){
+            roundProcessed=true;
             answersRef.off();clearInterval(G.timerInt);
-            processRound(q,tpid,qi,active);
+            // Small delay so everyone sees the "all answered" state
+            setTimeout(()=>processRound(q,tpid,qi,active),800);
           }
         });
 
         G.timerInt=setInterval(()=>{
           t--;G.gameRef.child('timeLeft').set(t);
-          if(t<=0){clearInterval(G.timerInt);answersRef.off();processRound(q,tpid,qi,active);}
+          if(t<=0&&!roundProcessed){
+            roundProcessed=true;
+            clearInterval(G.timerInt);answersRef.off();
+            processRound(q,tpid,qi,active);
+          }
         },1000);
       });
     });
@@ -1596,7 +1686,39 @@ function renderSB(scores,lives){
   });
 }
 
-// ══ RESULTS ══
+// ══ REPORT SYSTEM ══
+let currentReportQ=null;
+function openReport(){
+  currentReportQ=G.questions[G.currentQ]||null;
+  const modal=document.getElementById('report-modal');
+  document.getElementById('rep-opts').style.display='flex';
+  document.getElementById('rep-done').style.display='none';
+  modal.style.display='flex';
+}
+function closeReport(){document.getElementById('report-modal').style.display='none';}
+function submitReport(reason){
+  if(!currentReportQ) return;
+  const report={
+    reason,
+    questionText:currentReportQ.text||'—',
+    category:currentReportQ.category||'—',
+    roomCode:G.roomCode||'—',
+    reportedBy:G.pname||'—',
+    ts:Date.now()
+  };
+  db.ref('arena2_reports').push(report).then(()=>{
+    document.getElementById('rep-opts').style.display='none';
+    document.getElementById('rep-done').style.display='block';
+    setTimeout(closeReport,2500);
+  }).catch(()=>showN('تعذّر الإرسال','e'));
+}
+
+// Fix answered count display
+function updateAnsweredPips(count,total){
+  const el=document.getElementById('gq-ans-cnt');
+  if(el) el.textContent=`(${count}/${total})`;
+}
+
 function showResults(){
   goS('results');spawnConf();
   G.roomRef.child('players').once('value',snap=>{
