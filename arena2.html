@@ -437,8 +437,8 @@ body{font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;background:var(--bg
     <button class="ico" onclick="toggleTheme()" id="thm-btn">
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
     </button>
-    <button class="ico" onclick="toggleMute()" id="mute-btn">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+    <button class="ico" id="mute-btn" onclick="toggleMuteSFX()" title="صوت">
+      <svg id="mute-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
     </button>
   </div>
   <div class="hw" style="margin:auto">
@@ -708,25 +708,9 @@ body{font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;background:var(--bg
   </div>
 </div>
 
-<!-- LEAVE GAME CONFIRM MODAL -->
-<div id="leave-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--s);border:1px solid var(--b);border-radius:var(--rxl);padding:28px 24px;width:100%;max-width:340px;text-align:center;animation:slide-up .3s ease">
-    <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="var(--red)" stroke-width="1.5" style="display:block;margin:0 auto 14px"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    <div style="font-family:Tajawal,sans-serif;font-size:18px;font-weight:800;margin-bottom:6px">مغادرة اللعبة؟</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:22px">ستخسر نقاطك وتحسب عليك الخسارة</div>
-    <div style="display:flex;gap:10px">
-      <button class="btn b-r b-fw" onclick="confirmLeaveGame()">مغادرة</button>
-      <button class="btn b-gh b-fw" onclick="document.getElementById('leave-modal').style.display='none'">تراجع</button>
-    </div>
-  </div>
-</div>
-
 <!-- GAME -->
 <div id="game-scr" class="scr">
   <div class="gtop">
-    <button onclick="document.getElementById('leave-modal').style.display='flex'" style="width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(255,71,87,.4);background:rgba(255,71,87,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s" title="مغادرة">
-      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--red)" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    </button>
     <span class="gqn" id="gqn">١/١٠</span>
     <span id="dng-badge" style="display:none" class="danger-b"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>×٢ خطر!</span>
     <span class="gpw" id="g-pts"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>١٠ نقطة</span>
@@ -812,49 +796,95 @@ body{font-family:'IBM Plex Sans Arabic','Tajawal',sans-serif;background:var(--bg
 </div>
 
 <script>
-// PART 1: Firebase + State + Categories + QBANK + Avatars
-let db, roomsRef, statsRef;
-
-function initFirebase() {
-  try {
-    if (typeof firebase === 'undefined') {
-      console.error('Firebase SDK not loaded');
-      showFirebaseError();
-      return false;
-    }
-    if (!firebase.apps.length) {
-      firebase.initializeApp({
-        apiKey:"AIzaSyC2SEYoUINYbYim4Vi0qE3jd1-FHI9aoVM",
-        authDomain:"faisal-3fd18.firebaseapp.com",
-        databaseURL:"https://faisal-3fd18-default-rtdb.firebaseio.com",
-        projectId:"faisal-3fd18"
+// ══ SOUND ENGINE ══
+const SFX=(()=>{
+  const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  let muted=false;
+  function resume(){if(ctx.state==='suspended')ctx.resume();}
+  function play(type){
+    if(muted)return;
+    resume();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    const now=ctx.currentTime;
+    if(type==='click'){
+      o.type='sine';o.frequency.setValueAtTime(880,now);
+      g.gain.setValueAtTime(.12,now);g.gain.exponentialRampToValueAtTime(.001,now+.08);
+      o.start(now);o.stop(now+.08);
+    }else if(type==='correct'){
+      o.type='triangle';
+      o.frequency.setValueAtTime(523,now);
+      o.frequency.setValueAtTime(659,now+.1);
+      o.frequency.setValueAtTime(784,now+.2);
+      g.gain.setValueAtTime(.15,now);g.gain.exponentialRampToValueAtTime(.001,now+.45);
+      o.start(now);o.stop(now+.45);
+    }else if(type==='wrong'){
+      o.type='sawtooth';o.frequency.setValueAtTime(220,now);
+      o.frequency.exponentialRampToValueAtTime(110,now+.3);
+      g.gain.setValueAtTime(.12,now);g.gain.exponentialRampToValueAtTime(.001,now+.3);
+      o.start(now);o.stop(now+.3);
+    }else if(type==='tick'){
+      o.type='square';o.frequency.setValueAtTime(1200,now);
+      g.gain.setValueAtTime(.05,now);g.gain.exponentialRampToValueAtTime(.001,now+.04);
+      o.start(now);o.stop(now+.04);
+    }else if(type==='danger'){
+      [0,.15,.3].forEach(d=>{
+        const o2=ctx.createOscillator(),g2=ctx.createGain();
+        o2.connect(g2);g2.connect(ctx.destination);
+        o2.type='sawtooth';o2.frequency.setValueAtTime(440,now+d);
+        g2.gain.setValueAtTime(.1,now+d);g2.gain.exponentialRampToValueAtTime(.001,now+d+.12);
+        o2.start(now+d);o2.stop(now+d+.12);
       });
+    }else if(type==='win'){
+      const melody=[523,659,784,1047];
+      melody.forEach((f,i)=>{
+        const o2=ctx.createOscillator(),g2=ctx.createGain();
+        o2.connect(g2);g2.connect(ctx.destination);
+        o2.type='triangle';o2.frequency.setValueAtTime(f,now+i*.12);
+        g2.gain.setValueAtTime(.15,now+i*.12);g2.gain.exponentialRampToValueAtTime(.001,now+i*.12+.3);
+        o2.start(now+i*.12);o2.stop(now+i*.12+.3);
+      });
+    }else if(type==='join'){
+      o.type='sine';o.frequency.setValueAtTime(440,now);
+      o.frequency.setValueAtTime(660,now+.1);
+      g.gain.setValueAtTime(.1,now);g.gain.exponentialRampToValueAtTime(.001,now+.25);
+      o.start(now);o.stop(now+.25);
+    }else if(type==='countdown'){
+      o.type='sine';o.frequency.setValueAtTime(660,now);
+      g.gain.setValueAtTime(.18,now);g.gain.exponentialRampToValueAtTime(.001,now+.15);
+      o.start(now);o.stop(now+.15);
+    }else if(type==='start'){
+      [330,440,550,660].forEach((f,i)=>{
+        const o2=ctx.createOscillator(),g2=ctx.createGain();
+        o2.connect(g2);g2.connect(ctx.destination);
+        o2.type='sine';o2.frequency.setValueAtTime(f,now+i*.08);
+        g2.gain.setValueAtTime(.15,now+i*.08);g2.gain.exponentialRampToValueAtTime(.001,now+i*.08+.18);
+        o2.start(now+i*.08);o2.stop(now+i*.08+.18);
+      });
+    }else if(type==='bet'){
+      o.type='sine';o.frequency.setValueAtTime(700,now);
+      o.frequency.setValueAtTime(900,now+.07);
+      g.gain.setValueAtTime(.1,now);g.gain.exponentialRampToValueAtTime(.001,now+.2);
+      o.start(now);o.stop(now+.2);
     }
-    db = firebase.database();
-    roomsRef = db.ref('arena2_rooms');
-    statsRef = db.ref('arena2_stats');
-    return true;
-  } catch(e) {
-    console.error('Firebase init error:', e);
-    showFirebaseError();
-    return false;
   }
-}
+  function toggleMute(){muted=!muted;return muted;}
+  return{play,toggleMute,isMuted:()=>muted};
+})();
 
-function showFirebaseError() {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(13,13,26,.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center';
-  overlay.innerHTML = `
-    <svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="#FF4757" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    <div style="font-family:'Tajawal';font-size:20px;font-weight:800;color:#fff">تعذّر الاتصال</div>
-    <div style="font-size:13px;color:#9CA3AF;max-width:280px">تأكد من اتصالك بالإنترنت ثم أعد تحميل الصفحة</div>
-    <button onclick="location.reload()" style="margin-top:8px;padding:12px 28px;background:linear-gradient(135deg,#FF6B35,#FF3CAC);border:none;border-radius:50px;color:#fff;font-family:'Tajawal';font-size:15px;font-weight:700;cursor:pointer">إعادة المحاولة</button>
-  `;
-  document.body.appendChild(overlay);
-}
+document.addEventListener('click',()=>SFX.play('click'),{once:true,capture:true});
 
-// Initialize Firebase — will be called after DOM is ready
-
+// ══ FIREBASE ══
+// PART 1: Firebase + State + Categories + QBANK + Avatars
+firebase.initializeApp({
+  apiKey:"AIzaSyC2SEYoUINYbYim4Vi0qE3jd1-FHI9aoVM",
+  authDomain:"faisal-3fd18.firebaseapp.com",
+  databaseURL:"https://faisal-3fd18-default-rtdb.firebaseio.com",
+  projectId:"faisal-3fd18"
+});
+const db=firebase.database();
+const roomsRef=db.ref('arena2_rooms');
+const statsRef=db.ref('arena2_stats');
 
 const G={
   pid:null,pname:'',pav:'bolt',
@@ -871,8 +901,6 @@ const G={
   turnOrder:[],turnIdx:0,isMyTurn:false,
   selectedCats:new Set(),
   roomIsPublic:true,
-  _botCdStarted:false,
-  _botCdSecs:0,
 };
 
 const CATS=[
@@ -1047,6 +1075,14 @@ const SYS_TEMPLATES=[
 ];
 
 
+function toggleMuteSFX(){
+  const m=SFX.toggleMute();
+  const ic=document.getElementById('mute-icon');
+  if(ic) ic.innerHTML=m
+    ?'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'
+    :'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/>';
+}
+
 // ══ THEME ══
 let isDark=true;
 function toggleTheme(){
@@ -1063,96 +1099,8 @@ function toggleTheme(){
 // ══ NAV ══
 function goS(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id)?.classList.add('on');window.scrollTo(0,0);}
 function showN(m,t='s'){document.querySelectorAll('.notif').forEach(n=>n.remove());const n=document.createElement('div');n.className='notif n'+t[0];n.textContent=m;document.body.appendChild(n);setTimeout(()=>n.remove(),2800);}
-
-// ══ SOUND SYSTEM ══
-const SFX=(()=>{
-  const ctx=()=>{try{return new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}};
-  let ac=null;
-  let muted=localStorage.getItem('falkum_mute')==='1';
-
-  function ensure(){if(!ac)ac=ctx();return ac;}
-
-  function tone(freq,dur,type='sine',vol=0.18,delay=0){
-    const a=ensure();if(!a||muted)return;
-    const o=a.createOscillator();const g=a.createGain();
-    o.connect(g);g.connect(a.destination);
-    o.type=type;o.frequency.setValueAtTime(freq,a.currentTime+delay);
-    g.gain.setValueAtTime(0,a.currentTime+delay);
-    g.gain.linearRampToValueAtTime(vol,a.currentTime+delay+0.01);
-    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+delay+dur);
-    o.start(a.currentTime+delay);o.stop(a.currentTime+delay+dur+0.05);
-  }
-
-  function chord(freqs,dur,vol=0.12){freqs.forEach((f,i)=>tone(f,dur,'sine',vol,i*0.04));}
-
-  return {
-    isMuted:()=>muted,
-    toggleMute(){muted=!muted;localStorage.setItem('falkum_mute',muted?'1':'0');return muted;},
-
-    correct(){
-      // Happy ascending arpeggio
-      tone(523,0.12,'sine',0.15,0);
-      tone(659,0.12,'sine',0.15,0.1);
-      tone(784,0.18,'sine',0.15,0.2);
-      tone(1047,0.3,'sine',0.12,0.32);
-    },
-    wrong(){
-      // Low descending
-      tone(300,0.15,'sawtooth',0.1,0);
-      tone(220,0.25,'sawtooth',0.08,0.15);
-    },
-    tick(t){
-      // Ticking — urgent when low
-      const freq=t<=5?880:t<=10?660:440;
-      const vol=t<=5?0.12:0.07;
-      tone(freq,0.06,'square',vol);
-    },
-    timeUp(){
-      tone(200,0.5,'sawtooth',0.15,0);
-      tone(150,0.4,'sawtooth',0.1,0.3);
-    },
-    select(){
-      tone(660,0.08,'sine',0.1);
-    },
-    danger(){
-      // Dramatic danger sound
-      tone(150,0.2,'sawtooth',0.18,0);
-      tone(200,0.2,'sawtooth',0.15,0.15);
-      tone(150,0.4,'sawtooth',0.18,0.3);
-    },
-    start(){
-      // Game start fanfare
-      chord([262,330,392],0.3,0.1);
-      setTimeout(()=>chord([330,415,494],0.3,0.1),200);
-      setTimeout(()=>chord([392,494,587],0.5,0.12),400);
-    },
-    win(){
-      // Victory fanfare
-      [523,659,784,1047].forEach((f,i)=>tone(f,0.2,'sine',0.14,i*0.12));
-      setTimeout(()=>chord([523,659,784,1047],0.6,0.1),600);
-    },
-    join(){tone(880,0.1,'sine',0.08);}
-  };
-})();
-
-// Mute button state
-function updateMuteBtn(){
-  const btn=document.getElementById('mute-btn');
-  if(!btn)return;
-  btn.innerHTML=SFX.isMuted()
-    ?'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>'
-    :'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>';
-  btn.style.opacity=SFX.isMuted()?'0.4':'1';
-}
-function toggleMute(){SFX.toggleMute();updateMuteBtn();}
-
-// ══ LEAVE GAME ══
-function confirmLeaveGame(){
-  document.getElementById('leave-modal').style.display='none';
-  leaveRoom();
-}
 function addL(r){G.listeners.push(r);}
-function cleanL(){if(G.roomRef)G.roomRef.off();if(G.gameRef)G.gameRef.off();clearInterval(G.timerInt);clearInterval(G.betInt);clearInterval(G.cdInt);G.listeners=[];}
+function cleanL(){if(G.roomRef)G.roomRef.off();if(G.gameRef)G.gameRef.off();clearInterval(G.timerInt);clearInterval(G.betInt);clearInterval(G.cdInt);clearBotCountdown();clearTimeout(G._autoStart);G.listeners=[];}
 
 // ══ AVATAR ══
 function renderAvGrid(){
@@ -1170,12 +1118,13 @@ function gotoName(action){
 function confirmName(){
   const n=document.getElementById('p-name').value.trim();
   if(!n){showN('أدخل اسمك أولاً','e');return;}
+  SFX.play('click');
   G.pname=n;
   if(!G.pid) G.pid=db.ref().push().key;
   if(G.pendingAction==='create') openCreate();
   else if(G.pendingAction==='join') goS('join-scr');
   else if(G.pendingAction==='spectate'){G.isSpec=true;goS('join-scr');}
-  else if(G.pendingAction==='public-join') doJoin(G.pendingCode);
+  else if(G.pendingAction==='public-join') doJoinSystem(G.pendingCode);
 }
 
 // ══ CREATE ══
@@ -1423,72 +1372,81 @@ function renderSysPreview(rooms){
 
 function joinSysRoom(code){
   if(!G.pname){G.pendingAction='public-join';G.pendingCode=code;gotoName('public-join');return;}
-  doJoin(code);
+  doJoinSystem(code);
+}
+
+async function doJoinSystem(code){
+  const errEl=document.getElementById('join-err');
+  if(errEl) errEl.textContent='';
+  const snap=await roomsRef.child(code).once('value');
+  const r=snap.val();
+  if(!r){showN('الغرفة غير موجودة','e');return;}
+  if(r.status==='finished'){showN('المسابقة انتهت','e');return;}
+  if(r.status==='playing'||r.status==='pick_cat'||r.status==='betting'){showN('المسابقة جارية، لا يمكن الانضمام الآن','e');return;}
+
+  const players=Object.values(r.players||{});
+  const pCount=players.length;
+  if(pCount>=(r.config?.maxPlayers||20)){showN('الغرفة ممتلئة','e');return;}
+
+  // First real human player becomes the host-driver for system rooms
+  const realHumans=players.filter(p=>!p.isBot&&!p.isSpec);
+  const iAmHost=realHumans.length===0;
+
+  await roomsRef.child(code).child('players').child(G.pid).set({
+    id:G.pid,name:G.pname,avatar:G.pav,score:1000,lives:3,
+    isHost:iAmHost,isSpec:false,joinedAt:Date.now()
+  });
+
+  G.roomCode=code;G.isHost=iAmHost;G.myScore=1000;G.myLives=3;
+  G.roomRef=roomsRef.child(code);G.gameRef=G.roomRef.child('game');
+  G.features=r.config?.features||{betting:true,danger:true,lives:true};
+  G.questions=r.questions?Object.values(r.questions).sort((a,b)=>(a.id||0)-(b.id||0)):[];
+  enterLobby();
 }
 
 // ══ LOBBY ══
-// Bot countdown timer ref
-let _botCdInt=null;
-const BOT_WAIT_SECS=10; // seconds to wait before filling with bots
-
 function enterLobby(){
   goS('lobby');
   document.getElementById('lb-code').textContent=G.roomCode;
   document.getElementById('lb-host-area').style.display=G.isHost?'block':'none';
   document.getElementById('lb-guest-area').style.display=G.isHost?'none':'block';
 
-  addL(G.roomRef.child('players').on('value',async snap=>{
-    const ps=snap.val()||{};
-    renderLbPlayers(ps);
-    const players=Object.values(ps);
-    const active=players.filter(p=>!p.isSpec&&!p.isBot).length; // real humans
-    const totalActive=players.filter(p=>!p.isSpec).length;
-
-    if(G.isHost){
-      document.getElementById('start-btn').disabled=totalActive<1;
-      document.getElementById('lb-wmsg').textContent=totalActive<2
-        ?`${totalActive} لاعب — سيبدأ خلال ثوانٍ أو انتظر المزيد`
-        :`${totalActive} لاعبون جاهزون`;
-
-      const cfgSnap=await G.roomRef.child('config').once('value');
+  // For public/system rooms: start 10-second bot countdown as soon as host enters
+  if(G.isHost){
+    G.roomRef.child('config').once('value',cfgSnap=>{
       const cfg=cfgSnap.val()||{};
       const maxP=cfg.maxPlayers||10;
       const isPublic=cfg.isPublic||false;
-      const roomType=(await G.roomRef.child('type').once('value')).val();
-      const isAutoRoom=roomType==='system'||isPublic;
+      G._roomMaxP=maxP;
+      G._roomIsPublic=isPublic;
 
-      // ── Auto bot countdown for public/system rooms ──
-      if(isAutoRoom && active>=1){
-        if(!G._botCdStarted){
-          G._botCdStarted=true;
-          G._botCdSecs=BOT_WAIT_SECS;
-          clearInterval(_botCdInt);
-          document.getElementById('lb-cdb-w').style.display='block';
-
-          _botCdInt=setInterval(async()=>{
-            G._botCdSecs--;
-            const autoEl=document.getElementById('lb-auto-msg');
-
-            if(G._botCdSecs>0){
-              if(autoEl) autoEl.textContent=`سيبدأ خلال ${G._botCdSecs}ث — أو انضم الآن!`;
-            } else {
-              clearInterval(_botCdInt);
-              // Fill remaining slots with bots then start
-              await fillWithBots(maxP);
-              if(autoEl) autoEl.textContent='اكتمل العدد — ابدأ!';
-              setTimeout(()=>hostStart(),800);
-            }
-          },1000);
-
-          if(document.getElementById('lb-auto-msg'))
-            document.getElementById('lb-auto-msg').textContent=`سيبدأ خلال ${G._botCdSecs}ث — أو انضم الآن!`;
+      G.roomRef.child('type').once('value',tSnap=>{
+        const isSystem=tSnap.val()==='system';
+        if(isSystem||isPublic){
+          // Start 10-second countdown for bot fill
+          startBotCountdown(maxP);
         }
-      }
+      });
+    });
+  }
 
-      // If room fills up to max, start immediately
-      if(totalActive>=maxP){
-        clearInterval(_botCdInt);
-        G._botCdStarted=false;
+  addL(G.roomRef.child('players').on('value',snap=>{
+    const ps=snap.val()||{};
+    const newCount=Object.keys(ps).length;
+    if(G._prevPlayerCount!==undefined&&newCount>G._prevPlayerCount) SFX.play('join');
+    G._prevPlayerCount=newCount;
+    renderLbPlayers(ps);
+    const active=Object.values(ps).filter(p=>!p.isSpec&&!p.isBot).length;
+    const maxP=G._roomMaxP||10;
+    if(G.isHost){
+      document.getElementById('start-btn').disabled=active<1;
+      document.getElementById('lb-wmsg').textContent=active<2
+        ?`${active} لاعب — سيبدأ مع البوتات قريباً`
+        :`${active} لاعبون جاهزون`;
+
+      // If room is now full with real players, cancel countdown and start immediately
+      if(active>=maxP){
+        clearBotCountdown();
         document.getElementById('lb-cdb-w').style.display='block';
         document.getElementById('lb-auto-msg').textContent='اكتمل العدد — سيبدأ تلقائياً!';
         clearTimeout(G._autoStart);
@@ -1502,46 +1460,47 @@ function enterLobby(){
   // Status listener
   addL(G.roomRef.child('status').on('value',snap=>{
     const s=snap.val();
-    if(s==='pick_cat') startPickCat();
+    if(s==='pick_cat'){SFX.play('start');startPickCat();}
     if(s==='betting') openBetting();
     if(s==='question'){ if(!document.getElementById('game-scr').classList.contains('on')) enterGame(); }
     if(s==='finished') showResults();
   }));
 }
 
-// Fill remaining player slots with bots
-async function fillWithBots(maxP){
-  if(!G.isHost) return;
-  const snap=await G.roomRef.child('players').once('value');
-  const players=Object.values(snap.val()||{});
-  const total=players.filter(p=>!p.isSpec).length;
-  const existingBotCount=players.filter(p=>p.isBot).length;
-  const botsToAdd=Math.max(0, Math.min(maxP, 6) - total); // cap at 6 total players
-  if(botsToAdd<=0) return;
+// ══ BOT COUNTDOWN (for public/system rooms) ══
+function startBotCountdown(maxP){
+  clearBotCountdown();
+  let t=10;
+  const cdEl=document.getElementById('lb-cdb-w');
+  const msgEl=document.getElementById('lb-auto-msg');
+  if(cdEl) cdEl.style.display='block';
 
-  const usedNames=players.map(p=>p.name);
-  const availNames=[...BOT_NAMES].filter(n=>!usedNames.includes(n)).sort(()=>Math.random()-.5);
-  const updates={};
-  for(let i=0;i<botsToAdd;i++){
-    const bid='bot_'+Date.now()+'_'+(existingBotCount+i);
-    updates[bid]={
-      id:bid,
-      name:availNames[i]||('لاعب'+(existingBotCount+i+1)),
-      avatar:BOT_AVATARS[Math.floor(Math.random()*BOT_AVATARS.length)],
-      score:1000,lives:3,
-      isHost:false,isSpec:false,isBot:true,
-      joinedAt:Date.now()
-    };
-  }
-  await G.roomRef.child('players').update(updates);
+  G._botCdInt=setInterval(async()=>{
+    // Check real human count
+    const snap=await G.roomRef.child('players').once('value');
+    const players=Object.values(snap.val()||{});
+    const humans=players.filter(p=>!p.isSpec&&!p.isBot);
+    const remaining=maxP-players.length;
+
+    if(t>0){
+      SFX.play('countdown');
+      if(msgEl) msgEl.textContent=`${humans.length} لاعب — سيبدأ مع البوتات خلال ${t} ثانية...`;
+      t--;
+    }else{
+      clearBotCountdown();
+      if(msgEl) msgEl.textContent='جارٍ إضافة البوتات وبدء المسابقة...';
+      setTimeout(()=>hostStart(),800);
+    }
+  },1000);
 }
 
-let _prevPlayerCount=0;
+function clearBotCountdown(){
+  clearInterval(G._botCdInt);
+  G._botCdInt=null;
+}
+
 function renderLbPlayers(ps){
   const el=document.getElementById('lb-players');
-  const cnt=Object.keys(ps).length;
-  if(cnt>_prevPlayerCount) SFX.join();
-  _prevPlayerCount=cnt;
   el.innerHTML=Object.values(ps).map(p=>`
     <div class="pc ${p.isHost?'hpc':''} ${p.isSpec?'spc':''}">
       <div class="pav" style="background:${AVS.find(a=>a.id===p.avatar)?.c||'#7c3aed'}22;position:relative">
@@ -1576,7 +1535,6 @@ async function hostStart(){
   G.turnIdx=0;
   G.roomRef.child('status').set('pick_cat');
   G.gameRef.set({qIndex:0,turnIndex:0,startedAt:Date.now()});
-  SFX.start();
 }
 
 // ══ PICK CATEGORY ══
@@ -1635,6 +1593,7 @@ function renderPickCat(tpid){
 
 function selectCat(catId){
   if(!G.isMyTurn)return;
+  SFX.play('click');
   const q=pickQ(catId);
   q.selectedByCurrent=true;
   G.gameRef.update({currentCat:catId,currentQ:q,turnPid:G.pid,phase:'betting',answers:null,bets:null});
@@ -1696,6 +1655,7 @@ function onCustBet(){
 
 function confirmBet(){
   betDone=true;clearInterval(G.betInt);G.myBet=myBetAmt;
+  SFX.play('bet');
   G.gameRef.child('bets').child(G.pid).set(myBetAmt);
   document.getElementById('bet-ok').disabled=true;
   document.getElementById('bet-ok').innerHTML='✓ تم التأكيد';
@@ -1740,222 +1700,26 @@ function enterGame(){
   if(G.isHost) hostDrive();
 }
 
-function renderLives(){
-  const el=document.getElementById('lives-r');if(!el)return;
-  G.roomRef.child('players').child(G.pid).child('lives').once('value',snap=>{
-    G.myLives=snap.val()??3;
-    el.innerHTML=Array(3).fill(0).map((_,i)=>`
-      <svg class="lhrt ${i>=G.myLives?'lost':''}" viewBox="0 0 24 24" width="16" height="16" fill="${i<G.myLives?'var(--red)':'var(--muted)'}" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`).join('');
-  });
-}
-
-function showQ(q,tpid,qIdx){
-  G.answered=false;
-  G.timeLeft=q.time||30;G.totalTime=G.timeLeft;
-  document.getElementById('gq-wait').style.display='none';
-  document.getElementById('gq-active').style.display='block';
-  document.getElementById('gq-rev').style.display='none';
-  document.getElementById('gq-al').style.display='none';
-
-  document.getElementById('gqn').textContent=`${qIdx+1}/${G.questions.length||'—'}`;
-
-  const isDanger=q.isDanger||false;
-  document.getElementById('dng-badge').style.display=isDanger?'flex':'none';
-  const pts=isDanger?(q.pts||10)*2:(q.pts||10);
-  document.getElementById('g-pts').innerHTML=`<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>${pts} نقطة`;
-
-  const c=catById(q.category);
-  const isTP=tpid===G.pid;
-  document.getElementById('qcs').innerHTML=`${catSVG(q.category,16)}<span class="qcn" style="color:${c.c}">${c.l}</span>${isTP?`<span class="badge" style="background:${c.c}18;color:${c.c};border:1px solid ${c.c}44;font-size:10px;margin-right:auto">دورك × ٢</span>`:''}`;
-  document.getElementById('gqt').textContent=q.text;
-
-  if(G.myBet>0){document.getElementById('gq-bl').style.display='flex';document.getElementById('gq-ba').textContent=G.myBet;}
-
-  renderOpts(q);
-
-  clearInterval(G.timerInt);
-  G.timerInt=setInterval(()=>{G.timeLeft--;updateTimer(G.timeLeft,G.totalTime);if(G.timeLeft<=0) clearInterval(G.timerInt);},1000);
-  updateTimer(G.timeLeft,G.totalTime);
-  document.getElementById('g-pf').style.width='0%';
-
-  G.gameRef.child('timeLeft').off();
-  addL(G.gameRef.child('timeLeft').on('value',snap=>{const t=snap.val();if(t!==null&&t>=0){G.timeLeft=t;updateTimer(t,G.totalTime);}}));
-}
-
-function renderOpts(q){
-  const L=['أ','ب','ج','د'];
-  const el=document.getElementById('gq-opts');
-  if(q.type==='tf'){
-    el.innerHTML=`<div class="tf-w">
-      <button class="tf-b tft" onclick="ansQ(true)" id="tft"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;margin:0 auto 5px"><polyline points="20 6 9 17 4 12"/></svg>صحيح</button>
-      <button class="tf-b tff" onclick="ansQ(false)" id="tff"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;margin:0 auto 5px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>خطأ</button>
-    </div>`;
-  }else if(q.type==='fill'){
-    el.innerHTML=`<div class="fi-w"><input class="inp fi-i" id="fi-i" placeholder="اكتب إجابتك..." autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')subFill()"><button class="btn b-p" onclick="subFill()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>إرسال</button></div>`;
-    setTimeout(()=>document.getElementById('fi-i')?.focus(),200);
-  }else{
-    el.innerHTML=(q.options||[]).map((o,i)=>`<button class="opt" onclick="ansQ(${i})" data-i="${i}"><div class="ol">${L[i]}</div>${o}</button>`).join('');
-  }
-}
-
-function updateTimer(t,tot){
-  const el=document.getElementById('g-tr'),num=document.getElementById('g-trn');
-  if(!el||!num)return;
-  num.textContent=t;
-  el.style.setProperty('--p',(t/tot*360)+'deg');
-  document.getElementById('g-pf').style.width=((1-t/tot)*100)+'%';
-  el.className='tr '+(t>tot*.5?'tr-ok':t>tot*.25?'tr-wn':'tr-bd');
-  if(t<=10&&t>0) SFX.tick(t);
-  if(t===0) SFX.timeUp();
-}
-
-function ansQ(val){
-  if(G.answered||G.isSpec)return;G.answered=true;
-  SFX.select();
-  document.getElementById('gq-al').style.display='flex';
-  const q=G.questions[G.currentQ]||G.gameRef.child('currentQ');
-  if(typeof val==='boolean'){
-    document.getElementById('tft')?.classList.add(val?'st':'');
-    document.getElementById('tff')?.classList.add(!val?'sf':'');
-    document.querySelectorAll('.tf-b').forEach(b=>b.disabled=true);
-  }else{
-    document.querySelectorAll('.opt').forEach((b,i)=>{if(i===val) b.classList.add('sel');});
-  }
-  G.gameRef.child('answers').child(G.pid).set({answer:val,timeLeft:G.timeLeft});
-}
-
-function subFill(){
-  const v=document.getElementById('fi-i')?.value.trim();
-  if(!v){showN('اكتب إجابتك أولاً','e');return;}
-  if(G.answered)return;G.answered=true;
-  document.getElementById('fi-i').disabled=true;
-  document.getElementById('gq-al').style.display='flex';
-  G.gameRef.child('answers').child(G.pid).set({answer:v,timeLeft:G.timeLeft});
-}
-
-// ══ HOST DRIVER ══
-// ══════════════════════════════════════
-//  BOT SYSTEM
-// ══════════════════════════════════════
-const BOT_NAMES=[
-  'أبو نواف','سلطان⚡','الفهد','نجم الشمال','أبو خالد',
-  'صقر','الوحش','ذئب الصحراء','أبو فيصل','النمر',
-  'المتحدي','بطل الأرقام','القناص','سيف','بدر'
-];
-const BOT_AVATARS=['bolt','star','crown','shield','fire','diamond','rocket','target'];
-
-// Adaptive difficulty: bot accuracy adjusts based on human player score
-function botAccuracy(humanScore){
-  // Base: 65% — drops if human is losing (don't pile on), rises if human is winning
-  if(humanScore>1500) return .78;      // Human winning → bots get harder
-  if(humanScore>1200) return .70;
-  if(humanScore<600)  return .45;      // Human struggling → bots ease off
-  if(humanScore<800)  return .55;
-  return .65;                           // Average
-}
-
-function botAnswerTime(qTime){
-  // Random between 30-85% of question time — human-like variance
-  const pct=.30+Math.random()*.55;
-  return Math.floor(qTime*pct);
-}
-
-async function addBotsIfNeeded(){
-  if(!G.isHost) return;
-  const snap=await G.roomRef.child('players').once('value');
-  const players=Object.values(snap.val()||{});
-  const realHumans=players.filter(p=>!p.isBot&&!p.isSpec);
-  const existingBots=players.filter(p=>p.isBot);
-  const mp=((await G.roomRef.child('config/maxPlayers').once('value')).val())||10;
-
-  // Condition: fewer than half maxPlayers → add bots to fill up to half
-  if(realHumans.length < Math.ceil(mp/2) && existingBots.length===0){
-    const botsNeeded = Math.min(
-      Math.ceil(mp/2) - realHumans.length,  // fill to half
-      4                                        // max 4 bots
-    );
-    const shuffledNames=[...BOT_NAMES].sort(()=>Math.random()-.5);
-    const botUpdates={};
-    for(let i=0;i<botsNeeded;i++){
-      const bid='bot_'+Date.now()+'_'+i;
-      botUpdates[bid]={
-        id:bid,
-        name:shuffledNames[i]||'لاعب'+(i+1),
-        avatar:BOT_AVATARS[Math.floor(Math.random()*BOT_AVATARS.length)],
-        score:1000,lives:3,
-        isHost:false,isSpec:false,isBot:true,
-        joinedAt:Date.now()
-      };
-    }
-    await G.roomRef.child('players').update(botUpdates);
-    G.botsAdded=true;
-  }
-}
-
-async function simulateBotAnswers(q,active,qTime){
-  if(!G.isHost) return;
-  const bots=active.filter(p=>p.isBot);
-  if(!bots.length) return;
-
-  // Get human score for adaptive difficulty
-  const humanSnap=await G.roomRef.child('players').child(G.pid).once('value');
-  const humanScore=humanSnap.val()?.score||1000;
-  const acc=botAccuracy(humanScore);
-
-  for(const bot of bots){
-    const delay=botAnswerTime(qTime)*1000;
-    setTimeout(()=>{
-      let answer;
-      const correct=Math.random()<acc;
-
-      if(q.type==='tf'){
-        answer=correct?q.answer:!q.answer;
-      }else if(q.type==='fill'){
-        answer=correct?(q.answer||''):['غير معروف','لا أعلم','—'][Math.floor(Math.random()*3)];
-      }else{
-        if(correct){
-          answer=q.correct;
-        }else{
-          // Pick wrong answer
-          const opts=(q.options||[]).map((_,i)=>i).filter(i=>i!==q.correct);
-          answer=opts[Math.floor(Math.random()*opts.length)]??0;
-        }
-      }
-
-      G.gameRef.child('answers').child(bot.id).set({
-        answer,
-        timeLeft:Math.max(1,qTime-Math.floor(delay/1000))
-      });
-    },delay);
-  }
-}
-
-function hostDrive(){ startGame(); }
-
-function startGame(){
+function hostDrive(){
   let qi=0;
-
   G.gameRef.once('value',snap=>{qi=snap.val()?.qIndex||0;runRound(qi);});
 
   function runRound(qi){
     if(qi>=G.questions.length){endGame();return;}
-
     const isDanger=G.features?.danger&&Math.random()<.2;
     const q={...G.questions[qi],isDanger};
-    if(isDanger){q.pts=(q.pts||10)*2;SFX.danger();}
+    if(isDanger) q.pts=(q.pts||10)*2;
 
     G.roomRef.child('players').once('value',psSnap=>{
       const all=Object.values(psSnap.val()||{});
       const active=all.filter(p=>!p.isSpec&&(p.lives??3)>0);
       if(active.length===0){endGame();return;}
 
-      const turnIdx=G.gameRef.child('turnIndex').once('value',tiSnap=>{
+      G.gameRef.child('turnIndex').once('value',tiSnap=>{
         const ti=(tiSnap.val()||0)%active.length;
         const tpid=active[ti].id||active[ti].name;
-
         G.gameRef.update({qIndex:qi,currentQ:q,turnPid:tpid,phase:'question',timeLeft:q.time||30,answers:null,bets:null});
 
-        // Fire bot answers with realistic delays
         const qTime=q.time||30;
         simulateBotAnswers(q,active,qTime);
 
@@ -1966,12 +1730,10 @@ function startGame(){
         const answersRef=G.gameRef.child('answers');
         answersRef.on('value',aSnap=>{
           const cnt=Object.keys(aSnap.val()||{}).length;
-          // Show "waiting" progress to all clients
           G.gameRef.child('answeredCount').set(cnt);
           if(cnt>=active.length&&!roundProcessed){
             roundProcessed=true;
             answersRef.off();clearInterval(G.timerInt);
-            // Small delay so everyone sees the "all answered" state
             setTimeout(()=>processRound(q,tpid,qi,active),800);
           }
         });
@@ -2032,7 +1794,6 @@ function startGame(){
       setTimeout(async()=>{
         const nextQi=qi+1;
         if(nextQi>=G.questions.length){endGame();return;}
-        // Rebuild turn order (remove dead players)
         const psN=await G.roomRef.child('players').once('value');
         const alive=Object.values(psN.val()||{}).filter(p=>!p.isSpec&&(p.lives??3)>0);
         if(!alive.length){endGame();return;}
@@ -2049,6 +1810,203 @@ function startGame(){
     statsRef.child('totalGames').transaction(v=>(v||0)+1);
   }
 }
+
+function renderLives(){
+  const el=document.getElementById('lives-r');if(!el)return;
+  G.roomRef.child('players').child(G.pid).child('lives').once('value',snap=>{
+    G.myLives=snap.val()??3;
+    el.innerHTML=Array(3).fill(0).map((_,i)=>`
+      <svg class="lhrt ${i>=G.myLives?'lost':''}" viewBox="0 0 24 24" width="16" height="16" fill="${i<G.myLives?'var(--red)':'var(--muted)'}" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`).join('');
+  });
+}
+
+function showQ(q,tpid,qIdx){
+  G.answered=false;
+  G.timeLeft=q.time||30;G.totalTime=G.timeLeft;
+  document.getElementById('gq-wait').style.display='none';
+  document.getElementById('gq-active').style.display='block';
+  document.getElementById('gq-rev').style.display='none';
+  document.getElementById('gq-al').style.display='none';
+
+  document.getElementById('gqn').textContent=`${qIdx+1}/${G.questions.length||'—'}`;
+
+  const isDanger=q.isDanger||false;
+  document.getElementById('dng-badge').style.display=isDanger?'flex':'none';
+  if(isDanger) SFX.play('danger');
+  const pts=isDanger?(q.pts||10)*2:(q.pts||10);
+  document.getElementById('g-pts').innerHTML=`<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>${pts} نقطة`;
+
+  const c=catById(q.category);
+  const isTP=tpid===G.pid;
+  document.getElementById('qcs').innerHTML=`${catSVG(q.category,16)}<span class="qcn" style="color:${c.c}">${c.l}</span>${isTP?`<span class="badge" style="background:${c.c}18;color:${c.c};border:1px solid ${c.c}44;font-size:10px;margin-right:auto">دورك × ٢</span>`:''}`;
+  document.getElementById('gqt').textContent=q.text;
+
+  if(G.myBet>0){document.getElementById('gq-bl').style.display='flex';document.getElementById('gq-ba').textContent=G.myBet;}
+
+  renderOpts(q);
+
+  clearInterval(G.timerInt);
+  G.timerInt=setInterval(()=>{G.timeLeft--;updateTimer(G.timeLeft,G.totalTime);if(G.timeLeft<=0) clearInterval(G.timerInt);},1000);
+  updateTimer(G.timeLeft,G.totalTime);
+  document.getElementById('g-pf').style.width='0%';
+
+  G.gameRef.child('timeLeft').off();
+  addL(G.gameRef.child('timeLeft').on('value',snap=>{const t=snap.val();if(t!==null&&t>=0){G.timeLeft=t;updateTimer(t,G.totalTime);}}));
+}
+
+function renderOpts(q){
+  const L=['أ','ب','ج','د'];
+  const el=document.getElementById('gq-opts');
+  if(q.type==='tf'){
+    el.innerHTML=`<div class="tf-w">
+      <button class="tf-b tft" onclick="ansQ(true)" id="tft"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;margin:0 auto 5px"><polyline points="20 6 9 17 4 12"/></svg>صحيح</button>
+      <button class="tf-b tff" onclick="ansQ(false)" id="tff"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" style="display:block;margin:0 auto 5px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>خطأ</button>
+    </div>`;
+  }else if(q.type==='fill'){
+    el.innerHTML=`<div class="fi-w"><input class="inp fi-i" id="fi-i" placeholder="اكتب إجابتك..." autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')subFill()"><button class="btn b-p" onclick="subFill()"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>إرسال</button></div>`;
+    setTimeout(()=>document.getElementById('fi-i')?.focus(),200);
+  }else{
+    el.innerHTML=(q.options||[]).map((o,i)=>`<button class="opt" onclick="ansQ(${i})" data-i="${i}"><div class="ol">${L[i]}</div>${o}</button>`).join('');
+  }
+}
+
+function updateTimer(t,tot){
+  const el=document.getElementById('g-tr'),num=document.getElementById('g-trn');
+  if(!el||!num)return;
+  num.textContent=t;
+  el.style.setProperty('--p',(t/tot*360)+'deg');
+  document.getElementById('g-pf').style.width=((1-t/tot)*100)+'%';
+  el.className='tr '+(t>tot*.5?'tr-ok':t>tot*.25?'tr-wn':'tr-bd');
+  if(t>0&&t<=5) SFX.play('tick');
+}
+
+function ansQ(val){
+  if(G.answered||G.isSpec)return;G.answered=true;
+  SFX.play('click');
+  document.getElementById('gq-al').style.display='flex';
+  const q=G.questions[G.currentQ]||G.gameRef.child('currentQ');
+  if(typeof val==='boolean'){
+    document.getElementById('tft')?.classList.add(val?'st':'');
+    document.getElementById('tff')?.classList.add(!val?'sf':'');
+    document.querySelectorAll('.tf-b').forEach(b=>b.disabled=true);
+  }else{
+    document.querySelectorAll('.opt').forEach((b,i)=>{if(i===val) b.classList.add('sel');});
+  }
+  G.gameRef.child('answers').child(G.pid).set({answer:val,timeLeft:G.timeLeft});
+}
+
+function subFill(){
+  const v=document.getElementById('fi-i')?.value.trim();
+  if(!v){showN('اكتب إجابتك أولاً','e');return;}
+  if(G.answered)return;G.answered=true;
+  document.getElementById('fi-i').disabled=true;
+  document.getElementById('gq-al').style.display='flex';
+  G.gameRef.child('answers').child(G.pid).set({answer:v,timeLeft:G.timeLeft});
+}
+
+// ══ HOST DRIVER ══
+// ══════════════════════════════════════
+//  BOT SYSTEM
+// ══════════════════════════════════════
+const BOT_NAMES=[
+  'أبو نواف','سلطان⚡','الفهد','نجم الشمال','أبو خالد',
+  'صقر','الوحش','ذئب الصحراء','أبو فيصل','النمر',
+  'المتحدي','بطل الأرقام','القناص','سيف','بدر'
+];
+const BOT_AVATARS=['bolt','star','crown','shield','fire','diamond','rocket','target'];
+
+// Adaptive difficulty: bot accuracy adjusts based on human player score
+function botAccuracy(humanScore){
+  // Base: 65% — drops if human is losing (don't pile on), rises if human is winning
+  if(humanScore>1500) return .78;      // Human winning → bots get harder
+  if(humanScore>1200) return .70;
+  if(humanScore<600)  return .45;      // Human struggling → bots ease off
+  if(humanScore<800)  return .55;
+  return .65;                           // Average
+}
+
+function botAnswerTime(qTime){
+  // Random between 30-85% of question time — human-like variance
+  const pct=.30+Math.random()*.55;
+  return Math.floor(qTime*pct);
+}
+
+async function addBotsIfNeeded(){
+  if(!G.isHost) return;
+  const snap=await G.roomRef.child('players').once('value');
+  const players=Object.values(snap.val()||{});
+  const realHumans=players.filter(p=>!p.isBot&&!p.isSpec);
+  const existingBots=players.filter(p=>p.isBot);
+  const mp=((await G.roomRef.child('config/maxPlayers').once('value')).val())||10;
+
+  // Remove any old bots first (clean slate)
+  for(const b of existingBots){
+    await G.roomRef.child('players').child(b.id).remove();
+  }
+
+  // Fill: target is min(maxP, realHumans + 5 bots max)
+  const targetTotal=Math.min(mp, realHumans.length + 5);
+  const botsNeeded=Math.max(0, targetTotal - realHumans.length);
+
+  if(botsNeeded===0) return;
+
+  const shuffledNames=[...BOT_NAMES].sort(()=>Math.random()-.5);
+  const botUpdates={};
+  for(let i=0;i<botsNeeded;i++){
+    const bid='bot_'+Date.now()+'_'+i;
+    botUpdates[bid]={
+      id:bid,
+      name:shuffledNames[i%shuffledNames.length]||'لاعب'+(i+1),
+      avatar:BOT_AVATARS[Math.floor(Math.random()*BOT_AVATARS.length)],
+      score:1000,lives:3,
+      isHost:false,isSpec:false,isBot:true,
+      joinedAt:Date.now()+i
+    };
+  }
+  await G.roomRef.child('players').update(botUpdates);
+  G.botsAdded=true;
+}
+
+async function simulateBotAnswers(q,active,qTime){
+  if(!G.isHost) return;
+  const bots=active.filter(p=>p.isBot);
+  if(!bots.length) return;
+
+  // Get human score for adaptive difficulty
+  const humanSnap=await G.roomRef.child('players').child(G.pid).once('value');
+  const humanScore=humanSnap.val()?.score||1000;
+  const acc=botAccuracy(humanScore);
+
+  for(const bot of bots){
+    const delay=botAnswerTime(qTime)*1000;
+    setTimeout(()=>{
+      let answer;
+      const correct=Math.random()<acc;
+
+      if(q.type==='tf'){
+        answer=correct?q.answer:!q.answer;
+      }else if(q.type==='fill'){
+        answer=correct?(q.answer||''):['غير معروف','لا أعلم','—'][Math.floor(Math.random()*3)];
+      }else{
+        if(correct){
+          answer=q.correct;
+        }else{
+          // Pick wrong answer
+          const opts=(q.options||[]).map((_,i)=>i).filter(i=>i!==q.correct);
+          answer=opts[Math.floor(Math.random()*opts.length)]??0;
+        }
+      }
+
+      G.gameRef.child('answers').child(bot.id).set({
+        answer,
+        timeLeft:Math.max(1,qTime-Math.floor(delay/1000))
+      });
+    },delay);
+  }
+}
+
+
+
 
 // ══ REVEAL ══
 function revealAns(g){
@@ -2072,9 +2030,9 @@ function revealAns(g){
 
   const myPts=g.roundScores?.[G.pid]||0;
   const el=document.getElementById('gq-res');
-  if(myPts>0){SFX.correct();el.textContent=`إجابة صحيحة! +${myPts} نقطة`;el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(16,185,129,.12);color:var(--green)';}
-  else if(myPts<0){SFX.wrong();el.textContent=`خسرت ${Math.abs(myPts)} نقطة من الرهان`;el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(239,68,68,.1);color:var(--red)';}
-  else{el.textContent=!G.answered?'لم تُجب — 0 نقطة':'إجابة خاطئة — 0 نقطة';el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(100,100,150,.1);color:var(--muted)';}
+  if(myPts>0){SFX.play('correct');el.textContent=`إجابة صحيحة! +${myPts} نقطة`;el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(16,185,129,.12);color:var(--green)';}
+  else if(myPts<0){SFX.play('wrong');el.textContent=`خسرت ${Math.abs(myPts)} نقطة من الرهان`;el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(239,68,68,.1);color:var(--red)';}
+  else{SFX.play('wrong');el.textContent=!G.answered?'لم تُجب — 0 نقطة':'إجابة خاطئة — 0 نقطة';el.style.cssText='font-size:15px;font-weight:800;padding:10px 20px;border-radius:12px;display:inline-block;margin-top:8px;background:rgba(100,100,150,.1);color:var(--muted)';}
 }
 
 function showBtw(g){
@@ -2141,7 +2099,7 @@ function updateAnsweredPips(count,total){
 }
 
 function showResults(){
-  goS('results');spawnConf();SFX.win();
+  goS('results');spawnConf();SFX.play('win');
   G.roomRef.child('players').once('value',snap=>{
     const all=Object.values(snap.val()||{}).filter(p=>!p.isSpec);
     const humans=all.filter(p=>!p.isBot).sort((a,b)=>b.score-a.score);
@@ -2183,9 +2141,6 @@ function playAgain(){if(G.isHost) openCreate();else goS('home');}
 
 // ══ LEAVE ══
 function leaveRoom(){
-  clearInterval(_botCdInt);
-  clearTimeout(G._autoStart);
-  G._botCdStarted=false;
   if(G.roomRef&&G.pid) G.roomRef.child('players').child(G.pid).remove();
   if(G.isHost&&G.roomRef) G.roomRef.child('status').set('cancelled');
   cleanL();G.roomCode=null;G.isHost=false;G.roomRef=null;G.gameRef=null;G.isSpec=false;
@@ -2260,33 +2215,11 @@ function checkURL(){
 }
 
 // ══ BOOT ══
-function bootApp(){
-  if (!initFirebase()) return;
-  updateMuteBtn();
+document.addEventListener('DOMContentLoaded',()=>{
   loadStats();
   loadSysRooms();
   ensureSystemRooms();
   checkURL();
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  // Wait briefly to ensure Firebase SDK scripts are fully loaded
-  if (typeof firebase !== 'undefined') {
-    bootApp();
-  } else {
-    // Retry up to 3 seconds
-    let attempts = 0;
-    const retry = setInterval(()=>{
-      attempts++;
-      if (typeof firebase !== 'undefined') {
-        clearInterval(retry);
-        bootApp();
-      } else if (attempts > 30) {
-        clearInterval(retry);
-        showFirebaseError();
-      }
-    }, 100);
-  }
 });
 </script>
 </body>
